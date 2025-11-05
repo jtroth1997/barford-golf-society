@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barford Golf Society | Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Hero slideshow */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 70vh;
+      min-height: 420px;
+      overflow: hidden;
+      background: #003b1a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-slide {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+    }
+    .hero-slide.active { opacity: 1; }
+    .hero-overlay {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 40px 20px;
+      background: rgba(0,0,0,0.45);
+      border-radius: 16px;
+    }
+    .hero h2 { font-size: 2.6rem; margin-bottom: 10px; color: #fff; }
+    .hero p { font-size: 1.15rem; margin-bottom: 25px; color: #f7f7f7; }
+    .btn-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn { background:#d4af37; color:#1b1b1b; border:none; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer; text-decoration:none; }
+    .btn.alt { background:#005a2b; color:#fff; }
+    .btn:hover { filter:brightness(1.08); }
+
+    /* Sections */
+    .split { display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:stretch; }
+    .card {
+      background:#fff; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.08);
+      padding:20px;
+    }
+    .section-title { color:#005a2b; margin:0 0 12px; font-size:1.5rem; }
+    .muted { color:#555; }
+
+    .event-list { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .event { padding:14px; border:1px solid #eee; border-radius:10px; }
+    .event h5 { margin:0 0 6px; color:#005a2b; }
+    .event p { margin:4px 0; color:#555; font-size:0.95rem; }
+
+    .strip { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+    .strip img { width:100%; height:120px; object-fit:cover; border-radius:8px; }
+
+    .highlights { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .highlights .card { text-align:center; }
+    .highlights h4 { margin:8px 0; color:#005a2b; }
+    .highlights p { margin:0; color:#555; font-size:0.95rem; }
+
+    @media (max-width:900px){
+      .split{grid-template-columns:1fr;}
+      .hero h2{font-size:2rem;}
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <h1 class="site-title">Barford Golf Society</h1>
+      <nav class="site-nav">
+        <ul>
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="scores.html">Scores</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO SLIDESHOW -->
+  <section class="hero" id="heroSlideshow">
+    <div class="hero-overlay">
+      <h2>Welcome to Barford Golf Society</h2>
+      <p>Great golf. Great company. Season-long competition across fantastic courses.</p>
+      <div class="btn-row">
+        <a class="btn" href="events.html">View Events</a>
+        <a class="btn alt" href="scores.html">Enter Scores</a>
+        <a class="btn" href="gallery.html">Member Gallery</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="container">
+    <div class="split">
+      <div class="card next-event" id="nextEventCard">
+        <h3 class="section-title">Next Event</h3>
+        <p class="muted" id="nextEventEmpty">No events yet. Head to the Events page to add one.</p>
+        <div id="nextEventContent" style="display:none">
+          <h4 id="neName"></h4>
+          <p><strong>Date:</strong> <span id="neDate"></span></p>
+          <p><strong>Location:</strong> <span id="neLoc"></span></p>
+          <p><strong>Price:</strong> <span id="nePrice"></span></p>
+          <a class="btn" href="events.html">RSVP Now</a>
+        </div>
+        <hr style="margin:18px 0; border:none; border-top:1px solid #eee;">
+        <h4 class="section-title" style="font-size:1.2rem">Upcoming</h4>
+        <div id="upcomingList" class="event-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Latest Photos</h3>
+        <p class="muted" id="galleryEmpty">No photos yet. Be the first to upload on the Gallery page.</p>
+        <div class="strip" id="latestStrip"></div>
+        <div class="btn-row" style="justify-content:flex-start; margin-top:10px;">
+          <a class="btn" href="gallery.html">Open Gallery</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <h3 class="section-title" style="text-align:center;">Society Highlights</h3>
+    <div class="highlights">
+      <div class="card"><h4>Monthly Meets</h4><p>Regular fixtures across local favourites and hidden gems.</p></div>
+      <div class="card"><h4>Fair, Fun Formats</h4><p>Handicap-adjusted competitions so everyone’s in the mix.</p></div>
+      <div class="card"><h4>Live Scoring</h4><p>Enter points and track standings with the built-in calculator.</p></div>
+      <div class="card"><h4>Community</h4><p>Friendly group, new members always welcome.</p></div>
+    </div>
+  </section>
+
+  <footer><p>© 2025 Barford Golf Society</p></footer>
+
+  <script>
+    // EVENTS PREVIEW
+    const events = JSON.parse(localStorage.getItem('bgsEvents') || '[]');
+    const toDate = d => d ? new Date(d) : null;
+    const isFuture = d => d && d >= new Date().setHours(0,0,0,0);
+    const formatDate = d => d ? d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}) : '';
+    const byDate = [...events].sort((a,b)=>toDate(a.date)-toDate(b.date));
+    const future = byDate.filter(e=>isFuture(toDate(e.date)));
+    if(future.length){
+      document.getElementById('nextEventEmpty').style.display='none';
+      document.getElementById('nextEventContent').style.display='block';
+      const ne=future[0];
+      neName.textContent=ne.name;
+      neLoc.textContent=ne.location;
+      neDate.textContent=formatDate(toDate(ne.date));
+      nePrice.textContent=ne.price?`£${ne.price}`:'TBC';
+      upcomingList.innerHTML=future.slice(0,3).map(e=>`
+        <div class="event">
+          <h5>${e.name}</h5>
+          <p>${formatDate(toDate(e.date))}</p>
+          <p>${e.location}</p>
+          <p>${e.price?`£${e.price}`:'TBC'}</p>
+        </div>`).join('');
+    }
+
+    // GALLERY PREVIEW
+    const uploads = JSON.parse(localStorage.getItem('bgsGalleryUploads')||'[]');
+    const approved = uploads.filter(p=>p.approved);
+    const galleryEmpty=document.getElementById('galleryEmpty');
+    const latestStrip=document.getElementById('latestStrip');
+    if(approved.length){
+      galleryEmpty.style.display='none';
+      const last8=approved.slice(-8).reverse();
+      latestStrip.innerHTML=last8.map(p=>`<img src="${p.url}" alt="">`).join('');
+    }
+
+    // HERO SLIDESHOW
+    const hero=document.getElementById('heroSlideshow');
+    const approvedPhotos=approved.length?approved:[]; 
+    const slides=approvedPhotos.length?approvedPhotos.map(p=>p.url):['images/default-banner.jpg'];
+    slides.forEach((src,i)=>{
+      const div=document.createElement('div');
+      div.className='hero-slide'+(i===0?' active':'');
+      div.style.backgroundImage=`url('${src}')`;
+      hero.appendChild(div);
+    });
+    let index=0;
+    setInterval(()=>{
+      const all=document.querySelectorAll('.hero-slide');
+      if(!all.length)return;
+      all[index].classList.remove('active');
+      index=(index+1)%all.length;
+      all[index].classList.add('active');
+    },5000);
+  </script>
+</body>
+</html>
+
