@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"; // 🔑 Replace this with your real anon key
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"; // 🔑 Replace with your real anon key
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   </script>
 
@@ -315,7 +315,13 @@
     let unlocked = false;
     let currentRound = 1;
     const maxRounds = 7;
-    let players = [];
+    let players = [
+"Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver","John Hawkes","Mike Cook","Colin Oliver",
+"Gary Moyce","David Jordan","Nick Benbow","Simon Morgan","Wes Lacey","Chris Oliver","Burt Pickering","Chris Harris",
+"Derek Lewis","Liz Oliver","Jack Moyce-Troth","Lucie Byerley","David Pritchard","Robert Pocknell","John Close","Nick Wright",
+"Matt Oliver","Vince Hall","Elliot Hobbs","Will Hunt","Martc Taylor","Simon Meade","Emma Saywell","Cam Tolley",
+"John Blackwell","Bekim","Zac Lovell","Clive Irwin"
+];
     let playerScores = {};
     let currentHcp = {};
     let nextHcp = {};
@@ -352,20 +358,42 @@
       return false;
     }
 
+    async function preloadPlayersIfEmpty() {
+      const { data, error } = await supabase.from('scores').select('id').limit(1);
+      if (!error && (!data || data.length === 0)) {
+        const preloadRows = players.map(name => ({
+          player: name,
+          round: 1,
+          points: 0,
+          handicap: 0,
+          next_handicap: 0,
+          adj: "",
+          total: 0,
+          dnp: false,
+          date: new Date().toISOString()
+        }));
+        await supabase.from('scores').insert(preloadRows);
+        console.log("✅ Preloaded 36 players into Supabase");
+      }
+    }
+
     async function loadData() {
+      await preloadPlayersIfEmpty();
       const { data, error } = await supabase.from('scores').select('*');
       if (error) return console.error("Load error:", error);
-      players = [...new Set(data.map(row => row.player))];
-      playerScores = {};
+      const grouped = {};
+      data.forEach(r => {
+        if (!grouped[r.player]) grouped[r.player] = [];
+        grouped[r.player][r.round - 1] = r.points;
+      });
+      playerScores = grouped;
       currentHcp = {};
       nextHcp = {};
       lastAdj = {};
-      data.forEach(row => {
-        if (!playerScores[row.player]) playerScores[row.player] = Array(maxRounds).fill(null);
-        playerScores[row.player][row.round - 1] = row.points;
-        currentHcp[row.player] = row.handicap || 0;
-        nextHcp[row.player] = row.next_handicap || 0;
-        lastAdj[row.player] = row.adj || "";
+      data.forEach(r => {
+        currentHcp[r.player] = r.handicap || 0;
+        nextHcp[r.player] = r.next_handicap || 0;
+        lastAdj[r.player] = r.adj || "";
       });
       renderLeaderboard();
     }
@@ -376,12 +404,15 @@
         for (let r = 1; r <= maxRounds; r++) {
           const pts = playerScores[player]?.[r - 1];
           if (pts != null) rows.push({
-            player, round: r, points: pts,
+            player,
+            round: r,
+            points: pts,
             handicap: currentHcp[player] || 0,
             next_handicap: nextHcp[player] || 0,
             adj: lastAdj[player] || "",
             total: calculateTotals().find(p => p.name === player)?.total || 0,
-            dnp: pts == null, date: new Date().toISOString()
+            dnp: pts == null,
+            date: new Date().toISOString()
           });
         }
       }
@@ -389,9 +420,9 @@
       localStorage.setItem('golfScores', JSON.stringify(rows));
     }
 
-    supabase.channel('any')
+    supabase.channel('realtime_scores')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, payload => {
-        console.log("📡 LIVE UPDATE RECEIVED:", payload);
+        console.log("📡 LIVE UPDATE:", payload);
         loadData();
       }).subscribe();
 
@@ -415,10 +446,10 @@
 
     function updateLeaderboard() {
       const totals = calculateTotals();
+      const lb = document.getElementById('leaderboard');
       if (totals.length)
-        document.getElementById('leaderboard').textContent =
-          `🏆 Leader: ${totals[0].name} — ${totals[0].total} pts | Round ${currentRound} of ${maxRounds}`;
-      else document.getElementById('leaderboard').textContent = "🏌️ Leaderboard loading...";
+        lb.textContent = `🏆 Leader: ${totals[0].name} — ${totals[0].total} pts | Round ${currentRound} of ${maxRounds}`;
+      else lb.textContent = "🏌️ Leaderboard loading...";
     }
 
     function renderLeaderboard() {
@@ -472,8 +503,7 @@
       if (!name) return;
       players.push(name);
       playerScores[name] = Array(maxRounds).fill(null);
-      currentHcp[name] = 0; nextHcp[name] = 0; lastAdj
-      [name] = "";
+      currentHcp[name] = 0; nextHcp[name] = 0; lastAdj[name] = "";
       await saveData();
       renderLeaderboard();
     }
@@ -521,7 +551,7 @@
       alert("Password changed (note: this only changes locally in code).");
     }
 
-    // Start app
+    // 🚀 Start app
     loadData();
   </script>
 </body>
