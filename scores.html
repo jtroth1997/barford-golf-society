@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scores & Handicap Calculator | Barford Golf Society</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
   <style>
     :root {
       --green: #005a2b;
@@ -14,6 +13,8 @@
       --dark-bg: #1e1e1e;
       --dark-card: #2a2a2a;
       --text-light: #f7f7f5;
+      --grey: #d9d9d9;
+      --soft-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
     body {
@@ -76,8 +77,6 @@
       font-weight: 700;
       padding: 10px;
       border-bottom: 2px solid var(--green);
-      position: relative;
-      z-index: 2;
     }
 
     .scores-container {
@@ -85,10 +84,10 @@
       margin: 30px auto;
       background: #ffffff;
       border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      box-shadow: var(--soft-shadow);
       overflow: hidden;
-      transition: background 0.4s, color 0.4s;
       position: relative;
+      transition: background 0.4s, color 0.4s;
     }
 
     body.dark-mode .scores-container {
@@ -106,14 +105,15 @@
       font-weight: 700;
     }
 
+    /* ====== TOPBAR BUTTONS ====== */
     .topbar {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 8px;
-      padding: 16px;
+      gap: 10px;
+      padding: 15px;
       background: #fff;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      box-shadow: var(--soft-shadow);
       position: sticky;
       top: 0;
       z-index: 10;
@@ -137,8 +137,9 @@
       outline: none;
     }
 
+    /* BUTTONS GROUPED BY FUNCTION */
     .btn {
-      padding: 8px 12px;
+      padding: 8px 14px;
       border: none;
       border-radius: 8px;
       font-weight: 600;
@@ -149,28 +150,49 @@
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     }
 
-    .btn-unlock { background: var(--gold); color: #1b1b1b; }
-    .btn-lock { background: var(--green); color: #fff; }
-    .btn-calc { background: #ffcc00; color: #1b1b1b; }
-    .btn-next, .btn-prev { background: #ddd; color: #1b1b1b; }
-    .btn-reset { background: #b22222; color: #fff; }
-    .btn-add { background: #c0c0c0; color: #1b1b1b; }
-    .btn-pass { background: #cd7f32; color: #fff; }
-    .btn-download { background: var(--green); color: var(--gold); }
-    .btn-theme { background: none; border: 1px solid var(--gold); color: var(--gold); }
+    .btn-unlock, .btn-lock {
+      background: var(--gold);
+      color: #1b1b1b;
+    }
 
-    main { padding: 20px; }
+    .btn-calc, .btn-add {
+      background: var(--green);
+      color: var(--gold);
+    }
+
+    .btn-prev, .btn-next {
+      background: var(--grey);
+      color: #1b1b1b;
+    }
+
+    .btn-download, .btn-theme {
+      background: #2a2a2a;
+      color: var(--gold);
+    }
+
+    .btn-theme {
+      border: 1px solid var(--gold);
+    }
+
+    .btn-download:hover {
+      background: var(--green);
+      color: var(--gold);
+    }
+
+    /* ===== TABLE STYLING ===== */
+    main { padding: 20px; overflow-x: auto; }
 
     table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
       border-radius: 12px;
-      overflow-x: auto;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      overflow: hidden;
+      box-shadow: var(--soft-shadow);
+      min-width: 800px;
     }
 
     body.dark-mode table {
@@ -183,7 +205,6 @@
       padding: 12px;
       text-align: center;
       border-bottom: 1px solid #f1f1f1;
-      white-space: nowrap;
     }
 
     th {
@@ -204,48 +225,39 @@
       margin-top: 40px;
     }
 
-    /* Stronger Blur Overlay for Rounds 6 & 7 */
-    #blurOverlay {
+    /* ===== BLUR OVERLAY ===== */
+    .blur-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      height: calc(100% - 10px);
-      backdrop-filter: blur(16px);
-      background: rgba(255, 255, 255, 0.85);
-      color: var(--green);
+      height: 100%;
+      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,0.45);
+      color: #fff;
       display: none;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 1.5rem;
+      font-weight: 600;
+      z-index: 5;
       text-align: center;
-      z-index: 20;
-      opacity: 0;
-      pointer-events: none;
+      padding: 30px;
+      border-radius: 12px;
       transition: opacity 0.5s ease;
     }
 
-    #blurOverlay.active {
+    .blur-overlay.active {
       display: flex;
       opacity: 1;
       pointer-events: all;
     }
 
     @media (max-width: 768px) {
-      table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
-      th, td {
-        padding: 10px 6px;
-      }
-      .topbar {
-        flex-direction: column;
-        align-items: center;
-      }
+      .btn { font-size: 0.8rem; padding: 8px 10px; }
+      .topbar { gap: 6px; }
+      th, td { padding: 8px; font-size: 0.9rem; }
+      table { min-width: 650px; }
     }
   </style>
 </head>
@@ -266,9 +278,8 @@
 
   <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
 
-  <div class="scores-container" id="scoresContainer">
-    <div id="blurOverlay">🔒 Scores hidden until unlocked</div>
-
+  <div class="scores-container">
+    <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked.</div>
     <header class="calc-header">Golf Society Handicap Calculator</header>
     <div class="topbar">
       <input type="password" id="pwInput" placeholder="Enter password">
@@ -276,7 +287,7 @@
       <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
       <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
       <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
-      <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
+      <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
@@ -322,163 +333,139 @@
   let unlocked = false;
   let playersData = [];
 
-  // Load players from Supabase
+  /* ---------- Load players from Supabase ---------- */
   async function loadPlayers() {
-    const { data, error } = await supabase.from("scores").select("*").order("id", { ascending: true });
-    if (error) {
-      console.error("Error loading data:", error);
-      return;
-    }
+    const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
+    if(error){console.error("Load error:",error);return;}
     playersData = data || [];
     renderLeaderboard();
   }
 
-  async function savePlayerData(player) {
-    const { error } = await supabase.from("scores").update(player).eq("id", player.id);
-    if (error) console.error("Save error:", error);
+  async function savePlayerData(p){
+    const { error } = await supabase.from("scores").update(p).eq("id",p.id);
+    if(error)console.error("Save error:",error);
   }
 
-  function toggleTheme() {
+  function toggleTheme(){
     document.body.classList.toggle("dark-mode");
-    localStorage.setItem("bgsTheme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
   }
-  if (localStorage.getItem("bgsTheme") === "dark") document.body.classList.add("dark-mode");
+  if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-  function stablefordAdj(pts) {
-    if (pts >= 43) return -3;
-    if (pts >= 38) return -2;
-    if (pts >= 31) return -1;
-    if (pts >= 26) return 0;
-    if (pts >= 21) return +1;
-    if (pts >= 16) return +2;
+  function stablefordAdj(pts){
+    if(pts>=43)return -3;
+    if(pts>=38)return -2;
+    if(pts>=31)return -1;
+    if(pts>=26)return 0;
+    if(pts>=21)return +1;
+    if(pts>=16)return +2;
     return +3;
   }
 
-  function unlockInputs() {
-    const pw = document.getElementById("pwInput").value;
-    if (pw !== PASSWORD) return alert("Incorrect password!");
-    unlocked = true;
-    alert("✅ Scores unlocked");
-    renderLeaderboard();
+  /* ---------- Lock / Unlock ---------- */
+  function unlockInputs(){
+    const pw=document.getElementById("pwInput").value;
+    if(pw!==PASSWORD)return alert("Incorrect password!");
+    unlocked=true;alert("✅ Scores unlocked");renderLeaderboard();
+  }
+  function lockInputs(){unlocked=false;alert("🔒 Scores locked");renderLeaderboard();}
+
+  /* ---------- Blur Overlay ---------- */
+  function showBlurOverlay(show){
+    const overlay=document.getElementById("blurOverlay");
+    if(show){overlay.classList.add("active");overlay.style.display="flex";}
+    else{overlay.classList.remove("active");setTimeout(()=>overlay.style.display="none",400);}
   }
 
-  function lockInputs() {
-    unlocked = false;
-    alert("🔒 Scores locked");
-    renderLeaderboard();
-  }
-
-  function showBlurOverlay(show) {
-    const overlay = document.getElementById("blurOverlay");
-    if (show) {
-      overlay.classList.add("active");
-    } else {
-      overlay.classList.remove("active");
-      setTimeout(() => (overlay.style.display = "none"), 400);
-    }
-  }
-
-  function calculateTotals() {
-    return playersData.map(p => {
-      const scores = [];
-      for (let r = 1; r <= maxRounds; r++) {
-        const pts = p[`round_${r}_points`] || (r === p.round ? p.points : 0);
-        if (pts) scores.push(pts);
+  /* ---------- Calculate Totals ---------- */
+  function calculateTotals(){
+    return playersData.map(p=>{
+      const scores=[];
+      for(let r=1;r<=maxRounds;r++){
+        const val=p[`round_${r}_points`]||0;
+        if(val)scores.push(val);
       }
-      const total = scores.sort((a, b) => b - a).slice(0, 5).reduce((a, b) => a + b, 0);
-      return { id: p.id, name: p.player, total };
-    }).sort((a, b) => b.total - a.total);
+      const total=scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+      return{id:p.id,name:p.player,total};
+    }).sort((a,b)=>b.total-a.total);
   }
 
-  async function calculateHandicaps() {
-    if (!unlocked) return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+  /* ---------- Handicap Calculation ---------- */
+  async function calculateHandicaps(){
+    if(!unlocked)return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+    const valid=playersData.filter(p=>!isNaN(parseInt(document.getElementById(`points_${p.id}`).value)));
+    const topScore=valid.length?Math.max(...valid.map(p=>parseInt(document.getElementById(`points_${p.id}`).value))):null;
 
-    const valid = playersData.filter(p => p.points !== null);
-    const topScore = valid.length ? Math.max(...valid.map(p => p.points)) : null;
-
-    for (const p of playersData) {
-      const pts = parseInt(document.getElementById(`points_${p.id}`).value);
-      if (isNaN(pts)) continue;
-      p.points = pts;
-      let adj = stablefordAdj(pts);
-      if (topScore !== null && pts === topScore) adj -= 1;
-      const newH = Math.max(0, Math.round((p.handicap || 0) + adj));
-      p.adj = adj;
-      p.next_handicap = newH;
+    for(const p of playersData){
+      const pts=parseInt(document.getElementById(`points_${p.id}`).value);
+      if(isNaN(pts))continue;
+      let adj=stablefordAdj(pts);
+      if(topScore!==null&&pts===topScore)adj-=1;
+      const newH=Math.max(0,Math.round((p.handicap||0)+adj));
+      p.points=pts;p.adj=adj;p.next_handicap=newH;
       await savePlayerData(p);
     }
-
     loadPlayers();
   }
 
-  async function addPlayer() {
-    if (!unlocked) return alert("Enter password first!");
-    const name = prompt("Enter new player name:");
-    if (!name) return;
-    const newPlayer = {
-      player: name,
-      round: 1,
-      points: 0,
-      handicap: 0,
-      next_handicap: 0,
-      adj: 0,
-      total: 0,
-      dnp: false,
-      date: new Date().toISOString()
-    };
-    const { error } = await supabase.from("scores").insert([newPlayer]);
-    if (error) alert("Error adding player: " + error.message);
-    else loadPlayers();
+  /* ---------- Add Player ---------- */
+  async function addPlayer(){
+    if(!unlocked)return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+    const name=prompt("Enter new player name:");if(!name)return;
+    const newP={player:name,round:1,points:0,handicap:0,next_handicap:0,adj:0,total:0,dnp:false,date:new Date().toISOString()};
+    const { error }=await supabase.from("scores").insert([newP]);
+    if(error)alert("Error: "+error.message);else loadPlayers();
   }
 
-  function nextRound() {
-    if (currentRound < maxRounds) currentRound++;
-    renderLeaderboard();
-  }
+  /* ---------- Rounds Navigation ---------- */
+  function nextRound(){if(currentRound<maxRounds)currentRound++;renderLeaderboard();}
+  function prevRound(){if(currentRound>1)currentRound--;renderLeaderboard();}
 
-  function prevRound() {
-    if (currentRound > 1) currentRound--;
-    renderLeaderboard();
-  }
-
-  function updateLeaderboard() {
-    const totals = calculateTotals();
-    if (totals.length && currentRound < 6) {
-      const leader = totals[0];
-      document.getElementById("leaderboard").textContent = `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
-    } else if (currentRound >= 6 && !unlocked) {
-      document.getElementById("leaderboard").textContent = "🔒 Scores hidden until unlocked";
-    } else if (currentRound >= 6 && unlocked) {
-      const leader = calculateTotals()[0];
-      document.getElementById("leaderboard").textContent = `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
+  /* ---------- CSV Download ---------- */
+  function downloadCsv(){
+    let csv="Player,Total(Best5),Round,Points,Current HCP,Next HCP\n";
+    for(const p of playersData){
+      csv+=`${p.player},${p.total||0},${currentRound},${p.points||""},${p.handicap||0},${p.next_handicap||0}\n`;
     }
+    const blob=new Blob([csv],{type:"text/csv"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="BarfordGolfScores.csv";a.click();
   }
 
-  function renderLeaderboard() {
-    const tbody = document.getElementById("playersTable");
-    tbody.innerHTML = "";
+  /* ---------- Update & Render ---------- */
+  function updateLeaderboard(){
+    const totals=calculateTotals();
+    const banner=document.getElementById("leaderboard");
+    if(currentRound>=6&&!unlocked){banner.textContent="🔒 Scores hidden until unlocked";}
+    else if(totals.length){const leader=totals[0];banner.textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;}
+    else{banner.textContent="🏌️ Leaderboard loading...";}
+  }
 
-    document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
-    document.getElementById("hcpHeader").textContent = `Round ${currentRound} HCP`;
+  function renderLeaderboard(){
+    const tbody=document.getElementById("playersTable");
+    tbody.innerHTML="";
+    document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
+    document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
+    const blur=(currentRound>=6&&!unlocked);showBlurOverlay(blur);
 
-    const blur = (currentRound >= 6 && !unlocked);
-    showBlurOverlay(blur);
-
-    playersData.forEach((p, rank) => {
-      const tr = document.createElement("tr");
-      const editable = unlocked && currentRound === 1;
-      tr.innerHTML = `
-        <td>${rank + 1 <= 3 ? ["🥇","🥈","🥉"][rank] : rank + 1}</td>
+    playersData.forEach((p,rank)=>{
+      const editableHcp=unlocked&&currentRound===1;
+      const tr=document.createElement("tr");
+      const roundHcp=currentRound===1?(p.handicap||0):(p.next_handicap||p.handicap||0);
+      const showAdj=(currentRound===1)?(p.adj||""):"";
+      const showNext=(currentRound===1)?(p.next_handicap||""):"";
+      tr.innerHTML=`
+        <td>${rank+1<=3?["🥇","🥈","🥉"][rank]:rank+1}</td>
         <td>${p.player}</td>
-        <td><input type="number" id="hcp_${p.id}" value="${p.handicap || 0}" ${editable ? "" : "disabled"}></td>
-        <td><input type="number" id="points_${p.id}" value="${p.points || ""}" ${unlocked ? "" : "disabled"}></td>
-        <td>${p.adj || ""}</td>
-        <td>${p.next_handicap || ""}</td>
-        <td>${p.total || 0}</td>
-        <td><input type="checkbox" disabled ${p.dnp ? "checked" : ""}></td>`;
+        <td><input type="number" id="hcp_${p.id}" value="${roundHcp}" ${editableHcp?"":"disabled"}></td>
+        <td><input type="number" id="points_${p.id}" value="${p.points||""}" ${unlocked?"":"disabled"}></td>
+        <td>${showAdj}</td>
+        <td>${showNext}</td>
+        <td>${p.total||0}</td>
+        <td><input type="checkbox" disabled ${p.dnp?"checked":""}></td>`;
       tbody.appendChild(tr);
     });
-
     updateLeaderboard();
   }
 
