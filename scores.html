@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; // 🔑 Replace this with your real anon key
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   </script>
 
@@ -185,6 +185,7 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.1);
       display: block;
       white-space: nowrap;
+      min-width: 700px;
     }
 
     body.dark-mode table {
@@ -217,13 +218,15 @@
       margin-top: 40px;
     }
 
-    /* ✅ Mobile view fixes */
     @media (max-width: 768px) {
-      .header-container, .topbar {
+      .header-container,
+      .topbar {
         flex-direction: column;
+        align-items: stretch;
       }
       .btn {
         width: 100%;
+        margin-bottom: 6px;
       }
       table {
         font-size: 0.85rem;
@@ -260,7 +263,7 @@
       <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
       <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
       <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
-      <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
+      <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
       <button class="btn btn-reset" id="resetBtn" style="display:none" onclick="confirmReset()">Reset League</button>
@@ -276,7 +279,7 @@
         <table>
           <thead>
             <tr>
-              <th>Rank</th>
+              <th>Rank</</th>
               <th>Player</th>
               <th id="hcpHeader">Round 1 HCP</th>
               <th>Points</th>
@@ -297,290 +300,234 @@
   </footer>
 
   <script>
-  let PASSWORD = localStorage.getItem("golfPassword") || "westbrom1997";
-  const maxRounds = 7;
-  let currentRound = 1;
+  const PASSWORD = "westbrom1997";
   let unlocked = false;
+  let currentRound = 1;
+  const maxRounds = 7;
   let players = [];
-  let currentHcp = [];
-  let nextHcp = [];
-  let playerScores = [];
-  let lastAdj = [];
+  let playerScores = {};
+  let currentHcp = {};
+  let nextHcp = {};
+  let lastAdj = {};
 
-  /* ====== Theme handling ====== */
-  function toggleTheme(){
+  // 🧩 Load saved theme
+  if (localStorage.getItem('bgsTheme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+
+  function toggleTheme() {
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('bgsTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
   }
-  if(localStorage.getItem('bgsTheme') === 'dark') document.body.classList.add('dark-mode');
 
-  /* ====== Supabase Load / Save ====== */
-  async function loadFromSupabase() {
-    try {
-      const { data, error } = await supabase.from('scores').select('*');
-      if (error) throw error;
+  // 🧩 Password lock / unlock
+  function unlockInputs() {
+    const pw = document.getElementById("pwInput").value;
+    if (pw !== PASSWORD) {
+      alert("Incorrect password!");
+      return;
+    }
+    unlocked = true;
+    alert("✅ Scores unlocked!");
+    renderLeaderboard();
+  }
 
-      if (data && data.length > 0) {
-        players = [];
-        currentHcp = [];
-        nextHcp = [];
-        playerScores = [];
-        lastAdj = [];
+  function lockInputs() {
+    unlocked = false;
+    alert("🔒 Scores locked again.");
+    renderLeaderboard();
+  }
 
-        data.forEach(row => {
-          if (!players.includes(row.player)) players.push(row.player);
-        });
+  // 🧩 Cheeky popup when editing while locked
+  function tryEditBlocked() {
+    if (!unlocked) {
+      alert("⛔ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+      return true;
+    }
+    return false;
+  }
 
-        players.forEach(() => {
-          currentHcp.push(0);
-          nextHcp.push(null);
-          playerScores.push(Array(maxRounds).fill(null));
-          lastAdj.push("");
-        });
+  // 🧩 Supabase data load
+  async function loadData() {
+    const { data, error } = await supabase.from('scores').select('*');
+    if (error) {
+      console.error("Load error:", error);
+      return;
+    }
+    players = [...new Set(data.map(row => row.player))];
+    playerScores = {};
+    currentHcp = {};
+    nextHcp = {};
+    lastAdj = {};
 
-        data.forEach(row => {
-          const i = players.indexOf(row.player);
-          if (i >= 0 && row.round <= maxRounds) {
-            playerScores[i][row.round - 1] = row.points;
-            currentHcp[i] = row.handicap ?? 0;
-            nextHcp[i] = row.next_handicap ?? null;
-            lastAdj[i] = row.adj ?? "";
-          }
-        });
+    data.forEach(row => {
+      if (!playerScores[row.player]) playerScores[row.player] = Array(maxRounds).fill(null);
+      playerScores[row.player][row.round - 1] = row.points;
+      currentHcp[row.player] = row.handicap || 0;
+      nextHcp[row.player] = row.next_handicap || 0;
+      lastAdj[row.player] = row.adj || "";
+    });
+
+    renderLeaderboard();
+  }
+
+  // 🧩 Save to Supabase + local
+  async function saveData() {
+    const rows = [];
+    for (const player of players) {
+      for (let r = 1; r <= maxRounds; r++) {
+        const pts = playerScores[player]?.[r - 1];
+        if (pts !== null && pts !== undefined) {
+          rows.push({
+            player,
+            round: r,
+            points: pts,
+            handicap: currentHcp[player] || 0,
+            next_handicap: nextHcp[player] || 0,
+            adj: lastAdj[player] || "",
+            total: calculateTotals().find(p => p.name === player)?.total || 0,
+            dnp: pts === null,
+            date: new Date().toISOString()
+          });
+        }
       }
-      saveData();
-      renderLeaderboard();
-    } catch (err) {
-      console.warn("⚠️ Could not load from Supabase:", err);
     }
+    await supabase.from('scores').upsert(rows);
+    localStorage.setItem('golfScores', JSON.stringify(rows));
   }
 
-  async function saveToSupabase(i) {
-    try {
-      const entry = {
-        player: players[i],
-        round: currentRound,
-        points: playerScores[i][currentRound - 1],
-        handicap: currentHcp[i],
-        next_handicap: nextHcp[i],
-        adj: lastAdj[i],
-        total: calculateTotals().find(p => p.name === players[i])?.total || 0,
-        dnp: playerScores[i][currentRound - 1] === null,
-        date: new Date().toISOString()
-      };
-      const { error } = await supabase.from('scores').upsert(entry, { onConflict: ['player','round'] });
-      if (error) console.warn("Supabase save error:", error.message);
-    } catch (err) {
-      console.warn("⚠️ Save to Supabase failed:", err);
-    }
-  }
-
-  /* ====== Local Storage backup ====== */
-  function saveData() {
-    localStorage.setItem("golfCalcData", JSON.stringify({ currentRound, currentHcp, nextHcp, playerScores, lastAdj, players }));
-  }
-  function loadLocalData() {
-    const raw = localStorage.getItem("golfCalcData");
-    if (!raw) return;
-    try {
-      const d = JSON.parse(raw);
-      players = d.players || players;
-      currentRound = d.currentRound ?? currentRound;
-      currentHcp = d.currentHcp ?? currentHcp;
-      nextHcp = d.nextHcp ?? nextHcp;
-      playerScores = d.playerScores ?? playerScores;
-      lastAdj = d.lastAdj ?? lastAdj;
-    } catch(e){}
-  }
-
-  /* ====== Real-time Updates ====== */
-  supabase
-    .channel('live-scores')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' },
-      async (payload) => {
-        console.log("📡 Live update received:", payload);
-        await loadFromSupabase();
-        renderLeaderboard();
-      })
+  // 🧩 Realtime sync
+  supabase.channel('any')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, payload => {
+      console.log("📡 LIVE UPDATE RECEIVED:", payload);
+      loadData();
+    })
     .subscribe();
 
-  /* ====== UI and logic ====== */
-  function updateLeaderboard(){
+  // 🧩 Calculate adjustments
+  function stablefordAdj(pts) {
+    if (pts >= 43) return -3;
+    if (pts >= 38) return -2;
+    if (pts >= 31) return -1;
+    if (pts >= 26) return 0;
+    if (pts >= 21) return +1;
+    if (pts >= 16) return +2;
+    return +3;
+  }
+
+  function calculateTotals() {
+    return players.map(name => {
+      const scores = playerScores[name]?.filter(v => v !== null) || [];
+      const total = scores.sort((a, b) => b - a).slice(0, 5).reduce((a, b) => a + b, 0);
+      return { name, total };
+    }).sort((a, b) => b.total - a.total);
+  }
+
+  function updateLeaderboard() {
     const totals = calculateTotals();
-    if(totals.length){
+    if (totals.length) {
       const leader = totals[0];
-      document.getElementById('leaderboard').textContent =
-        `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
+      document.getElementById('leaderboard').textContent = `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
     } else {
       document.getElementById('leaderboard').textContent = "🏌️ Leaderboard loading...";
     }
   }
 
-  function downloadCsv(){
-    let csv = "Player,Total (Best 5),Round,Points,Current HCP,Next HCP\n";
-    for(let i=0;i<players.length;i++){
-      csv += `${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total || 0},${currentRound},${playerScores[i][currentRound-1] || ""},${currentHcp[i]},${nextHcp[i] || ""}\n`;
-    }
-    const blob = new Blob([csv],{type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "BarfordGolfScores.csv";
-    a.click();
-  }
-
-  function addPlayer() {
-    const name = prompt("Enter new player name:");
-    if (!name) return;
-    players.push(name);
-    currentHcp.push(0);
-    nextHcp.push(null);
-    playerScores.push(Array(maxRounds).fill(null));
-    lastAdj.push("");
-    saveData();
-    renderLeaderboard();
-    saveToSupabase(players.length - 1); // auto sync new player
-  }
-
-  function changePassword() {
-    const oldPw = prompt("Enter current password:");
-    if (oldPw !== PASSWORD) return alert("Incorrect password!");
-    const newPw = prompt("Enter new password:");
-    if (!newPw) return;
-    PASSWORD = newPw;
-    localStorage.setItem("golfPassword", newPw);
-  }
-
-  function unlockInputs(){
-    const pw = document.getElementById("pwInput").value;
-    if (pw !== PASSWORD) return alert("Incorrect password!");
-    unlocked = true;
-    renderLeaderboard();
-  }
-  function lockInputs(){ unlocked = false; renderLeaderboard(); }
-
-  function stablefordAdj(pts){
-    if(pts>=43) return -3;
-    if(pts>=38) return -2;
-    if(pts>=31) return -1;
-    if(pts>=26) return 0;
-    if(pts>=21) return +1;
-    if(pts>=16) return +2;
-    return +3;
-  }
-
-  async function calculateHandicaps(){
-    if(!unlocked) return alert("Unlock first!");
-    const valid = [];
-    for(let i=0;i<players.length;i++){
-      const v = parseInt(document.getElementById(`points_${i}`).value);
-      if(!isNaN(v)) valid.push(v);
-    }
-    const top = valid.length? Math.max(...valid) : null;
-
-    for(let i=0;i<players.length;i++){
-      const hcpNow = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
-      const raw = document.getElementById(`points_${i}`).value.trim();
-      const pts = raw==="" ? NaN : parseInt(raw);
-      const adjCell = document.getElementById(`adj_${i}`);
-      const nxtCell = document.getElementById(`newHcp_${i}`);
-      const dnpBox  = document.getElementById(`dnp_${i}`);
-
-      if(isNaN(pts)){
-        playerScores[i][currentRound-1] = null;
-        dnpBox.checked = true;
-        lastAdj[i] = "";
-        adjCell.textContent = "";
-        nextHcp[i] = hcpNow;
-        nxtCell.textContent = hcpNow;
-        continue;
-      }
-
-      dnpBox.checked = false;
-      playerScores[i][currentRound-1] = pts;
-      let adj = stablefordAdj(pts);
-      if(top!==null && pts === top) adj -= 1;
-      lastAdj[i] = (adj>0?"+":"") + adj;
-      adjCell.textContent = lastAdj[i];
-      const newH = Math.max(0, Math.round(hcpNow + adj));
-      nextHcp[i] = newH;
-      nxtCell.textContent = newH;
-      await saveToSupabase(i);
-    }
-
-    renderLeaderboard();
-    saveData();
-  }
-
-  function calculateTotals() {
-    return players.map((name, i) => {
-      const scores = playerScores[i].filter(v=>v!==null);
-      const total = scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-      return { i, name, total };
-    }).sort((a,b)=>b.total - a.total);
-  }
-
-  function renderLeaderboard(){
+  // 🧩 Render
+  function renderLeaderboard() {
     const tbody = document.getElementById("playersTable");
     tbody.innerHTML = "";
     const totals = calculateTotals();
+
     totals.forEach((p, rank) => {
-      const scoreVal = playerScores[p.i][currentRound-1] ?? "";
-      const adj = lastAdj[p.i] || "";
-      const next = nextHcp[p.i]!==null?nextHcp[p.i]:"";
-      const dnp = scoreVal===""?"checked":"";
+      const player = p.name;
+      const scoreVal = playerScores[player]?.[currentRound - 1] ?? "";
+      const adj = lastAdj[player] || "";
+      const next = nextHcp[player] ?? "";
       const tr = document.createElement("tr");
+
       tr.innerHTML = `
-        <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
-        <td>${p.name}</td>
-        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${unlocked?"":"disabled"}></td>
-        <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${unlocked?"":"disabled"}></td>
-        <td id="adj_${p.i}">${adj}</td>
-        <td id="newHcp_${p.i}">${next}</td>
-        <td id="season_${p.i}">${p.total}</td>
-        <td><input type="checkbox" id="dnp_${p.i}" disabled ${dnp}></td>`;
+        <td>${rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : rank + 1}</td>
+        <td>${player}</td>
+        <td><input type="number" id="hcp_${player}" value="${currentHcp[player] || 0}" ${unlocked ? "" : "disabled"}></td>
+        <td><input type="number" id="points_${player}" value="${scoreVal}" ${unlocked ? "" : "disabled"}></td>
+        <td id="adj_${player}">${adj}</td>
+        <td id="newHcp_${player}">${next}</td>
+        <td id="season_${player}">${p.total}</td>
+        <td><input type="checkbox" disabled ${scoreVal === "" ? "checked" : ""}></td>
+      `;
+
+      const pointInput = tr.querySelector(`#points_${player}`);
+      if (pointInput) pointInput.addEventListener('click', () => { if (tryEditBlocked()) pointInput.blur(); });
+
       tbody.appendChild(tr);
     });
     updateLeaderboard();
   }
 
-  function nextRound(){
-    if(currentRound < maxRounds){
-      for(let i=0;i<players.length;i++){
-        currentHcp[i] = nextHcp[i]!==null ? nextHcp[i] : currentHcp[i];
-        lastAdj[i] = "";
-      }
+  async function calculateHandicaps() {
+    if (!unlocked) {
+      alert("⛔ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+      return;
+    }
+
+    const totals = calculateTotals();
+    for (const player of players) {
+      const hcpNow = parseFloat(document.getElementById(`hcp_${player}`).value) || 0;
+      const pts = parseInt(document.getElementById(`points_${player}`).value);
+      if (isNaN(pts)) continue;
+
+      let adj = stablefordAdj(pts);
+      const topScore = Math.max(...totals.map(t => playerScores[t.name][currentRound - 1] || 0));
+      if (pts === topScore) adj -= 1;
+
+      lastAdj[player] = (adj > 0 ? "+" : "") + adj;
+      currentHcp[player] = hcpNow;
+      nextHcp[player] = Math.max(0, Math.round(hcpNow + adj));
+      playerScores[player][currentRound - 1] = pts;
+    }
+
+    await saveData();
+    renderLeaderboard();
+  }
+
+  async function addPlayer() {
+    if (!unlocked) return alert("⛔ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+    const name = prompt("Enter new player name:");
+    if (!name) return;
+    players.push(name);
+    playerScores[name] = Array(maxRounds).fill(null);
+    currentHcp[name] = 0;
+    nextHcp[name] = 0;
+    lastAdj[name] = "";
+    await saveData();
+    renderLeaderboard();
+  }
+
+  function nextRound() {
+    if (currentRound < maxRounds) {
       currentRound++;
-      saveData();
       renderLeaderboard();
     }
   }
 
-  function prevRound(){
-    if(currentRound>1){
+  function prevRound() {
+    if (currentRound > 1) {
       currentRound--;
-      saveData();
       renderLeaderboard();
     }
   }
 
-  function confirmReset(){
-    const pw = prompt("Enter password to reset the league:");
-    if(pw !== PASSWORD) return alert("Incorrect password!");
-    localStorage.removeItem("golfCalcData");
-    currentRound = 1;
-    currentHcp = new Array(players.length).fill(0);
-    nextHcp = new Array(players.length).fill(null);
-    playerScores = players.map(()=>Array(maxRounds).fill(null));
-    lastAdj = new Array(players.length).fill("");
-    unlocked = false;
-    renderLeaderboard();
+  async function confirmReset() {
+    const pw = prompt("Enter password to reset:");
+    if (pw !== PASSWORD) return alert("Incorrect password!");
+    await supabase.from('scores').delete().neq('id', 0);
+    localStorage.removeItem('golfScores');
+    loadData();
   }
 
-  (async function init(){
-    loadLocalData();
-    await loadFromSupabase();
-    renderLeaderboard();
-  })();
+  // Start
+  loadData();
   </script>
 </body>
 </html>
