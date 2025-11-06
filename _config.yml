@@ -1,0 +1,3 @@
+# Force HTTPS and redirect www to root
+url: "https://barfordgolf.co.uk"
+enforce_https: true
