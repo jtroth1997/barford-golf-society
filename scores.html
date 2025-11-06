@@ -358,24 +358,34 @@
       return false;
     }
 
-    async function preloadPlayersIfEmpty() {
-      const { data, error } = await supabase.from('scores').select('id').limit(1);
-      if (!error && (!data || data.length === 0)) {
-        const preloadRows = players.map(name => ({
-          player: name,
-          round: 1,
-          points: 0,
-          handicap: 0,
-          next_handicap: 0,
-          adj: "",
-          total: 0,
-          dnp: false,
-          date: new Date().toISOString()
-        }));
-        await supabase.from('scores').insert(preloadRows);
-        console.log("✅ Preloaded 36 players into Supabase");
-      }
-    }
+   async function preloadPlayersIfEmpty() {
+  const { data, error } = await supabase.from('scores').select('player').limit(1);
+  if (error) {
+    console.error("Error checking scores:", error);
+    return;
+  }
+
+  // Always preload if table is empty or contains no player names
+  if (!data || data.length === 0) {
+    console.log("⛳ Preloading 36 players...");
+    const preloadRows = players.map(name => ({
+      player: name,
+      round: 1,
+      points: 0,
+      handicap: 0,
+      next_handicap: 0,
+      adj: "",
+      total: 0,
+      dnp: false,
+      date: new Date().toISOString()
+    }));
+    const { error: insertError } = await supabase.from('scores').insert(preloadRows);
+    if (insertError) console.error("Preload error:", insertError);
+    else console.log("✅ 36 players successfully preloaded into Supabase!");
+  } else {
+    console.log("🟢 Players already exist in Supabase — skipping preload.");
+  }
+}
 
     async function loadData() {
       await preloadPlayersIfEmpty();
