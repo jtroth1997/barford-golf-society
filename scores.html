@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scores & Handicap Calculator | Barford Golf Society</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #005a2b;
+      --gold: #d4af37;
+      --cream: #f7f7f5;
+      --dark-bg: #1e1e1e;
+      --dark-card: #2a2a2a;
+      --text-light: #f7f7f5;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, var(--cream) 40%, #e9f2e9);
+      color: #1b1b1b;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    body.dark-mode {
+      background: var(--dark-bg);
+      color: var(--text-light);
+    }
+
+    .site-header {
+      background: var(--green);
+      color: var(--gold);
+      padding: 15px 0;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 20px;
+    }
+
+    .site-title {
+      font-size: 1.5em;
+      color: var(--gold);
+      margin: 0;
+    }
+
+    .site-nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .site-nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .site-nav a.active, .site-nav a:hover {
+      color: var(--gold);
+    }
+
+    .leaderboard-banner {
+      text-align: center;
+      background: var(--gold);
+      color: #1b1b1b;
+      font-weight: 700;
+      padding: 10px;
+      border-bottom: 2px solid var(--green);
+    }
+
+    .scores-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    body.dark-mode .scores-container {
+      background: var(--dark-card);
+      color: var(--text-light);
+      box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+    }
+
+    header.calc-header {
+      background: linear-gradient(to right, var(--green), #0a6b34);
+      color: var(--gold);
+      text-align: center;
+      padding: 20px;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    body.dark-mode .topbar {
+      background: var(--dark-card);
+      box-shadow: 0 3px 10px rgba(255,255,255,0.05);
+    }
+
+    input[type=password], input[type=number] {
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 5px rgba(212,175,55,0.4);
+      outline: none;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 0.9rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-unlock { background: var(--gold); color: #1b1b1b; }
+    .btn-lock { background: var(--green); color: #fff; }
+    .btn-calc { background: #ffcc00; color: #1b1b1b; }
+    .btn-next, .btn-prev { background: #ddd; color: #1b1b1b; }
+    .btn-reset { background: #b22222; color: #fff; }
+    .btn-add { background: #c0c0c0; color: #1b1b1b; }
+    .btn-pass { background: #cd7f32; color: #fff; }
+    .btn-download { background: var(--green); color: var(--gold); }
+    .btn-theme { background: none; border: 1px solid var(--gold); color: var(--gold); }
+
+    main { padding: 20px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode table {
+      background: var(--dark-card);
+      color: var(--text-light);
+      box-shadow: 0 4px 14px rgba(255,255,255,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #f1f1f1;
+    }
+
+    th {
+      background: var(--green);
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    tbody tr:nth-child(even) { background: #f8f8f8; }
+    body.dark-mode tbody tr:nth-child(even) { background: #333; }
+
+    footer {
+      text-align: center;
+      background: var(--green);
+      color: var(--gold);
+      padding: 20px;
+      border-top: 4px solid var(--gold);
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-container">
+      <h1 class="site-title">Barford Golf Society</h1>
+      <nav class="site-nav">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="scores.html" class="active">Scores</a></li>
+          <li><a href="admin.html">Admin</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
+
+  <div class="scores-container">
+    <header class="calc-header">Golf Society Handicap Calculator</header>
+
+    <div class="topbar">
+      <input type="password" id="pwInput" placeholder="Enter password">
+      <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
+      <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
+      <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
+      <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
+      <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
+      <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
+      <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
+      <button class="btn btn-reset" id="resetBtn" style="display:none" onclick="confirmReset()">Reset League</button>
+      <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
+      <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
+    </div>
+
+    <main>
+      <div class="round-info">
+        <h3 id="roundHeader">Round 1 of 7</h3>
+      </div>
+      <div id="tableContainer">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th id="hcpHeader">Round 1 HCP</th>
+              <th>Points</th>
+              <th>Adj</th>
+              <th id="newHcpHeader">Next HCP</th>
+              <th>Total (Best 5)</th>
+              <th>DNP</th>
+            </tr>
+          </thead>
+          <tbody id="playersTable"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>© 2025 Barford Golf Society | Scores & Handicap Calculator</p>
+  </footer>
+
+  <script>
+  let PASSWORD = localStorage.getItem("golfPassword") || "westbrom1997";
+  let players = [
+    "Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver","John Hawkes","Mike Cook","Colin Oliver",
+    "Gary Moyce","David Jordan","Nick Benbow","Simon Morgan","Wes Lacey","Chris Oliver","Burt Pickering","Chris Harris",
+    "Derek Lewis","Liz Oliver","Jack Moyce-Troth","Lucie Byerley","David Pritchard","Robert Pocknell","John Close","Nick Wright",
+    "Matt Oliver","Vince Hall","Elliot Hobbs","Will Hunt","Martc Taylor","Simon Meade","Emma Saywell","Cam Tolley",
+    "John Blackwell","Bekim","Zac Lovell","Clive Irwin"
+  ];
+  let unlocked = false;
+  let currentRound = 1;
+  const maxRounds = 7;
+  let currentHcp = new Array(players.length).fill(0);
+  let nextHcp = new Array(players.length).fill(null);
+  let playerScores = players.map(()=>Array(maxRounds).fill(null));
+  let lastAdj = new Array(players.length).fill("");
+
+  function saveData() {
+    localStorage.setItem("golfCalcData", JSON.stringify({ currentRound, currentHcp, nextHcp, playerScores, lastAdj, players }));
+
+    // ✅ Also save clean player data for Events dropdowns
+    localStorage.setItem("bgsPlayers", JSON.stringify(players.map((p,i)=>({name:p,handicap:currentHcp[i]||0}))));
+  }
+
+  function loadData() {
+    const raw = localStorage.getItem("golfCalcData");
+    if (!raw) return;
+    try {
+      const d = JSON.parse(raw);
+      players = d.players || players;
+      currentRound = d.currentRound ?? currentRound;
+      currentHcp = d.currentHcp ?? currentHcp;
+      nextHcp = d.nextHcp ?? nextHcp;
+      playerScores = d.playerScores ?? playerScores;
+      lastAdj = d.lastAdj ?? lastAdj;
+    } catch(e) {}
+  }
+
+  function toggleTheme(){
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('bgsTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+  }
+
+  if(localStorage.getItem('bgsTheme') === 'dark') document.body.classList.add('dark-mode');
+
+  function updateLeaderboard(){
+    const totals = calculateTotals();
+    if(totals.length){
+      const leader = totals[0];
+      document.getElementById('leaderboard').textContent = `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
+    } else {
+      document.getElementById('leaderboard').textContent = "🏌️ Leaderboard loading...";
+    }
+  }
+
+  function downloadCsv(){
+    let csv = "Player,Total (Best 5),Round,Points,Current HCP,Next HCP\n";
+    for(let i=0;i<players.length;i++){
+      csv += `${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total || 0},${currentRound},${playerScores[i][currentRound-1] || ""},${currentHcp[i]},${nextHcp[i] || ""}\n`;
+    }
+    const blob = new Blob([csv],{type:"text/csv"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "BarfordGolfScores.csv";
+    a.click();
+  }
+
+  // Existing functions (unchanged)
+  function addPlayer() {
+    const name = prompt("Enter new player name:");
+    if (!name) return;
+    players.push(name);
+    currentHcp.push(0);
+    nextHcp.push(null);
+    playerScores.push(Array(maxRounds).fill(null));
+    lastAdj.push("");
+    saveData();
+    renderLeaderboard();
+  }
+
+  function changePassword() {
+    const oldPw = prompt("Enter current password:");
+    if (oldPw !== PASSWORD) return alert("Incorrect password!");
+    const newPw = prompt("Enter new password:");
+    if (!newPw) return;
+    PASSWORD = newPw;
+    localStorage.setItem("golfPassword", newPw);
+  }
+
+  function unlockInputs(){
+    const pw = document.getElementById("pwInput").value;
+    if (pw !== PASSWORD) return alert("Incorrect password!");
+    unlocked = true;
+    renderLeaderboard();
+  }
+
+  function lockInputs(){ unlocked = false; renderLeaderboard(); }
+
+  function stablefordAdj(pts){
+    if(pts>=43) return -3;
+    if(pts>=38) return -2;
+    if(pts>=31) return -1;
+    if(pts>=26) return 0;
+    if(pts>=21) return +1;
+    if(pts>=16) return +2;
+    return +3;
+  }
+
+  function calculateHandicaps(){
+    if(!unlocked) return alert("Unlock first!");
+    const valid = [];
+    for(let i=0;i<players.length;i++){
+      const v = parseInt(document.getElementById(`points_${i}`).value);
+      if(!isNaN(v)) valid.push(v);
+    }
+    const top = valid.length? Math.max(...valid) : null;
+
+    for(let i=0;i<players.length;i++){
+      const hcpNow = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
+      const raw = document.getElementById(`points_${i}`).value.trim();
+      const pts = raw==="" ? NaN : parseInt(raw);
+      const adjCell = document.getElementById(`adj_${i}`);
+      const nxtCell = document.getElementById(`newHcp_${i}`);
+      const dnpBox  = document.getElementById(`dnp_${i}`);
+
+      if(isNaN(pts)){
+        playerScores[i][currentRound-1] = null;
+        dnpBox.checked = true;
+        lastAdj[i] = "";
+        adjCell.textContent = "";
+        nextHcp[i] = hcpNow;
+        nxtCell.textContent = hcpNow;
+        continue;
+      }
+
+      dnpBox.checked = false;
+      playerScores[i][currentRound-1] = pts;
+      let adj = stablefordAdj(pts);
+      if(top!==null && pts === top) adj -= 1;
+      lastAdj[i] = (adj>0?"+":"") + adj;
+      adjCell.textContent = lastAdj[i];
+      const newH = Math.max(0, Math.round(hcpNow + adj));
+      nextHcp[i] = newH;
+      nxtCell.textContent = newH;
+    }
+    renderLeaderboard();
+    saveData();
+  }
+
+  function calculateTotals() {
+    return players.map((name, i) => {
+      const scores = playerScores[i].filter(v=>v!==null);
+      const total = scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+      return { i, name, total };
+    }).sort((a,b)=>b.total - a.total);
+  }
+
+  function renderLeaderboard(){
+    const tbody = document.getElementById("playersTable");
+    tbody.innerHTML = "";
+    const totals = calculateTotals();
+    totals.forEach((p, rank) => {
+      const scoreVal = playerScores[p.i][currentRound-1] ?? "";
+      const adj = lastAdj[p.i] || "";
+      const next = nextHcp[p.i]!==null?nextHcp[p.i]:"";
+      const dnp = scoreVal===""?"checked":"";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
+        <td>${p.name}</td>
+        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${unlocked?"":"disabled"}></td>
+        <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${unlocked?"":"disabled"}></td>
+        <td id="adj_${p.i}">${adj}</td>
+        <td id="newHcp_${p.i}">${next}</td>
+        <td id="season_${p.i}">${p.total}</td>
+        <td><input type="checkbox" id="dnp_${p.i}" disabled ${dnp}></td>`;
+      tbody.appendChild(tr);
+    });
+    updateLeaderboard();
+  }
+
+  function nextRound(){
+    if(currentRound < maxRounds){
+      for(let i=0;i<players.length;i++){
+        currentHcp[i] = nextHcp[i]!==null ? nextHcp[i] : currentHcp[i];
+        lastAdj[i] = "";
+      }
+      currentRound++;
+      saveData();
+      renderLeaderboard();
+    }
+  }
+
+  function prevRound(){
+    if(currentRound>1){
+      currentRound--;
+      saveData();
+      renderLeaderboard();
+    }
+  }
+
+  function confirmReset(){
+    const pw = prompt("Enter password to reset the league:");
+    if(pw !== PASSWORD) return alert("Incorrect password!");
+    localStorage.removeItem("golfCalcData");
+    currentRound = 1;
+    currentHcp = new Array(players.length).fill(0);
+    nextHcp = new Array(players.length).fill(null);
+    playerScores = players.map(()=>Array(maxRounds).fill(null));
+    lastAdj = new Array(players.length).fill("");
+    unlocked = false;
+    renderLeaderboard();
+  }
+
+  loadData();
+  renderLeaderboard();
+  </script>
+</body>
+</html>
+
