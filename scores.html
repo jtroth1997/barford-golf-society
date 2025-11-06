@@ -518,6 +518,10 @@
     loadData();
     await loadFromSupabase();
     renderLeaderboard();
+    (async function init(){
+  loadData();
+  await loadFromSupabase();
+  renderLeaderboard();
   })();
   </script>
 </body>
