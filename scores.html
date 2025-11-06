@@ -198,6 +198,44 @@
       border-top: 4px solid var(--gold);
       margin-top: 40px;
     }
+
+    /* ========= 📱 Added: Mobile "resize & scroll" only ========= */
+    /* No layout changes, no button stacking, no bigger inputs. */
+    @media (max-width: 900px) {
+      /* allow horizontal scroll of the wide table on small screens */
+      #tableContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      table {
+        display: block;          /* keeps thead/tbody intact while enabling scroll */
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      th, td {
+        padding: 10px 8px;       /* slight reduction for readability */
+        font-size: 0.95rem;
+      }
+      .leaderboard-banner {
+        font-size: 0.95rem;
+        padding: 8px 10px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      th, td { font-size: 0.9rem; padding: 8px 6px; }
+      .site-title { font-size: 1.3em; }
+    }
+
+    @media (max-width: 560px) {
+      th, td { font-size: 0.85rem; padding: 6px 4px; }
+      .leaderboard-banner { font-size: 0.9rem; }
+    }
+
+    @media (max-width: 420px) {
+      th, td { font-size: 0.8rem; padding: 5px 3px; }
+    }
+    /* =========================================================== */
   </style>
 </head>
 <body>
@@ -481,4 +519,3 @@
   </script>
 </body>
 </html>
-
