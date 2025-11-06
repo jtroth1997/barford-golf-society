@@ -1,3 +1,8 @@
-# Force HTTPS and redirect www to root
-url: "https://barfordgolf.co.uk"
-enforce_https: true
+theme: null
+plugins: []
+markdown: kramdown
+include:
+  - CNAME
+  - index.html
+  - style.css
+  - barford golf
