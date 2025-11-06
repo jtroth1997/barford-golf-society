@@ -523,6 +523,13 @@
   await loadFromSupabase();
   renderLeaderboard();
   })();
+    // 🔄 Auto-refresh from Supabase every 30 seconds
+setInterval(async () => {
+  console.log("🔁 Auto-refreshing leaderboard from Supabase...");
+  await loadFromSupabase();
+  renderLeaderboard();
+}, 30000);
+
   </script>
 </body>
 </html>
