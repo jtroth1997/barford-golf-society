@@ -523,13 +523,19 @@
   await loadFromSupabase();
   renderLeaderboard();
   })();
-    // 🔄 Auto-refresh from Supabase every 30 seconds
-setInterval(async () => {
-  console.log("🔁 Auto-refreshing leaderboard from Supabase...");
-  await loadFromSupabase();
-  renderLeaderboard();
-}, 30000);
-
+ // ⚡ Real-time live updates from Supabase
+supabase
+  .channel('live-scores')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'scores' },
+    async (payload) => {
+      console.log("📡 Live update received:", payload);
+      await loadFromSupabase();
+      renderLeaderboard();
+    }
+  )
+  .subscribe();
   </script>
 </body>
 </html>
