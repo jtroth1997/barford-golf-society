@@ -5,163 +5,160 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scores & Handicap Calculator | Barford Golf Society</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --green: #005a2b;
-      --gold: #d4af37;
-      --cream: #f7f7f5;
-      --dark-bg: #1e1e1e;
-      --dark-card: #2a2a2a;
-      --text-light: #f7f7f5;
-      --grey: #d9d9d9;
-      --soft-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      --green:#005a2b;
+      --gold:#d4af37;
+      --cream:#f7f7f5;
+      --dark-bg:#1e1e1e;
+      --dark-card:#2a2a2a;
+      --text-light:#f7f7f5;
     }
 
-    body {
-      font-family: "Inter", sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, var(--cream) 40%, #e9f2e9);
-      color: #1b1b1b;
-      transition: background 0.4s, color 0.4s;
+    body{
+      font-family:"Inter",sans-serif;
+      margin:0;
+      background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);
+      color:#1b1b1b;
+      transition:background .4s,color .4s;
     }
-    body.dark-mode { background: var(--dark-bg); color: var(--text-light); }
+    body.dark-mode{background:var(--dark-bg);color:var(--text-light);}
 
-    .site-header {
-      background: var(--green);
-      color: var(--gold);
-      padding: 15px 0;
-      border-bottom: 3px solid var(--gold);
+    /* HEADER */
+    .site-header{
+      background:var(--green);
+      color:var(--gold);
+      padding:15px 0;
+      border-bottom:3px solid var(--gold);
     }
-    .header-container {
-      display: flex; justify-content: space-between; align-items: center;
-      max-width: 1200px; margin: auto; padding: 0 20px;
+    .header-container{
+      display:flex;justify-content:space-between;align-items:center;
+      max-width:1200px;margin:auto;padding:0 20px;
     }
-    .site-title { font-size: 1.5em; color: var(--gold); margin: 0; }
+    .site-title{font-size:1.5em;color:var(--gold);margin:0;}
+    .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+    .site-nav a{color:white;text-decoration:none;font-weight:600;}
+    .site-nav a.active,.site-nav a:hover{color:var(--gold);}
 
-    .site-nav ul {
-      list-style: none; display: flex; gap: 20px; margin: 0; padding: 0;
-    }
-    .site-nav a {
-      color: white; text-decoration: none; font-weight: 600;
-    }
-    .site-nav a.active, .site-nav a:hover { color: var(--gold); }
-
-    .leaderboard-banner {
-      text-align: center; background: var(--gold); color: #1b1b1b;
-      font-weight: 700; padding: 10px; border-bottom: 2px solid var(--green);
-    }
-
-    .scores-container {
-      max-width: 1200px; margin: 30px auto;
-      background: #ffffff; border-radius: 12px;
-      box-shadow: var(--soft-shadow);
-      overflow: hidden; position: relative;
-      transition: background 0.4s, color 0.4s;
-    }
-    body.dark-mode .scores-container {
-      background: var(--dark-card); color: var(--text-light);
-      box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+    /* LEADERBOARD */
+    .leaderboard-banner{
+      text-align:center;
+      background:var(--gold);
+      color:#1b1b1b;
+      font-weight:700;
+      padding:10px;
+      border-bottom:2px solid var(--green);
     }
 
-    header.calc-header {
-      background: linear-gradient(to right, var(--green), #0a6b34);
-      color: var(--gold); text-align: center;
-      padding: 20px; font-size: 1.8rem; font-weight: 700;
+    /* SCORES CONTAINER */
+    .scores-container{
+      max-width:1200px;
+      margin:30px auto;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 5px 20px rgba(0,0,0,.1);
+      overflow:hidden;
+      transition:background .4s,color .4s;
+    }
+    body.dark-mode .scores-container{
+      background:var(--dark-card);
+      color:var(--text-light);
+      box-shadow:0 4px 15px rgba(255,255,255,.1);
     }
 
-    /* ==== TOPBAR ==== */
-    .topbar {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 10px; padding: 15px; background: #fff;
-      box-shadow: var(--soft-shadow);
-      position: sticky; top: 0; z-index: 10;
-    }
-    body.dark-mode .topbar {
-      background: var(--dark-card);
-      box-shadow: 0 3px 10px rgba(255,255,255,0.05);
+    header.calc-header{
+      background:linear-gradient(to right,var(--green),#0a6b34);
+      color:var(--gold);
+      text-align:center;
+      padding:20px;
+      font-size:1.8rem;
+      font-weight:700;
     }
 
-    input[type=password], input[type=number] {
-      border-radius: 6px; border: 1px solid #ccc;
-      padding: 8px; transition: border 0.2s, box-shadow 0.2s;
+    /* TOPBAR BUTTONS */
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      padding:16px;
+      background:#fff;
+      box-shadow:0 3px 10px rgba(0,0,0,.05);
+      position:sticky;top:0;z-index:10;
     }
-    input:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 5px rgba(212,175,55,0.4);
-      outline: none;
+    body.dark-mode .topbar{background:var(--dark-card);}
+    input[type=password],input[type=number]{
+      border-radius:6px;border:1px solid #ccc;padding:8px;
+      transition:border .2s,box-shadow .2s;
     }
-
-    .btn {
-      padding: 8px 14px; border: none; border-radius: 8px;
-      font-weight: 600; cursor: pointer;
-      transition: all 0.25s ease; font-size: 0.9rem;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    }
-
-    /* colour-coded groups */
-    .btn-unlock, .btn-lock { background: var(--gold); color: #1b1b1b; }
-    .btn-calc, .btn-add { background: var(--green); color: var(--gold); }
-    .btn-prev, .btn-next { background: var(--grey); color: #1b1b1b; }
-    .btn-download, .btn-theme { background: #2a2a2a; color: var(--gold); }
-    .btn-theme { border: 1px solid var(--gold); }
-
-    main { padding: 20px; overflow-x: auto; }
-
-    table {
-      width: 100%; border-collapse: collapse;
-      background: #fff; border-radius: 12px;
-      overflow: hidden; box-shadow: var(--soft-shadow);
-      min-width: 800px;
-    }
-    body.dark-mode table {
-      background: var(--dark-card); color: var(--text-light);
-      box-shadow: 0 4px 14px rgba(255,255,255,0.1);
+    input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 5px rgba(212,175,55,.4);
+      outline:none;
     }
 
-    th, td {
-      padding: 12px; text-align: center;
-      border-bottom: 1px solid #f1f1f1;
+    .btn{
+      padding:8px 12px;border:none;border-radius:8px;
+      font-weight:600;cursor:pointer;
+      transition:all .25s ease;font-size:.9rem;
     }
-    th { background: var(--green); color: var(--gold); text-transform: uppercase; }
-    tbody tr:nth-child(even) { background: #f8f8f8; }
-    body.dark-mode tbody tr:nth-child(even) { background: #333; }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+    .btn-unlock{background:var(--gold);color:#1b1b1b;}
+    .btn-lock{background:var(--green);color:#fff;}
+    .btn-calc{background:#ffcc00;color:#1b1b1b;}
+    .btn-next,.btn-prev{background:#ddd;color:#1b1b1b;}
+    .btn-add{background:#c0c0c0;color:#1b1b1b;}
+    .btn-download{background:var(--green);color:var(--gold);}
+    .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
 
-    footer {
-      text-align: center; background: var(--green);
-      color: var(--gold); padding: 20px;
-      border-top: 4px solid var(--gold);
-      margin-top: 40px;
+    /* TABLE */
+    main{padding:20px;}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;}
+    body.dark-mode table{background:var(--dark-card);}
+    th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
+    th{background:var(--green);color:var(--gold);text-transform:uppercase;}
+    tbody tr:nth-child(even){background:#f8f8f8;}
+    body.dark-mode tbody tr:nth-child(even){background:#333;}
+
+    /* FOOTER */
+    footer{
+      text-align:center;
+      background:var(--green);
+      color:var(--gold);
+      padding:20px;
+      border-top:4px solid var(--gold);
+      margin-top:40px;
     }
 
-    /* ==== FROSTED BLUR OVERLAY ==== */
-    .blur-overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: none; justify-content: center; align-items: center;
-      text-align: center; padding: 30px;
-      font-size: 1.6rem; font-weight: 700; color: #fff;
-      backdrop-filter: blur(15px) brightness(0.5);
-      background: rgba(0,0,0,0.55);
-      border-radius: 12px;
-      transition: opacity 0.5s ease;
-      z-index: 5;
+    /* BLUR OVERLAY */
+    .blur-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.4);
+      backdrop-filter:blur(15px);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:1000;
+      color:var(--gold);
+      font-size:1.8rem;
+      text-align:center;
+      padding:20px;
     }
-    .blur-overlay.active {
-      display: flex; opacity: 1; pointer-events: all;
-    }
+    .blur-overlay.active{display:flex;}
 
-    @media (max-width: 768px) {
-      .btn { font-size: 0.8rem; padding: 8px 10px; }
-      .topbar { gap: 6px; }
-      th, td { padding: 8px; font-size: 0.9rem; }
-      table { min-width: 650px; }
+    /* MOBILE */
+    @media(max-width:768px){
+      .header-container{flex-direction:column;gap:10px;}
+      .site-nav ul{flex-wrap:wrap;justify-content:center;}
+      th,td{padding:8px;font-size:.9rem;}
+      .btn{padding:6px 10px;font-size:.8rem;}
+      table{display:block;overflow-x:auto;white-space:nowrap;}
     }
   </style>
 </head>
+
 <body>
   <header class="site-header">
     <div class="header-container">
@@ -180,15 +177,15 @@
   <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
 
   <div class="scores-container">
-    <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked.</div>
     <header class="calc-header">Golf Society Handicap Calculator</header>
+
     <div class="topbar">
       <input type="password" id="pwInput" placeholder="Enter password">
       <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
       <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
       <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
       <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
-      <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
+      <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
@@ -202,7 +199,7 @@
         <table>
           <thead>
             <tr>
-              <th>Rank</th>
+              <th>Rank</</th>
               <th>Player</th>
               <th id="hcpHeader">Round 1 HCP</th>
               <th>Points</th>
@@ -218,24 +215,34 @@
     </main>
   </div>
 
+  <!-- Frosted blur overlay -->
+  <div id="blurOverlay" class="blur-overlay">
+    <div>🔒 Scores hidden until the final rounds unlock</div>
+  </div>
+
   <footer>
     <p>© 2025 Barford Golf Society | Scores & Handicap Calculator</p>
   </footer>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+  // === SUPABASE CONNECTION ===
   const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // === GLOBALS ===
   const PASSWORD = "westbrom1997";
   let unlocked = false;
   let currentRound = 1;
   const maxRounds = 7;
+  let players = [];
+  let currentHcp = [];
+  let nextHcp = [];
+  let playerScores = [];
+  let lastAdj = [];
+  let calcLocked = false;
 
-  let players = [], currentHcp = [], nextHcp = [], playerScores = [], lastAdj = [];
-
-  // ---------- LOAD DATA ----------
+  // === LOAD PLAYERS FROM SUPABASE ===
   async function loadPlayers() {
     const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
     if (error) { console.error(error); return; }
@@ -249,48 +256,38 @@
     renderLeaderboard();
   }
 
-  // ---------- THEME ----------
+  // === THEME TOGGLE ===
   function toggleTheme(){
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('bgsTheme',document.body.classList.contains('dark-mode')?'dark':'light');
   }
   if(localStorage.getItem('bgsTheme')==='dark')document.body.classList.add('dark-mode');
 
-  // ---------- BLUR ----------
+  // === BLUR LOGIC ===
   function showBlurOverlay(show){
     const overlay=document.getElementById("blurOverlay");
     overlay.classList.toggle("active",show);
   }
-  function updateBlur(){ showBlurOverlay(!unlocked && currentRound>=6); }
+  function updateBlur(){
+    showBlurOverlay(!unlocked && currentRound>=6);
+  }
 
-  // ---------- LOCK / UNLOCK ----------
+  // === LOCK / UNLOCK ===
   function unlockInputs(){
     const pw=document.getElementById("pwInput").value;
     if(pw!==PASSWORD)return alert("Incorrect password!");
-    unlocked=true; alert("Scores unlocked");
-    renderLeaderboard(); updateBlur();
+    unlocked=true;
+    alert("Scores unlocked");
+    renderLeaderboard();updateBlur();
   }
+
   function lockInputs(){
-    unlocked=false; alert("Scores locked");
-    renderLeaderboard(); updateBlur();
-  }
-
-  // ---------- RESET ----------
-  async function confirmReset(){
-    const pw=prompt("Enter password to reset:");
-    if(pw!==PASSWORD)return alert("Incorrect password!");
-    await supabase.from("scores").update({
-      points:0,adj:0,next_handicap:0,total:0,dnp:false
-    });
-    currentRound=1;
-    lastAdj=players.map(()=>""),nextHcp=players.map(()=>0),
-    currentHcp=players.map(()=>0),playerScores=players.map(()=>Array(maxRounds).fill(null));
     unlocked=false;
-    document.getElementById("leaderboard").textContent="🏌️ Leaderboard loading...";
-    renderLeaderboard(); updateBlur();
+    alert("Scores locked");
+    renderLeaderboard();updateBlur();
   }
 
-  // ---------- CALCULATIONS ----------
+  // === STABLEFORD ADJ ===
   function stablefordAdj(pts){
     if(pts>=43)return -3;
     if(pts>=38)return -2;
@@ -301,35 +298,53 @@
     return +3;
   }
 
+  // === CALCULATE HANDICAPS ===
   async function calculateHandicaps(){
     if(!unlocked)
       return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
-    const valid=[]; for(let i=0;i<players.length;i++){
+    if(calcLocked)return alert("Already calculated! Wait before next round.");
+    calcLocked=true;
+    setTimeout(()=>calcLocked=false,3000);
+
+    const valid=[];for(let i=0;i<players.length;i++){
       const v=parseInt(document.getElementById(`points_${i}`).value);
       if(!isNaN(v))valid.push(v);
     }
     const top=valid.length?Math.max(...valid):null;
+
     for(let i=0;i<players.length;i++){
       const h=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
       const pts=parseInt(document.getElementById(`points_${i}`).value);
-      const adjCell=document.getElementById(`adj_${i}`),nextCell=document.getElementById(`newHcp_${i}`);
+      const adjCell=document.getElementById(`adj_${i}`);
+      const nextCell=document.getElementById(`newHcp_${i}`);
       if(isNaN(pts)){
-        playerScores[i][currentRound-1]=null;lastAdj[i]="";adjCell.textContent="";
-        nextHcp[i]=h;nextCell.textContent=h;continue;
+        playerScores[i][currentRound-1]=null;
+        lastAdj[i]="";
+        adjCell.textContent="";
+        nextHcp[i]=h;
+        nextCell.textContent=h;
+        continue;
       }
       playerScores[i][currentRound-1]=pts;
-      let adj=stablefordAdj(pts); if(top!==null&&pts===top)adj-=1;
+      let adj=stablefordAdj(pts);
+      if(top!==null&&pts===top)adj-=1;
       lastAdj[i]=(adj>0?"+":"")+adj;
       adjCell.textContent=lastAdj[i];
       const newH=Math.max(0,Math.round(h+adj));
-      nextHcp[i]=newH; nextCell.textContent=newH;
+      nextHcp[i]=newH;
+      nextCell.textContent=newH;
       await supabase.from("scores").update({
         points:pts,adj:adj,next_handicap:newH,round:currentRound
       }).eq("player",players[i]);
     }
     renderLeaderboard();
+
+    if(currentRound===maxRounds){
+      setTimeout(showFinalResults,500);
+    }
   }
 
+  // === TOTALS ===
   function calculateTotals(){
     return players.map((name,i)=>{
       const scores=playerScores[i].filter(v=>v!==null);
@@ -338,7 +353,7 @@
     }).sort((a,b)=>b.total-a.total);
   }
 
-  // ---------- RENDER ----------
+  // === RENDER LEADERBOARD ===
   function renderLeaderboard(){
     const tbody=document.getElementById("playersTable");
     tbody.innerHTML="";
@@ -353,15 +368,17 @@
       tr.innerHTML=`
         <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
         <td>${p.name}</td>
-        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${readOnly}></td>
+        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${readOnly}
+          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
         <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${readOnly}
-             onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
+          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
         <td id="adj_${p.i}">${adj}</td>
         <td id="newHcp_${p.i}">${next}</td>
         <td id="season_${p.i}">${p.total}</td>
         <td><input type="checkbox" id="dnp_${p.i}" disabled ${dnp}></td>`;
       tbody.appendChild(tr);
     });
+
     const totalsNow=calculateTotals();
     if(totalsNow.length){
       const leader=totalsNow[0];
@@ -372,39 +389,50 @@
     updateBlur();
   }
 
-  // ---------- ROUND NAV ----------
+  // === ROUND NAVIGATION ===
   function nextRound(){
     if(currentRound<maxRounds){
       for(let i=0;i<players.length;i++){
-        currentHcp[i]=nextHcp[i]??currentHcp[i]; lastAdj[i]="";
+        currentHcp[i]=nextHcp[i]??currentHcp[i];
       }
-      currentRound++; renderLeaderboard();
+      currentRound++;
+      renderLeaderboard();
     }
   }
   function prevRound(){
-    if(currentRound>1){ currentRound--; renderLeaderboard(); }
+    if(currentRound>1){currentRound--;renderLeaderboard();}
   }
 
-  // ---------- ADD PLAYER ----------
+  // === ADD PLAYER ===
   async function addPlayer(){
     if(!unlocked)return alert("Enter password to add a player.");
-    const name=prompt("Enter new player name:"); if(!name)return;
+    const name=prompt("Enter new player name:");
+    if(!name)return;
     await supabase.from("scores").insert([{player:name,round:1,handicap:0,points:0,next_handicap:0,adj:0,total:0,dnp:false}]);
     await loadPlayers();
   }
 
-  // ---------- DOWNLOAD ----------
-  async function downloadCsv(){
+  // === FINAL RESULTS POPUP ===
+  function showFinalResults(){
+    const totals=calculateTotals();
+    let text="🏆 FINAL RESULTS 🏆\n\n";
+    totals.forEach((t,i)=>text+=`${i+1}. ${t.name} — ${t.total} pts\n`);
+    text+="\nCopy or export to CSV?";
+    if(confirm(text))downloadCsv();
+  }
+
+  // === DOWNLOAD CSV ===
+  function downloadCsv(){
     let csv="Player,Total(Best5),Round,Points,CurrentHCP,NextHCP\n";
     for(let i=0;i<players.length;i++){
       csv+=`${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total||0},${currentRound},${playerScores[i][currentRound-1]||""},${currentHcp[i]},${nextHcp[i]||""}\n`;
     }
     const blob=new Blob([csv],{type:"text/csv"});
     const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob); a.download="BarfordGolfScores.csv"; a.click();
+    a.href=URL.createObjectURL(blob);a.download="BarfordGolfScores.csv";a.click();
   }
 
-  // ---------- INIT ----------
+  // === INITIALISE ===
   loadPlayers();
   </script>
 </body>
