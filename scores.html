@@ -25,6 +25,7 @@
     }
     body.dark-mode { background:var(--dark-bg); color:var(--text-light); }
 
+    /* HEADER */
     .site-header {
       background:var(--green);
       color:var(--gold);
@@ -46,6 +47,7 @@
       transition:filter .4s,opacity .4s;
     }
 
+    /* SCORES CONTAINER */
     .scores-container {
       position:relative;
       max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;
@@ -102,14 +104,14 @@
       padding:20px;border-top:4px solid var(--gold);margin-top:40px;
     }
 
-    /* --- Heavy Frosted Blur Overlay (table only) --- */
+    /* --- Final Perfect Frosted Blur Overlay --- */
     .blur-overlay {
       position: absolute;
-      top: 130px; /* below topbar */
+      top: 220px; /* below topbar and header */
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.65);
       backdrop-filter: blur(28px) brightness(1.1);
       -webkit-backdrop-filter: blur(28px) brightness(1.1);
       display: none;
@@ -120,7 +122,7 @@
       font-weight: 700;
       text-align: center;
       border-radius: 0 0 12px 12px;
-      z-index: 50;
+      z-index: 10;
       pointer-events: none;
       text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
     }
@@ -198,7 +200,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // === SUPABASE CONNECTION ===
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -231,8 +232,8 @@
       renderTable();
     }
 
-    function unlockInputs(){const pw=document.getElementById("pwInput").value;if(pw!==PASSWORD)return alert("Incorrect password!");unlocked=true;alert("Unlocked");renderTable();updateBlur();}
-    function lockInputs(){unlocked=false;alert("Locked");renderTable();updateBlur();}
+    function unlockInputs(){const pw=document.getElementById("pwInput").value;if(pw!==PASSWORD)return alert("Incorrect password!");unlocked=true;renderTable();updateBlur();}
+    function lockInputs(){unlocked=false;renderTable();updateBlur();}
 
     function stablefordAdj(pts){if(pts>=43)return -3;if(pts>=38)return -2;if(pts>=31)return -1;if(pts>=26)return 0;if(pts>=21)return +1;if(pts>=16)return +2;return +3;}
 
