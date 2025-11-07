@@ -115,7 +115,7 @@
 
     /* TABLE */
     main{padding:20px;}
-    #tableContainer{position:relative;} /* anchor overlay here */
+    #tableContainer{position:relative;} /* anchor overlay & keep buttons clickable */
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;}
     body.dark-mode table{background:var(--dark-card);}
     th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
@@ -264,26 +264,89 @@
   let unlocked = false;
   let currentRound = 1;
   const maxRounds = 7;
-  let players = [];
-  let currentHcp = [];
-  let nextHcp = [];
-  let playerScores = [];
-  let lastAdj = [];
-  let calcLocked = false;
-  let calculatedThisRound = false;
 
-  // === LOAD PLAYERS FROM SUPABASE ===
+  let players = [];
+  // Per-player arrays (index by player -> array[1..7])
+  let hcpHistory = [];   // starting HCP for each round (frozen after Calculate)
+  let pointsHistory = [];
+  let adjHistory = [];
+  let nextHcpLive = [];  // latest computed next HCP (for display/propagation)
+  let calcLocked = false;
+
+  // === HELPERS ===
+  const rIndex = r => Math.max(1, Math.min(maxRounds, r)); // clamp 1..7
+
+  function ensurePlayerArrays(idx){
+    if(!hcpHistory[idx]) hcpHistory[idx] = Array(maxRounds+1).fill(null);
+    if(!pointsHistory[idx]) pointsHistory[idx] = Array(maxRounds+1).fill(null);
+    if(!adjHistory[idx]) adjHistory[idx] = Array(maxRounds+1).fill(null);
+    if(typeof nextHcpLive[idx] !== "number") nextHcpLive[idx] = 0;
+  }
+
+  // === LOAD PLAYERS AND ROUND ENTRIES ===
   async function loadPlayers() {
     const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
     if (error) { console.error(error); return; }
     if (data?.length) {
       players = data.map(r=>r.player);
-      currentHcp = data.map(r=>r.handicap||0);
-      nextHcp = players.map(()=>0);        // Start Next HCP at 0 until Calculate
-      playerScores = players.map(()=>Array(maxRounds).fill(null));
-      lastAdj = players.map(()=>"");
+      // initialize arrays
+      hcpHistory = []; pointsHistory = []; adjHistory = []; nextHcpLive = [];
+      players.forEach((_,i)=>{
+        ensurePlayerArrays(i);
+        // Seed nextHcpLive with their current stored handicap as a starting point
+        const startH = data[i].handicap ?? 0;
+        nextHcpLive[i] = startH;
+        // Also set Round 1 starting HCP if present in DB
+        hcpHistory[i][1] = startH;
+      });
+    } else {
+      players = [];
     }
+    await loadRoundEntries(); // fill histories from per-round table
     renderLeaderboard();
+  }
+
+  async function loadRoundEntries(){
+    // Fetch all saved per-round entries
+    const { data, error } = await supabase
+      .from("round_entries")
+      .select("*")
+      .order("round",{ascending:true});
+    if(error){ console.warn("round_entries fetch error:", error.message); return; }
+    if(!data) return;
+
+    // rebuild histories
+    const playerIndex = Object.fromEntries(players.map((p,i)=>[p,i]));
+    data.forEach(row=>{
+      const i = playerIndex[row.player];
+      if(i===undefined) return;
+      ensurePlayerArrays(i);
+      const rd = rIndex(row.round);
+      hcpHistory[i][rd] = typeof row.hcp === "number" ? row.hcp : (hcpHistory[i][rd] ?? 0);
+      pointsHistory[i][rd] = (typeof row.points === "number") ? row.points : pointsHistory[i][rd];
+      adjHistory[i][rd] = (typeof row.adj === "number") ? row.adj : adjHistory[i][rd];
+    });
+
+    // Reconstruct latest nextHcpLive by walking rounds in order
+    players.forEach((_,i)=>{
+      // Start from round 1 hcp if available, else 0
+      let rolling = hcpHistory[i][1] ?? 0;
+      for(let rd=1; rd<=maxRounds; rd++){
+        const adj = adjHistory[i][rd];
+        if(typeof adj === "number"){
+          // This round had calculation; next HCP after this round:
+          rolling = Math.max(0, Math.round((hcpHistory[i][rd] ?? rolling) + adj));
+          // If next round has no starting HCP saved yet, seed it for convenience
+          if(rd+1<=maxRounds && hcpHistory[i][rd+1]===null){
+            hcpHistory[i][rd+1] = rolling;
+          }
+        }else{
+          // No calc yet; if starting HCP not set, keep whatever we have
+          if(hcpHistory[i][rd]===null) hcpHistory[i][rd]=rolling;
+        }
+      }
+      nextHcpLive[i] = rolling;
+    });
   }
 
   // === THEME TOGGLE ===
@@ -327,52 +390,81 @@
     return +3;
   }
 
-  // === CALCULATE HANDICAPS ===
+  // === UPSERT ROUND ENTRY (safe even if unique constraint exists) ===
+  async function upsertRoundEntry(player, round, hcp, points, adj){
+    // Try upsert with onConflict first; if schema lacks constraint, fallback to manual upsert.
+    let resp = await supabase.from("round_entries")
+      .upsert([{player, round, hcp, points, adj}], { onConflict: "player,round" });
+    if(resp.error){
+      // Fallback: try update then insert if none updated
+      const { error: updErr, count } = await supabase
+        .from("round_entries")
+        .update({ hcp, points, adj })
+        .eq("player", player).eq("round", round).select("*", { count: "exact", head: true });
+      if(updErr || !count){
+        await supabase.from("round_entries").insert([{ player, round, hcp, points, adj }]);
+      }
+    }
+  }
+
+  // === CALCULATE HANDICAPS (per-round, frozen HCP) ===
   async function calculateHandicaps(){
     if(!unlocked)
       return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
-    if(calcLocked)return alert("Already calculated! Wait before next round.");
+    if(calcLocked)return alert("Already calculating — give it a sec.");
     calcLocked=true;
-    setTimeout(()=>calcLocked=false,3000);
+    setTimeout(()=>calcLocked=false,1200);
 
-    calculatedThisRound = false;
-
+    // Gather points and starting HCPs for this round
     const valid=[];for(let i=0;i<players.length;i++){
-      const v=parseInt(document.getElementById(`points_${i}`).value);
+      const v=parseInt(document.getElementById(`points_${i}`)?.value);
       if(!isNaN(v))valid.push(v);
     }
     const top=valid.length?Math.max(...valid):null;
 
+    // For each player, freeze this round's HCP if not already frozen, compute adj & next
     for(let i=0;i<players.length;i++){
-      const h=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
-      const pts=parseInt(document.getElementById(`points_${i}`).value);
-      const adjCell=document.getElementById(`adj_${i}`);
-      const nextCell=document.getElementById(`newHcp_${i}`);
+      const rd = currentRound;
+      ensurePlayerArrays(i);
 
+      // Starting HCP shown/entered for THIS round:
+      let startHcp = hcpHistory[i][rd];
+      const hcpInput = document.getElementById(`hcp_${i}`);
+      if(startHcp===null || startHcp===undefined){
+        // Not frozen yet; take the input (or last rolling) and freeze it
+        const inputVal = parseFloat(hcpInput?.value);
+        startHcp = isNaN(inputVal) ? (nextHcpLive[i] ?? 0) : inputVal;
+        hcpHistory[i][rd] = startHcp;
+      }else{
+        // Already frozen; make sure UI reflects it
+        if(hcpInput) hcpInput.value = startHcp;
+      }
+
+      // Points this round:
+      const pts = parseInt(document.getElementById(`points_${i}`)?.value);
       if(isNaN(pts)){
-        playerScores[i][currentRound-1]=null;
-        lastAdj[i]="";
-        adjCell.textContent="";
-        nextHcp[i]=h;
-        nextCell.textContent=h;
+        // save HCP freeze only; clear points/adj for this round
+        pointsHistory[i][rd] = null;
+        adjHistory[i][rd] = null;
+        await upsertRoundEntry(players[i], rd, startHcp, null, null);
         continue;
       }
 
-      calculatedThisRound = true;
+      pointsHistory[i][rd] = pts;
 
-      playerScores[i][currentRound-1]=pts;
-      let adj=stablefordAdj(pts);
-      if(top!==null&&pts===top)adj-=1;
-      lastAdj[i]=(adj>0?"+":"")+adj;
-      adjCell.textContent=lastAdj[i];
-      const newH=Math.max(0,Math.round(h+adj));
-      nextHcp[i]=newH;
-      nextCell.textContent=newH;
+      // Calculate adj; top score gets extra -1
+      let adj = stablefordAdj(pts);
+      if(top!==null && pts===top) adj -= 1;
+      adjHistory[i][rd] = adj;
 
-      await supabase.from("scores").update({
-        points:pts,adj:adj,next_handicap:newH,round:currentRound
-      }).eq("player",players[i]);
+      // Next HCP after this round (not retroactive)
+      const newH = Math.max(0, Math.round(startHcp + adj));
+      nextHcpLive[i] = newH;
+
+      // Persist round entry
+      await upsertRoundEntry(players[i], rd, startHcp, pts, adj);
     }
+
     renderLeaderboard();
 
     if(currentRound===maxRounds){
@@ -380,39 +472,57 @@
     }
   }
 
-  // === TOTALS ===
+  // === TOTALS (Best 5) from pointsHistory ===
   function calculateTotals(){
     return players.map((name,i)=>{
-      const scores=playerScores[i].filter(v=>v!==null);
-      const total=scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+      const scores = pointsHistory[i] ? pointsHistory[i].slice(1) : [];
+      const clean = scores.filter(v=>typeof v==="number");
+      const total = clean.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
       return {i,name,total};
     }).sort((a,b)=>b.total-a.total);
   }
 
-  // === RENDER LEADERBOARD ===
+  // === RENDER ===
   function renderLeaderboard(){
     const tbody=document.getElementById("playersTable");
     tbody.innerHTML="";
     const totals=calculateTotals();
 
     totals.forEach((p,rank)=>{
-      const scoreVal=playerScores[p.i][currentRound-1]??"";
-      const adj=lastAdj[p.i]||"";
-      const nextDisplay = nextHcp[p.i] ?? 0;
-      const dnp=scoreVal===""?"checked":"";
-      const readOnly=unlocked?"":"readonly";
+      const i = p.i;
+      const rd = currentRound;
+      ensurePlayerArrays(i);
+
+      // The Round X HCP shown is the frozen HCP for that round, or a prefill (last nextHcpLive)
+      let roundHcp = hcpHistory[i][rd];
+      if(roundHcp===null || roundHcp===undefined){
+        // Prefill from previous round's result to assist, but not frozen until Calculate
+        // Find previous round with a known nextHcp or frozen HCP
+        const prev = rd>1 ? (hcpHistory[i][rd-1]!==null && typeof adjHistory[i][rd-1]==="number"
+                              ? Math.max(0, Math.round(hcpHistory[i][rd-1] + adjHistory[i][rd-1]))
+                              : hcpHistory[i][rd-1]) : hcpHistory[i][1];
+        roundHcp = (typeof prev==="number") ? prev : (nextHcpLive[i] ?? 0);
+      }
+
+      const scoreVal = pointsHistory[i][rd] ?? "";
+      const adj = (typeof adjHistory[i][rd]==="number") ? ((adjHistory[i][rd]>0?"+":"")+adjHistory[i][rd]) : "";
+      const nextDisplay = (typeof adjHistory[i][rd]==="number")
+        ? Math.max(0, Math.round(roundHcp + adjHistory[i][rd]))
+        : 0; // Next HCP starts at 0 until Calculate
+
+      const dnp = (scoreVal==="") ? "checked" : "";
+      const readOnly = unlocked ? "" : "readonly";
+
       const tr=document.createElement("tr");
       tr.innerHTML=`
         <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
         <td>${p.name}</td>
-        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${readOnly}
-          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
-        <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${readOnly}
-          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
-        <td id="adj_${p.i}">${adj}</td>
-        <td id="newHcp_${p.i}">${nextDisplay}</td>
-        <td id="season_${p.i}">${p.total}</td>
-        <td><input type="checkbox" id="dnp_${p.i}" disabled ${dnp}></td>`;
+        <td><input type="number" id="hcp_${i}" value="${roundHcp}" ${readOnly}></td>
+        <td><input type="number" id="points_${i}" value="${scoreVal}" ${readOnly}></td>
+        <td id="adj_${i}">${adj}</td>
+        <td id="newHcp_${i}">${nextDisplay}</td>
+        <td id="season_${i}">${p.total}</td>
+        <td><input type="checkbox" id="dnp_${i}" disabled ${dnp}></td>`;
       tbody.appendChild(tr);
     });
 
@@ -423,8 +533,6 @@
         `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
     }
     document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
-
-    // 🔁 Dynamically set "Round X HCP" in the table header
     const hcpHeaderEl = document.getElementById("hcpHeader");
     if(hcpHeaderEl) hcpHeaderEl.textContent = `Round ${currentRound} HCP`;
 
@@ -434,12 +542,6 @@
   // === ROUND NAVIGATION ===
   function nextRound(){
     if(currentRound<maxRounds){
-      if(calculatedThisRound){
-        for(let i=0;i<players.length;i++){
-          currentHcp[i]=nextHcp[i] ?? currentHcp[i];
-        }
-      }
-      calculatedThisRound = false;
       currentRound++;
       renderLeaderboard();
     }
@@ -476,31 +578,39 @@
     if(pw!==PASSWORD)return alert("Incorrect password!");
     if(!confirm("Are you sure you want to reset all scores and handicaps to 0?"))return;
 
-    for(let i=0;i<players.length;i++){
-      currentHcp[i]=0;
-      nextHcp[i]=0;
-      playerScores[i]=Array(maxRounds).fill(null);
-      lastAdj[i]="";
-      await supabase.from("scores").update({
-        handicap:0,next_handicap:0,points:0,adj:0,round:1,total:0,dnp:false
-      }).eq("player",players[i]);
-    }
+    // wipe round_entries for all players
+    const { error: delErr } = await supabase.from("round_entries").delete().neq("player",""); // simple wipe
+    if(delErr) console.warn("round_entries wipe:", delErr.message);
+
+    // reset local state
+    hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
+    players.forEach((_,i)=>ensurePlayerArrays(i));
     currentRound=1;
-    calculatedThisRound=false;
     alert("Season has been reset!");
     renderLeaderboard();
   }
 
-  // === DOWNLOAD CSV ===
+  // === DOWNLOAD CSV (all rounds) ===
   function downloadCsv(){
+    // Build a CSV with per-round details
+    let header = ["Player","Round","RoundHCP","Points","Adj","NextHCPAfterRound","Total(Best5)"];
+    let lines = [header.join(",")];
+
     const totalsMap = Object.fromEntries(calculateTotals().map(p=>[p.name,p.total]));
-    let csv="Player,Total(Best5),Round,Points,CurrentHCP,NextHCP\n";
-    for(let i=0;i<players.length;i++){
-      csv+=`${players[i]},${totalsMap[players[i]]||0},${currentRound},${playerScores[i][currentRound-1]||""},${currentHcp[i]},${nextHcp[i]||0}\n`;
-    }
-    const blob=new Blob([csv],{type:"text/csv"});
+
+    players.forEach((name,i)=>{
+      for(let rd=1; rd<=maxRounds; rd++){
+        const h = hcpHistory[i]?.[rd];
+        const pts = pointsHistory[i]?.[rd];
+        const adj = adjHistory[i]?.[rd];
+        const nextAfter = (typeof h==="number" && typeof adj==="number") ? Math.max(0, Math.round(h + adj)) : "";
+        lines.push([name, rd, h ?? "", pts ?? "", (adj ?? ""), nextAfter, (rd===maxRounds? (totalsMap[name]||0) : "")].join(","));
+      }
+    });
+
+    const blob=new Blob([lines.join("\n")],{type:"text/csv"});
     const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);a.download="BarfordGolfScores.csv";a.click();
+    a.href=URL.createObjectURL(blob);a.download="BarfordGolfScores_AllRounds.csv";a.click();
   }
 
   // === INITIALISE ===
