@@ -442,6 +442,34 @@
         }
       )
       .subscribe();
+        /* --- Real-time Sync (Supabase v2 compatible) --- */
+    const realtimeScores = supabase
+      .channel('public:scores')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'scores' },
+        (payload) => {
+          console.log('Realtime update from scores:', payload);
+          loadPlayers();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Scores channel status:', status);
+      });
+
+    const realtimeRounds = supabase
+      .channel('public:round_entries')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'round_entries' },
+        (payload) => {
+          console.log('Realtime update from round_entries:', payload);
+          loadPlayers();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Rounds channel status:', status);
+      });
   </script>
 </body>
 </html>
