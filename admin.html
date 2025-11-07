@@ -1,27 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Barford Handicap Calculator - Minimal</title>
+  <meta charset="UTF-8">
+  <title>Barford Golf Society – Handicap Calculator</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { text-align: center; }
+    #controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button, input[type=password] {
+      padding: 8px 12px;
+      margin: 5px;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background: #eee;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Barford Golf Handicap Calculator</h2>
+<h1>Barford Golf Society – Handicap Calculator</h1>
 
-<!-- Controls -->
-<label>Password: <input type="password" id="pw"></label>
-<button onclick="unlock()">Unlock</button>
-<button onclick="lock()">Lock</button>
-<button onclick="calculate()">Calculate</button>
-<button onclick="nextRound()">Next Round</button>
-<button onclick="prevRound()">Prev Round</button>
-<button onclick="addPlayer()">Add Player</button>
-<button onclick="resetLeague()">Reset</button>
+<div id="controls">
+  Password: <input type="password" id="pw">
+  <button onclick="unlock()">Unlock</button>
+  <button onclick="lock()">Lock</button>
+  <button onclick="calculate()">Calculate</button>
+  <button onclick="nextRound()">Next Round</button>
+  <button onclick="prevRound()">Prev Round</button>
+  <button onclick="addPlayer()">Add Player</button>
+  <button onclick="resetLeague()">Reset</button>
+</div>
 
-<p id="roundInfo">Round 1 of 7</p>
+<h3 id="roundHeader">Round 1 of 7</h3>
 
-<pre id="output"></pre>
+<table>
+  <thead>
+    <tr>
+      <th>Player</th>
+      <th>Handicap</th>
+      <th>Points</th>
+      <th>Adjustment</th>
+      <th>Next Handicap</th>
+      <th>Total (Best 5)</th>
+    </tr>
+  </thead>
+  <tbody id="playersTable"></tbody>
+</table>
 
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co
@@ -36,110 +80,127 @@ let currentRound = 1;
 const maxRounds = 7;
 let players = [];
 
-// === Load players ===
+// Load players
 async function loadPlayers() {
   const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
-  if (error) console.error(error);
+  if (error) return console.error(error);
   players = data || [];
-  display();
+  renderTable();
 }
 
-// === Realtime sync ===
+// Realtime updates
 supabase.channel("scores")
   .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
   .subscribe();
 
-// === Display ===
-function display() {
-  let text = "Player | HCP | Points | Adj | Next HCP | Total\n";
-  text += "-------------------------------------------------\n";
+// Render table
+function renderTable() {
+  const tbody = document.getElementById("playersTable");
+  tbody.innerHTML = "";
   players.forEach(p => {
-    text += `${p.player.padEnd(12)} | ${String(p.handicap??"").padEnd(3)} | ${String(p.points??"").padEnd(6)} | ${String(p.adj??"").padEnd(4)} | ${String(p.next_handicap??"").padEnd(8)} | ${String(p.total??"").padEnd(5)}\n`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.player}</td>
+      <td><input type="number" id="hcp_${p.id}" value="${p.handicap||0}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="pts_${p.id}" value="${p.points??""}" ${unlocked?"":"disabled"}></td>
+      <td>${p.adj ?? ""}</td>
+      <td>${p.next_handicap ?? ""}</td>
+      <td>${p.total ?? 0}</td>
+    `;
+    tbody.appendChild(tr);
   });
-  document.getElementById("output").textContent = text;
-  document.getElementById("roundInfo").textContent = "Round " + currentRound + " of " + maxRounds;
+  document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
 }
 
-// === Handicap adjustment ===
-function adjFromPoints(pts) {
-  if (pts >= 43) return -3;
-  if (pts >= 38) return -2;
-  if (pts >= 31) return -1;
-  if (pts >= 26) return 0;
-  if (pts >= 21) return 1;
-  if (pts >= 16) return 2;
+// Handicap adjustment logic
+function getAdj(points) {
+  if (points >= 43) return -3;
+  if (points >= 38) return -2;
+  if (points >= 31) return -1;
+  if (points >= 26) return 0;
+  if (points >= 21) return 1;
+  if (points >= 16) return 2;
   return 3;
 }
 
-// === Calculate ===
+// Calculate
 async function calculate() {
   if (!unlocked) return alert("Unlock first.");
+  const scores = players.map(p => ({
+    id: p.id,
+    player: p.player,
+    handicap: parseFloat(document.getElementById(`hcp_${p.id}`).value) || 0,
+    points: parseInt(document.getElementById(`pts_${p.id}`).value) || null
+  }));
 
-  // Input loop
-  for (const p of players) {
-    const pts = parseInt(prompt("Enter points for " + p.player + ":", p.points ?? "")) || 0;
-    const adj = adjFromPoints(pts);
-    const topScore = Math.max(...players.map(x => x.points ?? pts));
-    const topAdj = pts === topScore ? adj - 1 : adj;
+  const topScore = Math.max(...scores.filter(s=>s.points!==null).map(s=>s.points));
 
-    p.points = pts;
-    p.adj = topAdj;
-    p.next_handicap = Math.max(0, Math.round((p.handicap ?? 0) + topAdj));
-    p.round = currentRound;
-    p.updated_at = new Date().toISOString();
-    await supabase.from("scores").upsert(p);
+  for (const s of scores) {
+    const adj = s.points===null ? null : getAdj(s.points) - (s.points===topScore ? 1 : 0);
+    const next = s.points===null ? s.handicap : Math.max(0, Math.round(s.handicap + adj));
+    await supabase.from("scores").update({
+      points: s.points,
+      adj: adj,
+      next_handicap: next,
+      updated_at: new Date().toISOString(),
+      round: currentRound
+    }).eq("id", s.id);
   }
+
   alert("Round calculated and saved.");
   loadPlayers();
 }
 
-// === Next Round ===
+// Next Round
 async function nextRound() {
-  if (currentRound >= maxRounds) return alert("League complete.");
+  if (currentRound >= maxRounds) return alert("League finished!");
   currentRound++;
   for (const p of players) {
-    p.handicap = p.next_handicap ?? p.handicap;
-    p.points = null;
-    p.adj = null;
-    await supabase.from("scores").update({handicap:p.handicap,round:currentRound}).eq("id",p.id);
+    await supabase.from("scores").update({
+      handicap: p.next_handicap ?? p.handicap,
+      points: null,
+      adj: null,
+      round: currentRound
+    }).eq("id", p.id);
   }
   unlocked = false;
   loadPlayers();
 }
 
-// === Previous Round ===
+// Previous Round
 function prevRound() {
   if (currentRound > 1) currentRound--;
-  display();
+  renderTable();
 }
 
-// === Unlock / Lock ===
+// Password Locking
 function unlock() {
   const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked."); }
-  else alert("Wrong password.");
+  if (val === PASSWORD) { unlocked = true; alert("Unlocked"); renderTable(); }
+  else alert("Wrong password");
 }
-function lock() { unlocked = false; alert("Locked."); }
+function lock() { unlocked = false; alert("Locked"); renderTable(); }
 
-// === Add Player ===
+// Add Player
 async function addPlayer() {
-  const name = prompt("Enter new player name:");
+  const name = prompt("Enter player name:");
   if (!name) return;
   await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound}]);
   loadPlayers();
 }
 
-// === Reset ===
+// Reset League
 async function resetLeague() {
-  const pw = prompt("Enter password to confirm reset:");
-  if (pw !== PASSWORD) return alert("Wrong password.");
-  await supabase.from("scores").delete().neq("id",0);
+  const pw = prompt("Enter password:");
+  if (pw !== PASSWORD) return alert("Wrong password");
+  await supabase.from("scores").delete().neq("id", 0);
   currentRound = 1;
   loadPlayers();
 }
 
-// === Init ===
+// Start
 loadPlayers();
 </script>
+
 </body>
 </html>
