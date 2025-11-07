@@ -297,8 +297,16 @@
         adjHistory[i][currentRound-1]=(adj>0?"+":"")+adj;
         const nextIndex=currentRound;
         if(nextIndex<maxRounds&&startHcp[i][nextIndex]===0)startHcp[i][nextIndex]=next;
-        await supabase.from("round_entries").upsert({player:players[i],round:currentRound,hcp:start,points:pts,adj:adj,next_hcp:next});
-      }
+      await supabase.from("round_entries").upsert({
+  player: players[i],
+  round: currentRound,
+  hcp: start,
+  points: pts,
+  adj: adj,
+  next_hcp: next,
+  updated_at: new Date().toISOString()
+});
+
       renderTable();
       if(currentRound===maxRounds)showFinalResults();
     }
