@@ -111,6 +111,7 @@
     .btn-add{background:#c0c0c0;color:#1b1b1b;}
     .btn-download{background:var(--green);color:var(--gold);}
     .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
+    .btn-reset{background:#b30000;color:#fff;} /* NEW reset button style */
 
     /* TABLE */
     main{padding:20px;}
@@ -135,8 +136,8 @@
     .blur-overlay{
       position:fixed;
       inset:0;
-      background:rgba(0,0,0,.4);
-      backdrop-filter:blur(15px);
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(25px); /* stronger blur */
       display:none;
       justify-content:center;
       align-items:center;
@@ -188,6 +189,7 @@
       <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
+      <button class="btn btn-reset" onclick="resetSeason()">Reset Season</button> <!-- NEW -->
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
 
@@ -199,7 +201,7 @@
         <table>
           <thead>
             <tr>
-              <th>Rank</</th>
+              <th>Rank</th>
               <th>Player</th>
               <th id="hcpHeader">Round 1 HCP</th>
               <th>Points</th>
@@ -217,7 +219,7 @@
 
   <!-- Frosted blur overlay -->
   <div id="blurOverlay" class="blur-overlay">
-    <div>🔒 Scores hidden until the final rounds unlock</div>
+    <div>🔒 Scores hidden until unlocked 🔒</div>
   </div>
 
   <footer>
@@ -252,6 +254,8 @@
       nextHcp = data.map(r=>r.next_handicap||0);
       playerScores = players.map(()=>Array(maxRounds).fill(null));
       lastAdj = players.map(()=>"");
+    } else {
+      players=[];currentHcp=[];nextHcp=[];playerScores=[];lastAdj=[];
     }
     renderLeaderboard();
   }
@@ -269,7 +273,12 @@
     overlay.classList.toggle("active",show);
   }
   function updateBlur(){
-    showBlurOverlay(!unlocked && currentRound>=6);
+    // Apply heavier blur for rounds 6 and 7 only when locked
+    if(!unlocked && currentRound>=6){
+      showBlurOverlay(true);
+    } else {
+      showBlurOverlay(false);
+    }
   }
 
   // === LOCK / UNLOCK ===
@@ -317,10 +326,12 @@
       const pts=parseInt(document.getElementById(`points_${i}`).value);
       const adjCell=document.getElementById(`adj_${i}`);
       const nextCell=document.getElementById(`newHcp_${i}`);
+
       if(isNaN(pts)){
         playerScores[i][currentRound-1]=null;
         lastAdj[i]="";
         adjCell.textContent="";
+        // Keep HCP visible; Next HCP remains the same until calculation
         nextHcp[i]=h;
         nextCell.textContent=h;
         continue;
@@ -339,6 +350,7 @@
     }
     renderLeaderboard();
 
+    // Show final popup when last round calculated
     if(currentRound===maxRounds){
       setTimeout(showFinalResults,500);
     }
@@ -361,7 +373,7 @@
     totals.forEach((p,rank)=>{
       const scoreVal=playerScores[p.i][currentRound-1]??"";
       const adj=lastAdj[p.i]||"";
-      const next=nextHcp[p.i]??"";
+      const next=nextHcp[p.i]??0; // start Next HCP at 0 until calculated
       const dnp=scoreVal===""?"checked":"";
       const readOnly=unlocked?"":"readonly";
       const tr=document.createElement("tr");
@@ -417,8 +429,27 @@
     const totals=calculateTotals();
     let text="🏆 FINAL RESULTS 🏆\n\n";
     totals.forEach((t,i)=>text+=`${i+1}. ${t.name} — ${t.total} pts\n`);
-    text+="\nCopy or export to CSV?";
-    if(confirm(text))downloadCsv();
+    alert(text);
+  }
+
+  // === RESET SEASON ===
+  async function resetSeason(){
+    const pw=prompt("Enter password to reset season:");
+    if(pw!==PASSWORD)return alert("Incorrect password!");
+    if(!confirm("Are you sure you want to reset all scores and handicaps to 0?"))return;
+
+    for(let i=0;i<players.length;i++){
+      currentHcp[i]=0;
+      nextHcp[i]=0;
+      playerScores[i]=Array(maxRounds).fill(null);
+      lastAdj[i]="";
+      await supabase.from("scores").update({
+        handicap:0,next_handicap:0,points:0,adj:0,round:1,total:0,dnp:false
+      }).eq("player",players[i]);
+    }
+    currentRound=1;
+    alert("Season has been reset!");
+    renderLeaderboard();
   }
 
   // === DOWNLOAD CSV ===
@@ -437,3 +468,15 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
