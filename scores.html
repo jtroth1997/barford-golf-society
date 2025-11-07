@@ -184,22 +184,25 @@ const roundsChannel = supabase.channel('rounds-changes')
     }
     if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-    /* --- Load Players --- */
-    async function loadPlayers(){
-      const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
-      if(error){console.error(error);return;}
-      if(data?.length){
-        players=data.map(r=>r.player);
-        for(let i=0;i<players.length;i++){
-          startHcp[i]=Array(maxRounds).fill(0);
-          afterHcp[i]=Array(maxRounds).fill(0);
-          pointsHistory[i]=Array(maxRounds).fill(null);
-          adjHistory[i]=Array(maxRounds).fill("");
-          startHcp[i][0]=data[i].handicap||0;
-        }
-      }
-      renderTable();
-    }
+   async function loadPlayers(forceReload = false) {
+  console.log("Loading players... forceReload:", forceReload);
+  const { data, error } = await supabase.from("scores").select("*").order("id", { ascending: true });
+  if (error) { console.error(error); return; }
+
+  if (!data?.length) {
+    console.warn("⚠️ No player data found in Supabase");
+    return;
+  }
+
+  players = data.map(r => r.player);
+  currentHcp = data.map(r => r.handicap || 0);
+  nextHcp = data.map(r => r.next_handicap || 0);
+  playerScores = players.map(() => Array(maxRounds).fill(null));
+  lastAdj = players.map(() => "");
+
+  renderLeaderboard();
+}
+
 
     /* --- Lock / Unlock --- */
     function unlockInputs(){
