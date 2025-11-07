@@ -2,57 +2,58 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Dashboard | Barford Golf Society</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Barford Golf Society | Scores</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --green:#005a2b; --gold:#d4af37;
-  --dark-bg:#1b1b1b; --dark-card:#2b2b2b;
-  --light-bg:#f7f7f5; --light-card:#ffffff;
+:root{
+  --green:#005a2b;--gold:#d4af37;
+  --cream:#f7f7f5;--dark:#1b1b1b;
+  --white:#ffffff;--silver:#c0c0c0;
+  --bronze:#cd7f32;--highlight:#e9f5ec;
 }
-body {
-  font-family:"Inter",sans-serif; margin:0;
-  background:var(--light-bg); color:#1b1b1b;
-  transition:background .3s,color .3s;
-}
-.dark { background:var(--dark-bg); color:#eee; }
+body{font-family:"Inter",sans-serif;margin:0;background:var(--cream);color:var(--dark);}
+.dark{background:#1b1b1b;color:#eee;}
+/* --- site header/nav --- */
 .site-header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 20px;}
 .site-title{color:var(--gold);}
 .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
 .site-nav a{color:#fff;text-decoration:none;font-weight:600;}
-.site-nav a:hover,.active{color:var(--gold);}
-#login,#dashboard{max-width:1200px;margin:40px auto;padding:20px;}
-input,select,textarea{font-family:inherit;padding:8px;border-radius:6px;border:1px solid #ccc;}
-button{background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin:4px;transition:background .3s,transform .2s;}
-button:hover{background:#0a6b34;transform:scale(1.02);}
-button.danger{background:#b22222;}
-button.gold{background:var(--gold);color:#1b1b1b;}
-.hidden{display:none;}
-footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);padding:20px;margin-top:40px;}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:20px;}
-.card{background:var(--light-card);padding:20px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.1);text-align:center;transition:transform .2s;}
-.card:hover{transform:translateY(-3px);}
-.dark .card{background:var(--dark-card);color:#eee;}
-.tabs{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
-.tab-btn{background:var(--gold);color:#1b1b1b;}
-.tab-btn.active{background:var(--green);color:#fff;}
-.tab-content{display:none;margin-top:20px;}
-.tab-content.active{display:block;}
-table{width:100%;border-collapse:collapse;background:var(--light-card);border-radius:12px;overflow:hidden;}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #ccc;}
-th{background:var(--green);color:var(--gold);}
-textarea#adminNotes{width:100%;height:150px;resize:none;margin-top:10px;}
-.activity-feed{max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;border-radius:8px;background:var(--light-card);}
-.toggle{position:fixed;top:10px;right:10px;background:var(--gold);color:#1b1b1b;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer;}
+.site-nav a:hover{color:var(--gold);}
+.toggle{position:fixed;top:10px;right:10px;background:var(--gold);color:#1b1b1b;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer;z-index:50;}
 .dark .toggle{background:#333;color:var(--gold);}
-h3 small{font-weight:400;color:#666;font-size:0.9rem;}
+footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);padding:20px;margin-top:40px;}
+/* --- calculator --- */
+header.calc-header{background:linear-gradient(to right,var(--green),#145214);color:var(--gold);text-align:center;padding:20px;font-size:1.6rem;font-weight:700;letter-spacing:.5px;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:var(--white);box-shadow:0 3px 10px rgba(0,0,0,.05);position:sticky;top:60px;z-index:10;}
+input[type=password],input[type=number]{font-family:inherit;border-radius:6px;border:1px solid #ccc;padding:8px;}
+.btn{padding:8px 12px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:.25s;font-size:.9rem;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.btn-unlock{background:var(--gold);color:var(--dark);}
+.btn-lock{background:var(--green);color:var(--white);}
+.btn-calc{background:#ffcc00;color:var(--dark);}
+.btn-next,.btn-prev{background:#ddd;color:var(--dark);}
+.btn-reset{background:#b22222;color:#fff;}
+.btn-add{background:var(--silver);color:var(--dark);}
+.btn-pass{background:var(--bronze);color:#fff;}
+main{padding:20px;max-width:1100px;margin:auto;}
+.round-info{text-align:center;margin-bottom:15px;font-weight:600;color:var(--green);}
+.progress-bar{width:80%;height:10px;background:#ddd;border-radius:10px;margin:8px auto 20px;overflow:hidden;}
+.progress-bar div{height:100%;width:0;background:var(--gold);transition:width .5s;}
+table{width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.1);}
+th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
+th{background:var(--green);color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-size:.9rem;}
+tbody tr:nth-child(even){background:#f8f8f8;}tbody tr:hover{background:var(--highlight);}
+#popupModal{display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);border:2px solid var(--gold);border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,.3);padding:20px 30px;color:#fff;text-align:center;z-index:9999;}
+#popupModal h3{margin-bottom:10px;color:var(--gold);}
+#popupModal button{background:var(--gold);border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-weight:600;color:var(--dark);}
+.blur-locked{filter:blur(6px);pointer-events:none;opacity:.6;}
+@media(max-width:700px){th,td{font-size:12px;padding:8px}.btn{font-size:.8rem;padding:6px 10px}}
 </style>
 </head>
 <body>
-
 <header class="site-header">
   <div class="header-container">
     <h1 class="site-title">Barford Golf Society</h1>
@@ -61,262 +62,187 @@ h3 small{font-weight:400;color:#666;font-size:0.9rem;}
         <li><a href="index.html">Home</a></li>
         <li><a href="events.html">Events</a></li>
         <li><a href="scores.html">Scores</a></li>
-        <li><a href="admin.html" class="active">Admin</a></li>
+        <li><a href="admin.html">Admin</a></li>
       </ul>
     </nav>
   </div>
 </header>
-
 <div class="toggle" onclick="toggleDarkMode()">🌙</div>
 
-<section id="login">
-  <h2>Admin Login</h2>
-  <input type="password" id="pw" placeholder="Enter admin password">
-  <button onclick="unlock()">Unlock</button>
-</section>
+<header class="calc-header">🏌️ Barford Golf Society Handicap Calculator</header>
 
-<section id="dashboard" class="hidden">
-  <h2>Welcome, Admin 👋</h2>
-  <div class="cards" id="statsCards"></div>
+<div class="topbar">
+  <input type="password" id="pwInput" placeholder="Enter password">
+  <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
+  <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
+  <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
+  <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
+  <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
+  <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
+  <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
+  <button class="btn btn-reset" id="resetBtn" style="display:none" onclick="confirmReset()">Reset League</button>
+</div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="rsvps">RSVPs</button>
-    <button class="tab-btn" data-tab="events">Events</button>
-    <button class="tab-btn" data-tab="gallery">Gallery</button>
-    <button class="tab-btn" data-tab="teetimes">Tee Times</button>
-    <button class="tab-btn" data-tab="notes">Notes</button>
-    <button class="tab-btn" data-tab="activity">Activity</button>
+<main>
+  <div class="round-info">
+    <h3 id="roundHeader">Round 1 of 7</h3>
+    <div class="progress-bar"><div id="progressFill"></div></div>
   </div>
 
-  <!-- Overview -->
-  <div id="overview" class="tab-content active">
-    <h3>RSVP Overview</h3>
-    <canvas id="rsvpChart" height="120"></canvas>
-  </div>
+  <div id="popupModal"><h3 id="popupText"></h3><button onclick="closePopup()">OK</button></div>
 
-  <!-- Tee Time Organiser -->
-  <div id="teetimes" class="tab-content">
-    <h3>Tee Time Organiser <small></small></h3>
-    <div id="teeLogin">
-      <input type="password" id="teePw" placeholder="Enter tee organiser password">
-      <button onclick="unlockTeeTime()">Unlock</button>
-    </div>
-
-    <div id="teeContent" class="hidden">
-      <label>First Tee Time:</label>
-      <input type="time" id="firstTeeTime" value="09:00">
-      <label>Interval (mins):</label>
-      <select id="teeInterval"><option>5</option><option selected>7</option><option>10</option></select>
-      <br><br>
-      <label>Attach to Event:</label>
-      <select id="eventSelect"></select>
-      <br>
-      <button class="gold" onclick="generateTeeTimes()">Generate Tee Times</button>
-      <button class="gold hidden" id="postTeeTimesBtn" onclick="postTeeTimes()">Post to Event Page</button>
-      <table id="teeSheetTable"><thead><tr><th>Tee Time</th><th>Player 1</th><th>Player 2</th><th>Player 3</th><th>Player 4</th><th>Buggy?</th></tr></thead><tbody></tbody></table>
-    </div>
+  <div id="tableContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Player</th><th id="hcpHeader">Round 1 HCP</th>
+          <th>Points</th><th>Adj</th><th id="newHcpHeader">Next HCP</th>
+          <th>Total (Best 5)</th><th>DNP</th>
+        </tr>
+      </thead>
+      <tbody id="playersTable"></tbody>
+    </table>
   </div>
-
-  <!-- RSVPs -->
-  <div id="rsvps" class="tab-content">
-    <h3>RSVP Manager</h3>
-    <div><button class="gold" onclick="downloadCsv('rsvps')">Download CSV</button>
-    <button class="danger" onclick="clearData('bgsRsvps')">Clear All RSVPs</button></div>
-    <table id="rsvpTable"><thead><tr><th>Event</th><th>Attending</th><th>Handicap</th><th>Buggy</th><th>Partner</th></tr></thead><tbody></tbody></table>
-  </div>
-
-  <!-- Events -->
-  <div id="events" class="tab-content">
-    <h3>Event Manager</h3>
-    <table id="eventTable"><thead><tr><th>Name</th><th>Location</th><th>Date</th><th>Price</th><th>Actions</th></tr></thead><tbody></tbody></table>
-  </div>
-
-  <!-- Gallery -->
-  <div id="gallery" class="tab-content">
-    <h3>Gallery Manager</h3>
-    <table id="galleryTable"><thead><tr><th>Preview</th><th>Uploader</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table>
-  </div>
-
-  <!-- Notes -->
-  <div id="notes" class="tab-content">
-    <h3>Admin Notes</h3>
-    <textarea id="adminNotes" placeholder="Write reminders or to-dos..."></textarea>
-  </div>
-
-  <!-- Activity -->
-  <div id="activity" class="tab-content">
-    <h3>Recent Activity</h3>
-    <div class="activity-feed" id="activityFeed"></div>
-  </div>
-</section>
+</main>
 
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-const PASSWORD="westbrom1997", TEE_PASSWORD="oxford1";
-const qs=s=>document.querySelector(s), qsa=s=>document.querySelectorAll(s);
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function unlock(){
-  if(qs('#pw').value.trim()!==PASSWORD)return alert("Incorrect password");
-  qs('#login').classList.add('hidden');
-  qs('#dashboard').classList.remove('hidden');
-  renderAll();
-}
+let PASSWORD="westbrom1997";
+let unlocked=false;
+let currentRound=1;
+const maxRounds=7;
+let playersData=[];
 
-function unlockTeeTime(){
-  if(qs('#teePw').value.trim()!==TEE_PASSWORD)return alert("Incorrect password");
-  qs('#teeLogin').classList.add('hidden');
-  qs('#teeContent').classList.remove('hidden');
-  populateEventSelect();
-}
-
+/* ---------- THEME ---------- */
 function toggleDarkMode(){
   document.body.classList.toggle('dark');
   localStorage.setItem('bgsDarkMode',document.body.classList.contains('dark'));
-  qs('.toggle').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
+  document.querySelector('.toggle').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
 }
-if(localStorage.getItem('bgsDarkMode')==='true'){document.body.classList.add('dark');qs('.toggle').textContent='☀️';}
+if(localStorage.getItem('bgsDarkMode')==='true'){document.body.classList.add('dark');document.querySelector('.toggle').textContent='☀️';}
 
-function populateEventSelect(){
-  const evts=JSON.parse(localStorage.getItem('bgsEvents')||'[]');
-  qs('#eventSelect').innerHTML=evts.map(e=>`<option value="${e.name}">${e.name}</option>`).join('');
-}
+/* ---------- POPUP ---------- */
+function showPopup(msg){const m=document.getElementById("popupModal");document.getElementById("popupText").textContent=msg;m.style.display="block";setTimeout(()=>m.style.display="none",3000);}
+function closePopup(){document.getElementById("popupModal").style.display="none";}
 
-/* Generate Tee Times */
-function generateTeeTimes(){
-  const rsvps=JSON.parse(localStorage.getItem('bgsRsvps')||'[]').filter(r=>r.attend?.toLowerCase()==='yes');
-  if(!rsvps.length)return alert("No RSVPs found.");
-  const start=qs('#firstTeeTime').value;const interval=parseInt(qs('#teeInterval').value);
-  const groups=groupPlayers(rsvps);const tbody=qs('#teeSheetTable tbody');
-  tbody.innerHTML='';let t=new Date(`2000-01-01T${start}`);
-  groups.forEach(g=>{
-    const time=t.toTimeString().slice(0,5);
-    const buggy=g.some(p=>p.buggy==='Yes')?'Yes':'No';
-    const cells=g.map(p=>`<td>${p.name||'Player'}</td>`).join('');
-    tbody.innerHTML+=`<tr><td>${time}</td>${cells}<td>${buggy}</td></tr>`;
-    t.setMinutes(t.getMinutes()+interval);
-  });
-  qs('#postTeeTimesBtn').classList.remove('hidden');
-  localStorage.setItem('tempTeeTimes',JSON.stringify(groups));
+/* ---------- HEADERS ---------- */
+function updateHeaders(){
+  document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
+  document.getElementById("newHcpHeader").textContent=`Next Round HCP`;
+  document.getElementById("nextBtn").textContent=currentRound===maxRounds?"Finish":"Next ▶";
+  document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
+  document.getElementById("progressFill").style.width=(currentRound/maxRounds*100)+"%";
+  document.getElementById("resetBtn").style.display=currentRound>=maxRounds?"inline-block":"none";
 }
 
-function postTeeTimes(){
-  const selectedEvent=qs('#eventSelect').value;
-  const teeData=JSON.parse(localStorage.getItem('tempTeeTimes')||'[]');
-  if(!teeData.length)return alert("No tee times generated.");
-  localStorage.setItem('teeTimes_'+selectedEvent,JSON.stringify(teeData));
-  alert(`✅ Tee times posted to "${selectedEvent}"`);
-  logActivity(`Tee times posted for ${selectedEvent}`);
+/* ---------- LOCK / UNLOCK ---------- */
+function unlockInputs(){
+  if(document.getElementById("pwInput").value!==PASSWORD)return alert("Incorrect password!");
+  unlocked=true;showPopup("✅ Scores Unlocked");renderLeaderboard();
 }
+function lockInputs(){unlocked=false;showPopup("🔒 Scores Locked");renderLeaderboard();}
 
-/* Grouping logic */
-function groupPlayers(players){
-  const pairs=[],used=new Set();
-  players.forEach(p=>{
-    if(p.buggy?.toLowerCase()==='yes'&&p.partner){
-      const partner=players.find(x=>x.name===p.partner);
-      if(partner&&!used.has(p.name)&&!used.has(partner.name)){
-        pairs.push([p,partner]);used.add(p.name);used.add(partner.name);
-      }
+/* ---------- SUPABASE ---------- */
+async function fetchPlayers(){
+  const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
+  if(error)console.error(error);
+  playersData=data||[];
+  renderLeaderboard();
+}
+supabase.channel("scores_changes").on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>fetchPlayers()).subscribe();
+
+/* ---------- CALCULATION ---------- */
+function stablefordAdj(pts){
+  if(pts>=43)return -3;if(pts>=38)return -2;if(pts>=31)return -1;
+  if(pts>=26)return 0;if(pts>=21)return +1;if(pts>=16)return +2;return +3;
+}
+async function calculateHandicaps(){
+  if(!unlocked)return alert("Unlock first!");
+  const valid=playersData.filter(p=>p.points!==null&&p.points!==undefined);
+  const top=valid.length?Math.max(...valid.map(p=>p.points||0)):null;
+  for(const p of playersData){
+    const pts=parseInt(document.getElementById(`points_${p.id}`).value)||null;
+    const hcp=parseFloat(document.getElementById(`hcp_${p.id}`).value)||0;
+    if(!pts){p.points=null;p.adj=null;p.next_handicap=hcp;}
+    else{
+      const adj=stablefordAdj(pts)-(pts===top?1:0);
+      const newH=Math.max(0,Math.round(hcp+adj));
+      p.points=pts;p.adj=adj;p.next_handicap=newH;
     }
-  });
-  const remaining=players.filter(p=>!used.has(p.name));
-  const all=[...pairs.flat(),...remaining].sort(()=>Math.random()-0.5);
-  const groups=[];
-  while(all.length>0)groups.push(all.splice(0,4));
-  if(groups.length>1&&groups.at(-1).length===1)groups.at(-2).push(groups.pop()[0]);
-  return groups;
+    p.round=currentRound;p.updated_at=new Date().toISOString();
+    await supabase.from("scores").upsert(p);
+  }
+  showPopup("🏌️ Scores Updated");fetchPlayers();
 }
 
-/* Data and charts */
-function renderAll(){
-  updateStats();loadRsvps();loadEvents();loadGallery();loadNotes();loadActivity();buildChart();populateEventSelect();
+/* ---------- RENDER ---------- */
+function calcTotal(p){return p.total||0;}
+function calculateTotals(){return [...playersData].sort((a,b)=>calcTotal(b)-calcTotal(a));}
+function renderLeaderboard(){
+  const tbody=document.getElementById("playersTable");tbody.innerHTML="";
+  const sorted=calculateTotals();
+  sorted.forEach((p,rank)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
+      <td>${p.player}</td>
+      <td><input type="number" id="hcp_${p.id}" value="${p.handicap||0}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="points_${p.id}" value="${p.points??""}" ${unlocked?"":"disabled"}></td>
+      <td id="adj_${p.id}">${p.adj??""}</td>
+      <td id="newHcp_${p.id}">${p.next_handicap??""}</td>
+      <td id="season_${p.id}">${p.total??0}</td>
+      <td><input type="checkbox" disabled ${p.points==null?"checked":""}></td>`;
+    tbody.appendChild(tr);
+  });
+  updateHeaders();
 }
-function updateStats(){
-  const evts=JSON.parse(localStorage.getItem('bgsEvents')||'[]');
-  const rsvps=JSON.parse(localStorage.getItem('bgsRsvps')||'[]');
-  const gallery=JSON.parse(localStorage.getItem('bgsGalleryUploads')||'[]');
-  const next=evts.sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
-  qs('#statsCards').innerHTML=`
-    <div class="card"><h3>🏌️ Active Events</h3><p>${evts.length}</p></div>
-    <div class="card"><h3>👥 Total RSVPs</h3><p>${rsvps.length}</p></div>
-    <div class="card"><h3>🖼️ Approved Photos</h3><p>${gallery.filter(p=>p.approved).length}</p></div>
-    <div class="card"><h3>📅 Next Event</h3><p>${next?next.name+"<br>"+next.date:"None"}</p></div>`;
+
+/* ---------- ROUND CONTROLS ---------- */
+async function nextRound(){
+  if(currentRound<maxRounds){
+    currentRound++;
+    for(const p of playersData){
+      p.handicap=p.next_handicap??p.handicap;
+      p.round=currentRound;
+      await supabase.from("scores").update({handicap:p.handicap,round:currentRound}).eq("id",p.id);
+    }
+    unlocked=false;
+    showPopup(`➡️ Round ${currentRound} started`);
+    renderLeaderboard();
+  }else showPopup("🏁 League complete!");
 }
-function loadRsvps(){
-  const data=JSON.parse(localStorage.getItem('bgsRsvps')||'[]');
-  const tbody=qs('#rsvpTable tbody');tbody.innerHTML='';
-  data.forEach(r=>{tbody.innerHTML+=`<tr><td>${r.event}</td><td>${r.attend}</td><td>${r.handicap||''}</td><td>${r.buggy||''}</td><td>${r.partner||''}</td></tr>`});
+function prevRound(){if(currentRound>1){currentRound--;renderLeaderboard();}}
+
+/* ---------- PLAYERS ---------- */
+async function addPlayer(){
+  const name=prompt("Enter new player name:");if(!name)return;
+  const {error}=await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound,updated_at:new Date().toISOString()}]);
+  if(error)console.error(error);
+  showPopup(`👤 ${name} added`);fetchPlayers();
 }
-function loadEvents(){
-  const data=JSON.parse(localStorage.getItem('bgsEvents')||'[]');
-  const tbody=qs('#eventTable tbody');tbody.innerHTML='';
-  data.forEach((e,i)=>{tbody.innerHTML+=`<tr><td>${e.name}</td><td>${e.location}</td><td>${e.date}</td><td>${e.price}</td><td><button class="danger" onclick="deleteEvent(${i})">Delete</button></td></tr>`});
+
+/* ---------- RESET ---------- */
+async function confirmReset(){
+  const pw=prompt("Enter password to reset:");if(pw!==PASSWORD)return alert("Incorrect password!");
+  await supabase.from("scores").delete().neq("id",0);
+  currentRound=1;showPopup("🏌️‍♂️ League reset");fetchPlayers();
 }
-function loadGallery(){
-  const data=JSON.parse(localStorage.getItem('bgsGalleryUploads')||'[]');
-  const tbody=qs('#galleryTable tbody');tbody.innerHTML='';
-  data.forEach((g,i)=>{tbody.innerHTML+=`<tr><td><img src="${g.url}" alt="" width="80" style="border-radius:8px"></td><td>${g.uploader||'Unknown'}</td><td>${g.approved?'✅ Approved':'⏳ Pending'}</td><td>${!g.approved?`<button class="gold" onclick="approvePhoto(${i})">Approve</button>`:''}<button class="danger" onclick="deletePhoto(${i})">Delete</button></td></tr>`});
+
+/* ---------- PASSWORD CHANGE ---------- */
+function changePassword(){
+  const old=prompt("Enter current password:");if(old!==PASSWORD)return alert("Incorrect password!");
+  const nw=prompt("Enter new password:");if(!nw)return;
+  PASSWORD=nw;showPopup("🔐 Password changed");
 }
-function approvePhoto(i){
-  const d=JSON.parse(localStorage.getItem('bgsGalleryUploads')||'[]');
-  d[i].approved=true;localStorage.setItem('bgsGalleryUploads',JSON.stringify(d));logActivity('Photo approved');loadGallery();updateStats();
-}
-function deletePhoto(i){
-  const d=JSON.parse(localStorage.getItem('bgsGalleryUploads')||'[]');
-  d.splice(i,1);localStorage.setItem('bgsGalleryUploads',JSON.stringify(d));logActivity('Photo deleted');loadGallery();updateStats();
-}
-function deleteEvent(i){
-  const d=JSON.parse(localStorage.getItem('bgsEvents')||'[]');
-  logActivity(`Event "${d[i].name}" deleted`);d.splice(i,1);
-  localStorage.setItem('bgsEvents',JSON.stringify(d));loadEvents();updateStats();
-}
-function clearData(key){
-  if(prompt("Confirm password")==PASSWORD){
-    localStorage.removeItem(key);logActivity(`${key} cleared`);renderAll();
-  }
-}
-function downloadCsv(type){
-  let data,headers,rows;
-  if(type==='rsvps'){
-    data=JSON.parse(localStorage.getItem('bgsRsvps')||'[]');
-    headers=["Event","Attending","Handicap","Buggy","Partner"];
-    rows=data.map(d=>[d.event,d.attend,d.handicap||'',d.buggy||'',d.partner||'']);
-  }else{
-    data=JSON.parse(localStorage.getItem('bgsEvents')||'[]');
-    headers=["Name","Location","Date","Price"];
-    rows=data.map(e=>[e.name,e.location,e.date,e.price]);
-  }
-  const csv=headers.join(',')+'\n'+rows.map(r=>r.join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`BGS_${type}_${Date.now()}.csv`;a.click();
-}
-function loadNotes(){
-  qs('#adminNotes').value=localStorage.getItem('bgsAdminNotes')||'';
-  qs('#adminNotes').oninput=()=>localStorage.setItem('bgsAdminNotes',qs('#adminNotes').value);
-}
-function logActivity(m){
-  const a=JSON.parse(localStorage.getItem('bgsActivityFeed')||'[]');
-  a.unshift({msg:m,time:new Date().toLocaleString()});
-  localStorage.setItem('bgsActivityFeed',JSON.stringify(a.slice(0,100)));
-  loadActivity();
-}
-function loadActivity(){
-  const a=JSON.parse(localStorage.getItem('bgsActivityFeed')||'[]');
-  qs('#activityFeed').innerHTML=a.map(x=>`<p>• ${x.time} — ${x.msg}</p>`).join('');
-}
-function buildChart(){
-  const ctx=document.getElementById('rsvpChart');
-  const rsvps=JSON.parse(localStorage.getItem('bgsRsvps')||'[]');
-  const events=[...new Set(rsvps.map(r=>r.event))];
-  const counts=events.map(ev=>rsvps.filter(r=>r.event===ev).length);
-  if(window.rsvpChartObj)window.rsvpChartObj.destroy();
-  window.rsvpChartObj=new Chart(ctx,{type:'bar',data:{labels:events,datasets:[{label:'RSVP Count',data:counts,backgroundColor:'rgba(0,90,43,0.7)'}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-}
-qsa('.tab-btn').forEach(btn=>btn.onclick=()=>{qsa('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');qsa('.tab-content').forEach(c=>c.classList.remove('active'));qs('#'+btn.dataset.tab).classList.add('active');});
+
+/* ---------- INIT ---------- */
+fetchPlayers();
+updateHeaders();
 </script>
 </body>
 </html>
-
