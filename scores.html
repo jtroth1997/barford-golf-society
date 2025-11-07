@@ -5,58 +5,112 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Barford Golf Society | Scores</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
 :root {
-  --green:#005a2b;--gold:#d4af37;--cream:#f7f7f5;--dark-bg:#1e1e1e;--dark-card:#2a2a2a;--text-light:#f7f7f5;
+  --green:#005a2b;--gold:#d4af37;--cream:#f7f7f5;--dark-bg:#1e1e1e;
+  --dark-card:#2a2a2a;--text-light:#f7f7f5;
 }
-body{font-family:"Inter",sans-serif;margin:0;background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);color:#1b1b1b}
-body.dark-mode{background:var(--dark-bg);color:var(--text-light)}
-.site-header{background:var(--green);color:var(--gold);padding:15px 0;border-bottom:3px solid var(--gold)}
-.header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:auto;padding:0 20px;flex-wrap:wrap}
+body{
+  font-family:"Inter",sans-serif;margin:0;
+  background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);
+  color:#1b1b1b;
+}
+.site-header{
+  background:var(--green);color:var(--gold);
+  padding:15px 0;border-bottom:3px solid var(--gold);
+}
+.header-container{
+  display:flex;justify-content:space-between;align-items:center;
+  max-width:1200px;margin:auto;padding:0 20px;flex-wrap:wrap;
+}
 .site-title{font-size:1.5em;color:var(--gold);margin:0}
 .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0}
 .site-nav a{color:white;text-decoration:none;font-weight:600}
 .site-nav a.active,.site-nav a:hover{color:var(--gold)}
-.leaderboard-banner{text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;padding:10px;border-bottom:2px solid var(--green)}
-.scores-container{max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden}
-body.dark-mode .scores-container{background:var(--dark-card);color:var(--text-light)}
-header.calc-header{background:linear-gradient(to right,var(--green),#0a6b34);color:var(--gold);text-align:center;padding:20px;font-size:1.8rem;font-weight:700}
-.topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05)}
-body.dark-mode .topbar{background:var(--dark-card)}
-input[type=password],input[type=number]{border-radius:6px;border:1px solid #ccc;padding:8px}
-.btn{padding:8px 12px;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.9rem}
-.btn-unlock{background:var(--gold);color:#1b1b1b}.btn-lock{background:var(--green);color:#fff}
-.btn-calc{background:#ffcc00;color:#1b1b1b}.btn-reset{background:#b30000;color:#fff}
+.leaderboard-banner{
+  text-align:center;background:var(--gold);color:#1b1b1b;
+  font-weight:700;padding:10px;border-bottom:2px solid var(--green)
+}
+.scores-container{
+  max-width:1200px;margin:30px auto;background:#fff;
+  border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.1);
+  overflow:hidden;
+}
+header.calc-header{
+  background:linear-gradient(to right,var(--green),#0a6b34);
+  color:var(--gold);text-align:center;padding:20px;
+  font-size:1.8rem;font-weight:700;
+}
+.topbar{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:10px;padding:15px;background:#fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.05);
+}
+input[type=password],input[type=number]{
+  border-radius:6px;border:1px solid #ccc;padding:8px;min-width:70px;
+}
+.btn{
+  padding:8px 12px;border:none;border-radius:8px;
+  font-weight:600;cursor:pointer;font-size:.9rem;
+  transition:.25s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-unlock{background:var(--gold);color:#1b1b1b}
+.btn-lock{background:var(--green);color:#fff}
+.btn-calc{background:#ffcc00;color:#1b1b1b}
+.btn-reset{background:#b30000;color:#fff}
 main{padding:20px;overflow-x:auto}
 table{width:100%;min-width:900px;border-collapse:collapse}
 th,td{padding:10px;text-align:center;border-bottom:1px solid #eee}
 th{background:var(--green);color:var(--gold)}
 tbody tr:nth-child(even){background:#f8f8f8}
-footer{text-align:center;background:var(--green);color:var(--gold);padding:20px;margin-top:40px}
+footer{text-align:center;background:var(--green);
+  color:var(--gold);padding:20px;margin-top:40px}
 </style>
 </head>
+
 <body>
-<header class="site-header"><div class="header-container">
-<h1 class="site-title">Barford Golf Society</h1>
-<nav class="site-nav"><ul><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li>
-<li><a href="scores.html" class="active">Scores</a></li></ul></nav></div></header>
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">Barford Golf Society</h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html" class="active">Scores</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
 <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
+
 <div class="scores-container">
-<header class="calc-header">Golf Society Handicap Calculator</header>
-<div class="topbar">
-<input type="password" id="pwInput" placeholder="Enter password">
-<button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
-<button class="btn btn-lock" onclick="lockInputs()">Lock</button>
-<button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
-<button class="btn btn-reset" onclick="resetSeason()">Reset</button>
+  <header class="calc-header">Golf Society Handicap Calculator</header>
+
+  <div class="topbar">
+    <input type="password" id="pwInput" placeholder="Enter password">
+    <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
+    <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
+    <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
+    <button class="btn btn-reset" onclick="resetSeason()">Reset</button>
+  </div>
+
+  <main>
+    <h3 id="roundHeader">Round 1 of 7</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Player</th><th>HCP</th><th>Points</th>
+          <th>Adj</th><th>Next HCP</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="playersTable"></tbody>
+    </table>
+  </main>
 </div>
-<main>
-<h3 id="roundHeader">Round 1 of 7</h3>
-<table><thead><tr>
-<th>Rank</th><th>Player</th><th>HCP</th><th>Points</th><th>Adj</th><th>Next HCP</th><th>Total</th>
-</tr></thead><tbody id="playersTable"></tbody></table>
-</main></div>
+
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -67,7 +121,13 @@ const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const PASSWORD="westbrom1997";
 let unlocked=false;
 
-const defaultPlayers=["Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver","Clive Irwin","Colin Oliver","David Hardcastle","David Jordan","David Pritchard","Derek Lewis","Elliot Hobbs","Emma Saywell","Gary Moyce","John Blackwell","John Close","John Hawkes","Lucie Byerley","Liz Oliver","Martc Taylor","Matt Oliver","Mike Cook","Nick Benbow","Nick Wright","Richard Jones","Robert Pocknell","Simon Meade","Simon Morgan","Tim Oliver","Vince Hall","Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"].sort();
+const defaultPlayers=[
+  "Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver","Clive Irwin","Colin Oliver",
+  "David Hardcastle","David Jordan","David Pritchard","Derek Lewis","Elliot Hobbs","Emma Saywell","Gary Moyce",
+  "John Blackwell","John Close","John Hawkes","Lucie Byerley","Liz Oliver","Martc Taylor","Matt Oliver","Mike Cook",
+  "Nick Benbow","Nick Wright","Richard Jones","Robert Pocknell","Simon Meade","Simon Morgan","Tim Oliver","Vince Hall",
+  "Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"
+].sort();
 
 async function ensurePlayers(){
   const {data}=await supabase.from("scores").select("player");
@@ -86,7 +146,8 @@ async function loadScores(){
 }
 
 function renderTable(data){
-  const tb=document.getElementById("playersTable");tb.innerHTML="";
+  const tb=document.getElementById("playersTable");
+  tb.innerHTML="";
   if(!data||!data.length)return;
   const sorted=[...data].sort((a,b)=>b.total-a.total);
   sorted.forEach((r,rank)=>{
@@ -106,8 +167,11 @@ function unlockInputs(){
   unlocked=true;loadScores();
 }
 function lockInputs(){unlocked=false;loadScores();}
-
-function stablefordAdj(p){if(p>=43)return-3;if(p>=38)return-2;if(p>=31)return-1;if(p>=26)return 0;if(p>=21)return 1;if(p>=16)return 2;return 3;}
+function stablefordAdj(p){
+  if(p>=43)return-3;if(p>=38)return-2;if(p>=31)return-1;
+  if(p>=26)return 0;if(p>=21)return 1;if(p>=16)return 2;
+  return 3;
+}
 
 async function calculateHandicaps(){
   if(!unlocked)return alert("Locked!");
@@ -121,21 +185,22 @@ async function calculateHandicaps(){
       handicap:s,points:pts,adj:change,next_handicap:next,total:pts
     }).eq("player",r.player);
   }
-  setTimeout(loadScores,800); // 👈 wait for Supabase write before reloading
+  setTimeout(loadScores,800);
 }
 
 async function resetSeason(){
-  const pw=prompt("Enter password to reset:");if(pw!==PASSWORD)return alert("Wrong password");
+  const pw=prompt("Enter password to reset:");
+  if(pw!==PASSWORD)return alert("Wrong password");
   await supabase.from("scores").update({handicap:0,points:0,adj:0,next_handicap:0,total:0});
   alert("Season reset!");loadScores();
 }
 
-// ✅ realtime updates with delay to avoid overwrite
+// Realtime refresh (delay prevents flicker)
 let reloadTimeout;
 supabase.channel("scores-sync")
 .on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>{
   clearTimeout(reloadTimeout);
-  reloadTimeout=setTimeout(()=>loadScores(),1200); // wait 1.2s before refreshing
+  reloadTimeout=setTimeout(()=>loadScores(),1000);
 }).subscribe();
 
 (async()=>{
