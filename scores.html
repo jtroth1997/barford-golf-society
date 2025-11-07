@@ -339,7 +339,7 @@ const roundsChannel = supabase.channel('rounds-changes')
       alert("Season reset!");location.reload();
     }
 
-   // === REALTIME SUBSCRIPTION (Improved) ===
+// === REALTIME SUBSCRIPTION (Improved) ===
 function delayedReload() {
   if (window.reloadTimeout) clearTimeout(window.reloadTimeout);
   window.reloadTimeout = setTimeout(() => {
@@ -357,11 +357,22 @@ const scoresChannel = supabase.channel('scores-changes')
       delayedReload();
     }
   )
-  .subscribe(status => consol
+  .subscribe(status => console.log('Scores Channel Status:', status));
 
+const roundsChannel = supabase.channel('rounds-changes')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'round_entries' },
+    payload => {
+      console.log('Realtime update from round_entries:', payload);
+      delayedReload();
+    }
+  )
+  .subscribe(status => console.log('Rounds Channel Status:', status));
 
-    /* --- Init --- */
-    ensurePlayersExist().then(loadPlayers);
+// === INIT ===
+ensurePlayersExist().then(loadPlayers);
+
   </script>
 </body>
 </html>
