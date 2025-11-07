@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Barford Golf Handicap Calculator</title>
+<meta charset="utf-8">
+<title>Barford Golf Handicap Calculator (Basic)</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
 <h1>Barford Golf Handicap Calculator</h1>
 
-<!-- Controls -->
-<input type="password" id="pw" placeholder="Password">
-<button onclick="unlock()">Unlock</button>
-<button onclick="lock()">Lock</button>
-<button onclick="calculate()">Calculate</button>
-<button onclick="prevRound()">Prev Round</button>
-<button onclick="nextRound()">Next Round</button>
-<button onclick="addPlayer()">Add Player</button>
-<button onclick="resetLeague()">Reset</button>
+<p>
+  Password: <input type="password" id="pw">
+  <button onclick="unlock()">Unlock</button>
+  <button onclick="lock()">Lock</button>
+</p>
+
+<p>
+  <button onclick="calculate()">Calculate</button>
+  <button onclick="prevRound()">Prev Round</button>
+  <button onclick="nextRound()">Next Round</button>
+  <button onclick="addPlayer()">Add Player</button>
+  <button onclick="resetLeague()">Reset League</button>
+</p>
 
 <h3 id="roundHeader">Round 1 of 7</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" id="playersTable">
   <thead>
     <tr>
       <th>Player</th>
@@ -29,15 +34,16 @@
       <th>Adj</th>
       <th>Next Handicap</th>
       <th>Total</th>
-      <th>DNP</th>
     </tr>
   </thead>
-  <tbody id="players"></tbody>
+  <tbody id="playersBody"></tbody>
 </table>
 
 <script>
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co
+";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ
+";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let PASSWORD = "westbrom1997";
@@ -46,21 +52,23 @@ let currentRound = 1;
 const maxRounds = 7;
 let players = [];
 
-// ======== CORE FUNCTIONS ========
-
+// Load players
 async function loadPlayers() {
   const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
-  if (error) return console.error(error);
+  if (error) console.error(error);
   players = data || [];
   render();
 }
-supabase.channel("scores_realtime")
+
+// Live updates
+supabase.channel("scores")
   .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
   .subscribe();
 
+// Render table
 function render() {
-  const tbody = document.getElementById("players");
-  tbody.innerHTML = "";
+  const body = document.getElementById("playersBody");
+  body.innerHTML = "";
   players.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -70,30 +78,31 @@ function render() {
       <td>${p.adj ?? ""}</td>
       <td>${p.next_handicap ?? ""}</td>
       <td>${p.total ?? 0}</td>
-      <td><input type="checkbox" ${p.points==null?"checked":""} disabled></td>
     `;
-    tbody.appendChild(tr);
+    body.appendChild(tr);
   });
-  document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
+  document.getElementById("roundHeader").textContent = "Round " + currentRound + " of " + maxRounds;
 }
 
+// Adjustment logic
 function stablefordAdj(points) {
   if (points >= 43) return -3;
   if (points >= 38) return -2;
   if (points >= 31) return -1;
   if (points >= 26) return 0;
-  if (points >= 21) return +1;
-  if (points >= 16) return +2;
-  return +3;
+  if (points >= 21) return 1;
+  if (points >= 16) return 2;
+  return 3;
 }
 
+// Calculate
 async function calculate() {
   if (!unlocked) return alert("Unlock first.");
   const valid = players.map(p => parseInt(document.getElementById(`pts_${p.id}`).value)||0);
   const top = Math.max(...valid);
 
   for (const p of players) {
-    const hcp = parseFloat(document.getElementById(`hcp_${p.id}`).value) || 0;
+    const hcp = parseFloat(document.getElementById(`hcp_${p.id}`).value)||0;
     const pts = parseInt(document.getElementById(`pts_${p.id}`).value);
     if (isNaN(pts)) {
       p.points = null; p.adj = null; p.next_handicap = hcp;
@@ -107,21 +116,20 @@ async function calculate() {
     p.updated_at = new Date().toISOString();
     await supabase.from("scores").upsert(p);
   }
-  alert("Calculated and updated.");
+  alert("Updated.");
   loadPlayers();
 }
 
-// ======== ROUNDS ========
-
+// Rounds
 async function nextRound() {
   if (currentRound < maxRounds) {
     currentRound++;
     for (const p of players) {
       p.handicap = p.next_handicap ?? p.handicap;
       p.points = null; p.adj = null;
-      await supabase.from("scores").update({
-        handicap: p.handicap, round: currentRound
-      }).eq("id", p.id);
+      await supabase.from("scores")
+        .update({handicap:p.handicap,round:currentRound})
+        .eq("id",p.id);
     }
     unlocked = false;
     loadPlayers();
@@ -135,33 +143,32 @@ function prevRound() {
   }
 }
 
-// ======== PASSWORD / LOCKING ========
-
+// Locking
 function unlock() {
   const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked."); render(); }
-  else alert("Wrong password!");
+  if (val === PASSWORD) { unlocked = true; alert("Unlocked"); render(); }
+  else alert("Wrong password");
 }
-function lock() { unlocked = false; alert("Locked."); render(); }
+function lock() { unlocked = false; alert("Locked"); render(); }
 
-// ======== ADMIN ACTIONS ========
-
+// Add / Reset
 async function addPlayer() {
-  const name = prompt("Enter player name:");
+  const name = prompt("Player name:");
   if (!name) return;
-  await supabase.from("scores").insert([{ player: name, handicap: 0, points: null, adj: null, next_handicap: 0, total: 0, round: currentRound }]);
+  await supabase.from("scores")
+    .insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound}]);
   loadPlayers();
 }
 
 async function resetLeague() {
-  const pw = prompt("Enter password to reset:");
-  if (pw !== PASSWORD) return alert("Incorrect password");
-  await supabase.from("scores").delete().neq("id", 0);
+  const pw = prompt("Password:");
+  if (pw !== PASSWORD) return alert("Wrong password");
+  await supabase.from("scores").delete().neq("id",0);
   currentRound = 1;
   loadPlayers();
 }
 
-// ======== INIT ========
+// Start
 loadPlayers();
 </script>
 </body>
