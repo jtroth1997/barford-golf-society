@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Barford Golf Society | Scores</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -15,7 +15,6 @@
 }
 body{font-family:"Inter",sans-serif;margin:0;background:var(--cream);color:var(--dark);}
 .dark{background:#1b1b1b;color:#eee;}
-/* --- site header/nav --- */
 .site-header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 20px;}
 .site-title{color:var(--gold);}
@@ -25,7 +24,7 @@ body{font-family:"Inter",sans-serif;margin:0;background:var(--cream);color:var(-
 .toggle{position:fixed;top:10px;right:10px;background:var(--gold);color:#1b1b1b;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer;z-index:50;}
 .dark .toggle{background:#333;color:var(--gold);}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);padding:20px;margin-top:40px;}
-/* --- calculator --- */
+/* calculator */
 header.calc-header{background:linear-gradient(to right,var(--green),#145214);color:var(--gold);text-align:center;padding:20px;font-size:1.6rem;font-weight:700;letter-spacing:.5px;box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:var(--white);box-shadow:0 3px 10px rgba(0,0,0,.05);position:sticky;top:60px;z-index:10;}
 input[type=password],input[type=number]{font-family:inherit;border-radius:6px;border:1px solid #ccc;padding:8px;}
@@ -108,9 +107,9 @@ tbody tr:nth-child(even){background:#f8f8f8;}tbody tr:hover{background:var(--hig
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let PASSWORD="westbrom1997";
 let unlocked=false;
@@ -118,7 +117,7 @@ let currentRound=1;
 const maxRounds=7;
 let playersData=[];
 
-/* ---------- THEME ---------- */
+/* theme */
 function toggleDarkMode(){
   document.body.classList.toggle('dark');
   localStorage.setItem('bgsDarkMode',document.body.classList.contains('dark'));
@@ -126,11 +125,11 @@ function toggleDarkMode(){
 }
 if(localStorage.getItem('bgsDarkMode')==='true'){document.body.classList.add('dark');document.querySelector('.toggle').textContent='☀️';}
 
-/* ---------- POPUP ---------- */
-function showPopup(msg){const m=document.getElementById("popupModal");document.getElementById("popupText").textContent=msg;m.style.display="block";setTimeout(()=>m.style.display="none",3000);}
+/* popup */
+function showPopup(m){const el=document.getElementById("popupModal");document.getElementById("popupText").textContent=m;el.style.display="block";setTimeout(()=>el.style.display="none",3000);}
 function closePopup(){document.getElementById("popupModal").style.display="none";}
 
-/* ---------- HEADERS ---------- */
+/* headers */
 function updateHeaders(){
   document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
   document.getElementById("newHcpHeader").textContent=`Next Round HCP`;
@@ -140,14 +139,11 @@ function updateHeaders(){
   document.getElementById("resetBtn").style.display=currentRound>=maxRounds?"inline-block":"none";
 }
 
-/* ---------- LOCK / UNLOCK ---------- */
-function unlockInputs(){
-  if(document.getElementById("pwInput").value!==PASSWORD)return alert("Incorrect password!");
-  unlocked=true;showPopup("✅ Scores Unlocked");renderLeaderboard();
-}
-function lockInputs(){unlocked=false;showPopup("🔒 Scores Locked");renderLeaderboard();}
+/* lock/unlock */
+function unlockInputs(){if(document.getElementById("pwInput").value!==PASSWORD)return alert("Incorrect password!");unlocked=true;showPopup("✅ Unlocked");renderLeaderboard();}
+function lockInputs(){unlocked=false;showPopup("🔒 Locked");renderLeaderboard();}
 
-/* ---------- SUPABASE ---------- */
+/* supabase */
 async function fetchPlayers(){
   const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
   if(error)console.error(error);
@@ -156,14 +152,11 @@ async function fetchPlayers(){
 }
 supabase.channel("scores_changes").on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>fetchPlayers()).subscribe();
 
-/* ---------- CALCULATION ---------- */
-function stablefordAdj(pts){
-  if(pts>=43)return -3;if(pts>=38)return -2;if(pts>=31)return -1;
-  if(pts>=26)return 0;if(pts>=21)return +1;if(pts>=16)return +2;return +3;
-}
+/* calculations */
+function stablefordAdj(pts){if(pts>=43)return-3;if(pts>=38)return-2;if(pts>=31)return-1;if(pts>=26)return 0;if(pts>=21)return 1;if(pts>=16)return 2;return 3;}
 async function calculateHandicaps(){
   if(!unlocked)return alert("Unlock first!");
-  const valid=playersData.filter(p=>p.points!==null&&p.points!==undefined);
+  const valid=playersData.filter(p=>p.points!=null);
   const top=valid.length?Math.max(...valid.map(p=>p.points||0)):null;
   for(const p of playersData){
     const pts=parseInt(document.getElementById(`points_${p.id}`).value)||null;
@@ -180,9 +173,9 @@ async function calculateHandicaps(){
   showPopup("🏌️ Scores Updated");fetchPlayers();
 }
 
-/* ---------- RENDER ---------- */
+/* render */
 function calcTotal(p){return p.total||0;}
-function calculateTotals(){return [...playersData].sort((a,b)=>calcTotal(b)-calcTotal(a));}
+function calculateTotals(){return[...playersData].sort((a,b)=>calcTotal(b)-calcTotal(a));}
 function renderLeaderboard(){
   const tbody=document.getElementById("playersTable");tbody.innerHTML="";
   const sorted=calculateTotals();
@@ -199,10 +192,14 @@ function renderLeaderboard(){
       <td><input type="checkbox" disabled ${p.points==null?"checked":""}></td>`;
     tbody.appendChild(tr);
   });
+  /* blur on rounds 6/7 when locked */
+  const tableContainer=document.getElementById("tableContainer");
+  if((currentRound===6||currentRound===7)&&!unlocked){tableContainer.classList.add("blur-locked");}
+  else{tableContainer.classList.remove("blur-locked");}
   updateHeaders();
 }
 
-/* ---------- ROUND CONTROLS ---------- */
+/* round controls */
 async function nextRound(){
   if(currentRound<maxRounds){
     currentRound++;
@@ -218,29 +215,27 @@ async function nextRound(){
 }
 function prevRound(){if(currentRound>1){currentRound--;renderLeaderboard();}}
 
-/* ---------- PLAYERS ---------- */
+/* players */
 async function addPlayer(){
   const name=prompt("Enter new player name:");if(!name)return;
-  const {error}=await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound,updated_at:new Date().toISOString()}]);
-  if(error)console.error(error);
+  await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound,updated_at:new Date().toISOString()}]);
   showPopup(`👤 ${name} added`);fetchPlayers();
 }
 
-/* ---------- RESET ---------- */
+/* reset */
 async function confirmReset(){
   const pw=prompt("Enter password to reset:");if(pw!==PASSWORD)return alert("Incorrect password!");
   await supabase.from("scores").delete().neq("id",0);
   currentRound=1;showPopup("🏌️‍♂️ League reset");fetchPlayers();
 }
 
-/* ---------- PASSWORD CHANGE ---------- */
+/* password */
 function changePassword(){
   const old=prompt("Enter current password:");if(old!==PASSWORD)return alert("Incorrect password!");
-  const nw=prompt("Enter new password:");if(!nw)return;
-  PASSWORD=nw;showPopup("🔐 Password changed");
+  const nw=prompt("Enter new password:");if(!nw)return;PASSWORD=nw;showPopup("🔐 Password changed");
 }
 
-/* ---------- INIT ---------- */
+/* init */
 fetchPlayers();
 updateHeaders();
 </script>
