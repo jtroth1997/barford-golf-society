@@ -85,7 +85,6 @@
     .btn-lock { background:var(--green);color:#fff; }
     .btn-calc { background:#ffcc00;color:#1b1b1b; }
     .btn-next,.btn-prev { background:#ddd;color:#1b1b1b; }
-    .btn-add { background:#c0c0c0;color:#1b1b1b; }
     .btn-download { background:var(--green);color:var(--gold); }
     .btn-theme { background:none;border:1px solid var(--gold);color:var(--gold); }
     .btn-reset { background:#b30000;color:#fff; }
@@ -106,7 +105,7 @@
     /* Frosted Blur Overlay */
     .blur-overlay {
       position: absolute;
-      top: 220px; /* below topbar and header */
+      top: 220px;
       left: 0;
       right: 0;
       bottom: 0;
@@ -211,18 +210,24 @@
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const PASSWORD = "westbrom1997";
+
+    /* --- Alphabetised Player List --- */
     const defaultPlayers = [
-      "Gary","Gemma","Danelle","Angel","Willow",
-      "Sam","Tony","Nick","Grace","Ben","John","Lucy","George"
-    ];
+      "Angel","Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver",
+      "Clive Irwin","Colin Oliver","David Hardcastle","David Jordan","David Pritchard","Derek Lewis",
+      "Elliot Hobbs","Emma Saywell","Gary Moyce","Jack Troth","John Blackwell","John Close","John Hawkes",
+      "Lucie Byerley","Liz Oliver","Martc Taylor","Matt Oliver","Mike Cook","Nick Benbow","Nick Wright",
+      "Richard Jones","Robert Pocknell","Simon Meade","Simon Morgan","Tim Oliver","Vince Hall",
+      "Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"
+    ].sort((a,b)=>a.localeCompare(b));
 
     let unlocked=false,currentRound=1;
     const maxRounds=7;
     let players=[];
     const startHcp=[],afterHcp=[],pointsHistory=[],adjHistory=[];
 
+    /* --- Ensure all players exist in Supabase --- */
     async function ensurePlayersExist(){
       const { data, error } = await supabase.from("scores").select("player");
       if(error){console.error(error);return;}
@@ -234,14 +239,16 @@
       }
     }
 
+    /* --- Theme toggle --- */
     function toggleTheme(){
       document.body.classList.toggle("dark-mode");
       localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
     }
     if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
+    /* --- Load players from Supabase --- */
     async function loadPlayers(){
-      const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
+      const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
       if(error){console.error(error);return;}
       if(data?.length){
         players=data.map(r=>r.player);
@@ -256,11 +263,26 @@
       renderTable();
     }
 
-    function unlockInputs(){const pw=document.getElementById("pwInput").value;if(pw!==PASSWORD)return alert("Incorrect password!");unlocked=true;renderTable();updateBlur();}
+    /* --- Lock/Unlock --- */
+    function unlockInputs(){
+      const pw=document.getElementById("pwInput").value;
+      if(pw!==PASSWORD)return alert("Incorrect password!");
+      unlocked=true;renderTable();updateBlur();
+    }
     function lockInputs(){unlocked=false;renderTable();updateBlur();}
 
-    function stablefordAdj(pts){if(pts>=43)return -3;if(pts>=38)return -2;if(pts>=31)return -1;if(pts>=26)return 0;if(pts>=21)return +1;if(pts>=16)return +2;return +3;}
+    /* --- Stableford Adjustment --- */
+    function stablefordAdj(pts){
+      if(pts>=43)return -3;
+      if(pts>=38)return -2;
+      if(pts>=31)return -1;
+      if(pts>=26)return 0;
+      if(pts>=21)return +1;
+      if(pts>=16)return +2;
+      return +3;
+    }
 
+    /* --- Calculate Handicaps --- */
     async function calculateHandicaps(){
       if(!unlocked)return alert("Locked!");
       for(let i=0;i<players.length;i++){
@@ -277,9 +299,11 @@
         if(nextIndex<maxRounds&&startHcp[i][nextIndex]===0)startHcp[i][nextIndex]=next;
         await supabase.from("round_entries").upsert({player:players[i],round:currentRound,hcp:start,points:pts,adj:adj,next_hcp:next});
       }
-      renderTable();if(currentRound===maxRounds)showFinalResults();
+      renderTable();
+      if(currentRound===maxRounds)showFinalResults();
     }
 
+    /* --- Totals --- */
     function calculateTotals(){
       return players.map((name,i)=>{
         const scores=pointsHistory[i].filter(v=>v!==null);
@@ -288,6 +312,7 @@
       }).sort((a,b)=>b.total-a.total);
     }
 
+    /* --- Render Table --- */
     function renderTable(){
       const tbody=document.getElementById("playersTable");
       tbody.innerHTML="";
@@ -300,17 +325,23 @@
         const adj=adjHistory[i][currentRound-1]||"";
         const next=afterHcp[i][currentRound-1]||"";
         const tr=document.createElement("tr");
-        tr.innerHTML=`<td>${rank+1}</td><td>${p.name}</td><td><input type="number" id="hcp_${i}" value="${start}" ${unlocked?"":"readonly"}></td><td><input type="number" id="pts_${i}" value="${pts}" ${unlocked?"":"readonly"}></td><td>${adj}</td><td>${next}</td><td>${p.total}</td>`;
+        tr.innerHTML=`<td>${rank+1}</td><td>${p.name}</td>
+        <td><input type="number" id="hcp_${i}" value="${start}" ${unlocked?"":"readonly"}></td>
+        <td><input type="number" id="pts_${i}" value="${pts}" ${unlocked?"":"readonly"}></td>
+        <td>${adj}</td><td>${next}</td><td>${p.total}</td>`;
         tbody.appendChild(tr);
       });
       const lb=document.getElementById("leaderboard");
       const totalsNow=calculateTotals();
-      if(totalsNow.length&&totalsNow[0].name){const leader=totalsNow[0];lb.textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound}/${maxRounds}`;}
-      else{lb.textContent=`🏌️ Leaderboard loading... | Round ${currentRound}/${maxRounds}`;}
+      if(totalsNow.length&&totalsNow[0].name){
+        const leader=totalsNow[0];
+        lb.textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound}/${maxRounds}`;
+      } else lb.textContent=`🏌️ Leaderboard loading...`;
       document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
       updateBlur();
     }
 
+    /* --- Blur + Leaderboard --- */
     function updateBlur(){
       const overlay=document.getElementById("blurOverlay");
       const lb=document.getElementById("leaderboard");
@@ -318,22 +349,50 @@
         overlay.classList.add("active");
         lb.style.opacity="0.3";
         lb.style.filter="blur(4px)";
-      }else{
+      } else {
         overlay.classList.remove("active");
         lb.style.opacity="1";
         lb.style.filter="none";
       }
     }
 
+    /* --- Round Navigation --- */
     function nextRound(){if(currentRound<maxRounds){currentRound++;renderTable();}}
     function prevRound(){if(currentRound>1){currentRound--;renderTable();}}
 
-    function showFinalResults(){const totals=calculateTotals();let msg="🏆 FINAL RESULTS 🏆\n\n";totals.forEach((t,i)=>msg+=`${i+1}. ${t.name} — ${t.total} pts\n`);alert(msg);}
+    /* --- Final Results --- */
+    function showFinalResults(){
+      const totals=calculateTotals();
+      let msg="🏆 FINAL RESULTS 🏆\n\n";
+      totals.forEach((t,i)=>msg+=`${i+1}. ${t.name} — ${t.total} pts\n`);
+      alert(msg);
+    }
 
-    function downloadCsv(){let csv="Player,Total,Round,Points,HCP,Next HCP\n";for(let i=0;i<players.length;i++){csv+=`${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total||0},${currentRound},${pointsHistory[i][currentRound-1]||""},${startHcp[i][currentRound-1]||""},${afterHcp[i][currentRound-1]||""}\n`;}const blob=new Blob([csv],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="BarfordGolfScores.csv";a.click();}
+    /* --- CSV Download --- */
+    function downloadCsv(){
+      let csv="Player,Total,Round,Points,HCP,Next HCP\n";
+      for(let i=0;i<players.length;i++){
+        csv+=`${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total||0},${currentRound},${pointsHistory[i][currentRound-1]||""},${startHcp[i][currentRound-1]||""},${afterHcp[i][currentRound-1]||""}\n`;
+      }
+      const blob=new Blob([csv],{type:"text/csv"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="BarfordGolfScores.csv";
+      a.click();
+    }
 
-    async function resetSeason(){const pw=prompt("Enter password to reset season:");if(pw!==PASSWORD)return alert("Incorrect password");if(!confirm("This will clear all scores and handicaps to 0. Continue?"))return;await supabase.from("scores").update({handicap:0,points:0,next_handicap:0,adj:0,total:0});await supabase.from("round_entries").delete().neq("id",0);alert("Season reset!");location.reload();}
+    /* --- Reset Season --- */
+    async function resetSeason(){
+      const pw=prompt("Enter password to reset season:");
+      if(pw!==PASSWORD)return alert("Incorrect password");
+      if(!confirm("This will clear all scores and handicaps to 0. Continue?"))return;
+      await supabase.from("scores").update({handicap:0,points:0,next_handicap:0,adj:0,total:0});
+      await supabase.from("round_entries").delete().neq("id",0);
+      alert("Season reset!");
+      location.reload();
+    }
 
+    /* --- Initialise --- */
     ensurePlayersExist().then(loadPlayers);
   </script>
 </body>
