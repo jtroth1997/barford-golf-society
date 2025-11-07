@@ -1,266 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Barford Golf Society | Scores</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --green:#005a2b;--gold:#d4af37;--cream:#f7f7f5;
-  --dark-bg:#1e1e1e;--dark-card:#2a2a2a;--text-light:#f7f7f5;
-}
-body{font-family:"Inter",sans-serif;margin:0;
-background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);
-color:#1b1b1b;transition:.4s;}
-body.dark-mode{background:var(--dark-bg);color:var(--text-light);}
-.site-header{background:var(--green);color:var(--gold);
-padding:15px 0;border-bottom:3px solid var(--gold);}
-.header-container{display:flex;justify-content:space-between;
-align-items:center;max-width:1200px;margin:auto;
-padding:0 20px;flex-wrap:wrap;}
-.site-title{font-size:1.5em;color:var(--gold);margin:0;}
-.site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
-.site-nav a{color:white;text-decoration:none;font-weight:600;}
-.site-nav a.active,.site-nav a:hover{color:var(--gold);}
-.leaderboard-banner{text-align:center;background:var(--gold);
-color:#1b1b1b;font-weight:700;padding:10px;border-bottom:2px solid var(--green);}
-.scores-container{max-width:1200px;margin:30px auto;background:#fff;
-border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden;}
-body.dark-mode .scores-container{background:var(--dark-card);color:var(--text-light);}
-header.calc-header{background:linear-gradient(to right,var(--green),#0a6b34);
-color:var(--gold);text-align:center;padding:20px;font-size:1.8rem;font-weight:700;}
-.topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;
-background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05);}
-body.dark-mode .topbar{background:var(--dark-card);}
-input[type=password],input[type=number]{border-radius:6px;border:1px solid #ccc;
-padding:8px;}
-.btn{padding:8px 12px;border:none;border-radius:8px;font-weight:600;
-cursor:pointer;transition:.25s;font-size:.9rem;}
-.btn:hover{transform:translateY(-2px);}
-.btn-unlock{background:var(--gold);color:#1b1b1b;}
-.btn-lock{background:var(--green);color:#fff;}
-.btn-calc{background:#ffcc00;color:#1b1b1b;}
-.btn-next,.btn-prev{background:#ddd;color:#1b1b1b;}
-.btn-download{background:var(--green);color:var(--gold);}
-.btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
-.btn-reset{background:#b30000;color:#fff;}
-main{padding:20px;overflow-x:auto;}
-table{width:100%;min-width:900px;border-collapse:collapse;}
-th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
-th{background:var(--green);color:var(--gold);}
-tbody tr:nth-child(even){background:#f8f8f8;}
-footer{text-align:center;background:var(--green);color:var(--gold);
-padding:20px;margin-top:40px;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barford Golf Society | Scores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --green:#005a2b;
+      --gold:#d4af37;
+      --cream:#f7f7f5;
+      --dark-bg:#1e1e1e;
+      --dark-card:#2a2a2a;
+      --text-light:#f7f7f5;
+    }
+    body {
+      font-family:"Inter",sans-serif;
+      margin:0;
+      background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);
+      color:#1b1b1b;
+      transition:.4s;
+    }
+    body.dark-mode {
+      background:var(--dark-bg);
+      color:var(--text-light);
+    }
+
+    /* HEADER */
+    .site-header {
+      background:var(--green);
+      color:var(--gold);
+      padding:15px 0;
+      border-bottom:3px solid var(--gold);
+    }
+    .header-container {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      max-width:1200px;
+      margin:auto;
+      padding:0 20px;
+      flex-wrap:wrap;
+    }
+    .site-title {
+      font-size:1.6em;
+      color:var(--gold);
+      margin:0;
+    }
+    .site-nav ul {
+      list-style:none;
+      display:flex;
+      gap:20px;
+      margin:0;
+      padding:0;
+    }
+    .site-nav a {
+      color:white;
+      text-decoration:none;
+      font-weight:600;
+      transition:.2s;
+    }
+    .site-nav a.active, .site-nav a:hover {
+      color:var(--gold);
+    }
+
+    /* LEADERBOARD BANNER */
+    .leaderboard-banner {
+      text-align:center;
+      background:var(--gold);
+      color:#1b1b1b;
+      font-weight:700;
+      padding:12px;
+      border-bottom:2px solid var(--green);
+      font-size:1.1rem;
+    }
+
+    /* CONTAINER */
+    .scores-container {
+      position:relative;
+      max-width:1200px;
+      margin:30px auto;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 5px 20px rgba(0,0,0,.1);
+      overflow:hidden;
+      transition:.4s;
+    }
+    body.dark-mode .scores-container {
+      background:var(--dark-card);
+      color:var(--text-light);
+    }
+
+    header.calc-header {
+      background:linear-gradient(to right,var(--green),#0a6b34);
+      color:var(--gold);
+      text-align:center;
+      padding:20px;
+      font-size:1.8rem;
+      font-weight:700;
+    }
+
+    /* TOPBAR BUTTONS */
+    .topbar {
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      padding:16px;
+      background:#fff;
+      box-shadow:0 3px 10px rgba(0,0,0,.05);
+      z-index:10;
+      position:sticky;
+      top:0;
+    }
+    body.dark-mode .topbar {background:var(--dark-card);}
+    .btn {
+      padding:8px 12px;
+      border:none;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      transition:.25s;
+      font-size:.9rem;
+    }
+    .btn:hover {transform:translateY(-2px);}
+    .btn-unlock{background:var(--gold);color:#1b1b1b;}
+    .btn-lock{background:var(--green);color:#fff;}
+    .btn-calc{background:#ffcc00;color:#1b1b1b;}
+    .btn-prev,.btn-next{background:#ddd;color:#1b1b1b;}
+    .btn-download{background:var(--green);color:var(--gold);}
+    .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
+    .btn-reset{background:#b30000;color:#fff;}
+
+    input[type=password] {
+      border-radius:6px;
+      border:1px solid #ccc;
+      padding:8px;
+    }
+
+    /* TABLE */
+    main {
+      padding:20px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    table {
+      width:100%;
+      min-width:800px;
+      border-collapse:collapse;
+      background:#fff;
+      border-radius:12px;
+      overflow:hidden;
+    }
+    th, td {
+      padding:12px;
+      text-align:center;
+      border-bottom:1px solid #f1f1f1;
+    }
+    th {
+      background:var(--green);
+      color:var(--gold);
+      text-transform:uppercase;
+    }
+    tbody tr:nth-child(even){background:#f8f8f8;}
+
+    /* FOOTER */
+    footer {
+      text-align:center;
+      background:var(--green);
+      color:var(--gold);
+      padding:20px;
+      border-top:4px solid var(--gold);
+      margin-top:40px;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .header-container{flex-direction:column;gap:10px;}
+      .site-nav ul{flex-wrap:wrap;justify-content:center;}
+      .btn{padding:6px 10px;font-size:.8rem;}
+      table{min-width:700px;}
+      th,td{padding:8px;font-size:.9rem;}
+    }
+  </style>
 </head>
 
 <body>
-<header class="site-header">
-  <div class="header-container">
-    <h1 class="site-title">Barford Golf Society</h1>
-    <nav class="site-nav">
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="events.html">Events</a></li>
-        <li><a href="scores.html" class="active">Scores</a></li>
-      </ul>
-    </nav>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-container">
+      <h1 class="site-title">Barford Golf Society</h1>
+      <nav class="site-nav">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="scores.html" class="active">Scores</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="scores-container">
+    <header class="calc-header">Golf Society Handicap Calculator</header>
+    <div class="topbar">
+      <input type="password" id="pwInput" placeholder="Enter password">
+      <button class="btn btn-unlock">Unlock</button>
+      <button class="btn btn-lock">Lock</button>
+      <button class="btn btn-calc">Calculate</button>
+      <button class="btn btn-prev">◀ Prev</button>
+      <button class="btn btn-next">Next ▶</button>
+      <button class="btn btn-download">Download CSV</button>
+      <button class="btn btn-theme">🌓</button>
+      <button class="btn btn-reset">Reset</button>
+    </div>
+
+    <main>
+      <h3 id="roundHeader">Round 1 of 7</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th><th>Player</th><th>HCP</th>
+            <th>Points</th><th>Adj</th><th>Next HCP</th><th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="playersTable">
+          <tr><td colspan="7">Table will load here…</td></tr>
+        </tbody>
+      </table>
+    </main>
   </div>
-</header>
 
-<div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
+  <!-- FOOTER -->
+  <footer><p>© 2025 Barford Golf Society</p></footer>
 
-<div class="scores-container">
-  <header class="calc-header">Golf Society Handicap Calculator</header>
-
-  <div class="topbar">
-    <input type="password" id="pwInput" placeholder="Enter password">
-    <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
-    <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
-    <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
-    <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
-    <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
-    <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
-    <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
-    <button class="btn btn-reset" onclick="resetSeason()">Reset</button>
-  </div>
-
-  <main>
-    <h3 id="roundHeader">Round 1 of 7</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Rank</th><th>Player</th><th>HCP</th>
-          <th>Points</th><th>Adj</th><th>Next HCP</th><th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="playersTable"></tbody>
-    </table>
-  </main>
-</div>
-
-<footer><p>© 2025 Barford Golf Society</p></footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const PASSWORD="westbrom1997";
-let unlocked=false;
-const maxRounds=7;
-let currentRound=1;
-let allData=[];
-
-const playersList=[
-  "Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver","Clive Irwin","Colin Oliver",
-  "David Hardcastle","David Jordan","David Pritchard","Derek Lewis","Elliot Hobbs","Emma Saywell","Gary Moyce",
-  "John Blackwell","John Close","John Hawkes","Lucie Byerley","Liz Oliver","Martc Taylor","Matt Oliver","Mike Cook",
-  "Nick Benbow","Nick Wright","Richard Jones","Robert Pocknell","Simon Meade","Simon Morgan","Tim Oliver","Vince Hall",
-  "Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"
-].sort();
-
-// ensure players exist in main table
-async function ensurePlayers(){
-  const {data}=await supabase.from("scores").select("player");
-  const existing=data?data.map(x=>x.player):[];
-  const missing=playersList.filter(p=>!existing.includes(p));
-  if(missing.length){
-    const rows=missing.map(p=>({player:p,handicap:0,points:0,next_handicap:0,adj:0,total:0}));
-    await supabase.from("scores").insert(rows);
-  }
-}
-
-// load round entries
-async function loadRoundData(){
-  const {data,error}=await supabase.from("round_entries").select("*");
-  if(error){console.error(error);return;}
-  allData=data||[];
-  await loadScores();
-}
-
-async function loadScores(){
-  const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
-  if(error){console.error(error);return;}
-  renderTable(data);
-}
-
-function renderTable(data){
-  const tb=document.getElementById("playersTable");
-  tb.innerHTML="";
-  if(!data||!data.length)return;
-  const sorted=[...data].sort((a,b)=>b.total-a.total);
-
-  sorted.forEach((r,rank)=>{
-    const entry=allData.find(e=>e.player===r.player && e.round===currentRound);
-    const hcp=entry?entry.hcp:r.handicap;
-    const pts=entry?entry.points:"";
-    const adj=entry?entry.adj:"";
-    const next=entry?entry.next_hcp:"";
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${rank+1}</td><td>${r.player}</td>
-      <td><input type="number" id="hcp_${r.player}" value="${hcp}" ${unlocked?"":"readonly"}></td>
-      <td><input type="number" id="pts_${r.player}" value="${pts}" ${unlocked?"":"readonly"}></td>
-      <td>${adj}</td><td>${next}</td><td>${r.total}</td>`;
-    tb.appendChild(tr);
-  });
-
-  document.getElementById("leaderboard").textContent=`🏆 Leader: ${sorted[0].player} — ${sorted[0].total} pts | Round ${currentRound}/${maxRounds}`;
-  document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
-}
-
-function unlockInputs(){
-  const pw=document.getElementById("pwInput").value;
-  if(pw!==PASSWORD)return alert("Incorrect password");
-  unlocked=true;loadScores();
-}
-function lockInputs(){unlocked=false;loadScores();}
-
-function stablefordAdj(p){
-  if(p>=43)return-3;if(p>=38)return-2;if(p>=31)return-1;
-  if(p>=26)return 0;if(p>=21)return 1;if(p>=16)return 2;
-  return 3;
-}
-
-async function calculateHandicaps(){
-  if(!unlocked)return alert("Locked!");
-  const {data}=await supabase.from("scores").select("player,handicap,next_handicap");
-  for(const r of data){
-    const s=parseFloat(document.getElementById(`hcp_${r.player}`).value)||0;
-    const pts=parseInt(document.getElementById(`pts_${r.player}`).value)||0;
-    const change=stablefordAdj(pts);
-    const next=Math.max(0,s+change);
-
-    // save round entry
-    await supabase.from("round_entries").upsert({
-      player:r.player,round:currentRound,hcp:s,points:pts,adj:change,next_hcp:next,updated_at:new Date().toISOString()
-    },{onConflict:["player","round"]});
-
-    // update master
-    await supabase.from("scores").update({
-      handicap:s,points:pts,adj:change,next_handicap:next,total:pts
-    }).eq("player",r.player);
-  }
-  await loadRoundData();
-}
-
-async function resetSeason(){
-  const pw=prompt("Enter password to reset:");
-  if(pw!==PASSWORD)return alert("Wrong password");
-  await supabase.from("scores").update({handicap:0,points:0,adj:0,next_handicap:0,total:0});
-  await supabase.from("round_entries").delete().neq("id",0);
-  alert("Season reset!");await loadRoundData();
-}
-
-function nextRound(){
-  if(currentRound<maxRounds){
-    currentRound++;
-    // carry forward handicap
-    allData.forEach(e=>{
-      if(e.round===currentRound-1){
-        const exists=allData.find(r=>r.player===e.player && r.round===currentRound);
-        if(!exists){
-          allData.push({player:e.player,round:currentRound,hcp:e.next_hcp,points:null,adj:null,next_hcp:null});
-        }
-      }
-    });
-    renderTable(JSON.parse(JSON.stringify(allData)));
-  }
-}
-function prevRound(){
-  if(currentRound>1){currentRound--;renderTable(JSON.parse(JSON.stringify(allData)));}
-}
-
-function downloadCsv(){
-  let csv="Player,Round,HCP,Points,Adj,Next HCP\n";
-  allData.forEach(r=>{
-    csv+=`${r.player},${r.round},${r.hcp||""},${r.points||""},${r.adj||""},${r.next_hcp||""}\n`;
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="BarfordGolfScores.csv";
-  a.click();
-}
-
-function toggleTheme(){
-  document.body.classList.toggle("dark-mode");
-  localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
-}
-if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
-
-let reloadTimeout;
-supabase.channel("scores-sync")
-.on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>{
-  clearTimeout(reloadTimeout);
-  reloadTimeout=setTimeout(()=>loadRoundData(),800);
-}).subscribe();
-
-(async()=>{
-  await ensurePlayers();
-  await loadRoundData();
-})();
-</script>
+  <!-- JS PLACEHOLDER -->
+  <script>
+    // Part 2 will add logic here (Supabase + functionality)
+    document.querySelector('.btn-theme').onclick=()=>{
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('bgsTheme',document.body.classList.contains('dark-mode')?'dark':'light');
+    };
+    if(localStorage.getItem('bgsTheme')==='dark')document.body.classList.add('dark-mode');
+  </script>
 </body>
 </html>
