@@ -37,15 +37,9 @@
     /* Leader banner */
     #leaderboard{
       text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;
-      padding:10px;border-bottom:2px solid var(--green);position:relative;overflow:hidden;
+      padding:10px;border-bottom:2px solid var(--green);
     }
-    /* Mask the leaderboard when locked final rounds */
-    #leaderboard.masked{filter:blur(4px) brightness(.8)}
-    #leaderboard.masked::after{
-      content:"🔒 Scores hidden until unlocked";position:absolute;inset:0;
-      display:flex;align-items:center;justify-content:center;color:#1b1b1b;
-      font-weight:800;background:rgba(255,255,255,.55)
-    }
+    #leaderboard.hidden { display:none; } /* ✅ truly hidden when blur is active */
 
     /* Card */
     .scores-container{
@@ -79,9 +73,9 @@
     .badge{margin-left:auto;background:#eaf7ea;border:1px solid #bfe5bf;color:#0f5a0f;border-radius:10px;padding:5px 8px;font-size:.78rem}
     .badge.error{background:#fde9e9;border-color:#f3b2b2;color:#7a1212}
 
-    /* Table */
     main{padding:20px}
     #tableWrap{position:relative}
+
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
     body.dark-mode table{background:var(--dark-card)}
     th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1}
@@ -110,10 +104,8 @@
     body.dark-mode .modal{background:var(--dark-card);color:var(--text-light)}
     body.dark-mode .modal pre{background:#333;color:#eee}
 
-    /* Footer */
     footer{text-align:center;background:var(--green);color:var(--gold);padding:20px;border-top:4px solid var(--gold);margin-top:40px}
 
-    /* Mobile */
     @media(max-width:768px){
       .header-container{flex-direction:column;gap:10px}
       .site-nav ul{flex-wrap:wrap;justify-content:center}
@@ -139,7 +131,7 @@
     </div>
   </header>
 
-  <!-- Leaderboard banner (will be masked in final locked rounds) -->
+  <!-- Leaderboard banner -->
   <div id="leaderboard">🏌️ Leaderboard loading…</div>
 
   <!-- Scores -->
@@ -157,6 +149,7 @@
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
       <button class="btn btn-reset" onclick="resetSeason()">Reset Season</button>
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
+      <button class="btn btn-reset" onclick="zeroTestData()">Zero Test Data</button>
       <span id="syncBadge" class="badge">Synced</span>
     </div>
 
@@ -216,10 +209,10 @@
 
   // Core state – per player (index): arrays [1..7]
   let players = [];
-  let hcpHistory = [];    // start HCP per round (frozen on Calculate)
+  let hcpHistory = [];    // start HCP per round (frozen at Calculate)
   let pointsHistory = [];
   let adjHistory = [];
-  let nextHcpLive = [];   // rolling "after" HCP from last calculated round
+  let nextHcpLive = [];   // rolling after-HCP from last calculated round
 
   let calcLocked = false;
 
@@ -242,20 +235,26 @@
     const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
     if(error){ console.error(error); syncBadge("DB error",true); return; }
     players = (data||[]).map(r=>r.player);
+
+    // start clean in memory; base HCP from scores becomes round 1 default
     hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
     players.forEach((_,i)=>{
       ensureArrays(i);
       const base = data[i]?.handicap ?? 0;
-      hcpHistory[i][1] = base;     // default Round 1 start
+      hcpHistory[i][1] = base;     // default Round 1 start (not frozen yet until Calculate)
       nextHcpLive[i] = base;       // seed rolling
     });
+
     await loadRoundEntries();
     render();
     syncBadge("Synced");
   }
 
   async function loadRoundEntries(){
-    const { data, error } = await supabase.from("round_entries").select("*").order("round",{ascending:true});
+    const { data, error } = await supabase
+      .from("round_entries")
+      .select("*")
+      .order("round",{ascending:true});
     if(error){ console.warn(error.message); syncBadge("DB error",true); return; }
     const pIndex = Object.fromEntries(players.map((p,i)=>[p,i]));
     (data||[]).forEach(row=>{
@@ -268,17 +267,22 @@
       if(typeof row.adj === "number" || row.adj===0) adjHistory[i][rd] = row.adj;
     });
 
-    // Rebuild rolling "after" HCPs and seed future rounds
+    // Rebuild rolling after-HCPs and seed future rounds if missing
     players.forEach((_,i)=>{
       let rolling = hcpHistory[i][1] ?? 0;
       for(let rd=1; rd<=maxRounds; rd++){
-        if(typeof hcpHistory[i][rd] === "number") rolling = hcpHistory[i][rd];
+        // If frozen value exists for rd, that’s the start for rd.
+        if(typeof hcpHistory[i][rd] === "number") {
+          rolling = hcpHistory[i][rd];
+        }
         const adj = adjHistory[i][rd];
         if(typeof adj === "number"){
           const after = Math.max(0, Math.round((hcpHistory[i][rd]??rolling) + adj));
           rolling = after;
-          if(rd+1<=maxRounds && hcpHistory[i][rd+1]==null) hcpHistory[i][rd+1] = after;
-        }else{
+          // Prefill next round start if not yet set
+          if(rd+1<=maxRounds && hcpHistory[i][rd+1]==null) hcpHistory[i][rd+1]=after;
+        } else {
+          // If this round has no frozen HCP and no adj, it should at least show the current rolling as prefill
           if(hcpHistory[i][rd]==null) hcpHistory[i][rd] = rolling;
         }
       }
@@ -293,7 +297,7 @@
   }
   if(localStorage.getItem('bgsTheme')==='dark') document.body.classList.add('dark-mode');
 
-  /* ========= LOCK / BLUR ========= */
+  /* ========= LOCK / BLUR & BANNER ========= */
   function unlockInputs(){
     const pw = document.getElementById("pwInput").value;
     if(pw!==PASSWORD) return alert("Incorrect password!");
@@ -311,7 +315,7 @@
     const banner = document.getElementById('leaderboard');
     const show = (!unlocked && currentRound>=6);
     overlay.classList.toggle('active', show);
-    banner.classList.toggle('masked', show);
+    banner.classList.toggle('hidden', show); /* ✅ fully hide banner on blur */
   }
 
   /* ========= STABLEFORD ========= */
@@ -334,7 +338,7 @@
     syncBadge("Saving…");
     const rd = currentRound;
 
-    // Prepare top score for bonus -1
+    // Find top score for bonus -1
     const all = [];
     for(let i=0;i<players.length;i++){
       const v = parseInt(document.getElementById(`points_${i}`)?.value);
@@ -345,17 +349,19 @@
     const upserts = [];
     for(let i=0;i<players.length;i++){
       ensureArrays(i);
-      // Freeze starting HCP: existing frozen OR input OR rolling
+
+      // Freeze starting HCP for this round
       let startH = hcpHistory[i][rd];
       const hcpEl = document.getElementById(`hcp_${i}`);
       if(startH==null || startH===""){
         const entered = parseFloat(hcpEl?.value);
         startH = isNaN(entered) ? (nextHcpLive[i] ?? 0) : entered;
-        hcpHistory[i][rd] = startH;
+        hcpHistory[i][rd] = startH; // ✅ frozen now
       }else{
-        if(hcpEl) hcpEl.value = startH; // reflect frozen
+        if(hcpEl) hcpEl.value = startH; // keep visible and not blanked
       }
 
+      // Points & adj
       const pts = parseInt(document.getElementById(`points_${i}`)?.value);
       if(isNaN(pts)){
         pointsHistory[i][rd]=null; adjHistory[i][rd]=null;
@@ -368,10 +374,9 @@
       if(top!==null && pts===top) adj -= 1;
       adjHistory[i][rd] = adj;
 
+      // Compute after-HCP & seed next round start if empty
       const after = Math.max(0, Math.round(startH + adj));
       nextHcpLive[i] = after;
-
-      // seed next round start if not set
       if(rd<maxRounds && hcpHistory[i][rd+1]==null) hcpHistory[i][rd+1]=after;
 
       upserts.push({player:players[i],round:rd,hcp:startH,points:pts,adj});
@@ -412,14 +417,14 @@
       const i = p.i, rd = currentRound;
       ensureArrays(i);
 
-      // Round start HCP to show (frozen if exists, else prefill)
+      // Show frozen start HCP if exists, else prefill from previous outcome
       let startH = hcpHistory[i][rd];
       if(startH==null){
-        const prev = rd>1 ? hcpHistory[i][rd-1] : hcpHistory[i][1];
-        if(typeof adjHistory[i][rd-1]==="number" && typeof prev==="number"){
-          startH = Math.max(0, Math.round(prev + adjHistory[i][rd-1]));
+        const prevStart = (rd>1) ? hcpHistory[i][rd-1] : hcpHistory[i][1];
+        if(typeof prevStart==="number" && typeof adjHistory[i][rd-1]==="number"){
+          startH = Math.max(0, Math.round(prevStart + adjHistory[i][rd-1]));
         }else{
-          startH = (typeof prev==="number") ? prev : (nextHcpLive[i] ?? 0);
+          startH = (typeof prevStart==="number") ? prevStart : (nextHcpLive[i] ?? 0);
         }
       }
 
@@ -498,6 +503,28 @@
     currentRound = 1;
     await loadPlayers();
     alert("Season reset complete.");
+    syncBadge("Synced");
+  }
+
+  /* ========= ZERO TEST DATA (hard clean start at 0) ========= */
+  async function zeroTestData(){
+    const pw = prompt("Enter password to ZERO all test data:");
+    if(pw!==PASSWORD) return alert("Incorrect password!");
+    if(!confirm("This will set ALL base handicaps to 0 and wipe ALL round entries. Continue?")) return;
+
+    syncBadge("Zeroing…");
+
+    // Wipe round_entries completely
+    await supabase.from("round_entries").delete().neq("player","");
+
+    // Force all scores base to 0
+    await supabase.from("scores").update({handicap:0,next_handicap:0,points:0,adj:0,total:0,dnp:false});
+
+    // Local zero
+    hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
+    currentRound = 1;
+    await loadPlayers();
+    alert("All test data zeroed. You’re good to test from scratch.");
     syncBadge("Synced");
   }
 
