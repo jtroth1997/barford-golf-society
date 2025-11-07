@@ -158,17 +158,23 @@
     }
     if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-    async function loadPlayers(forceReload=false){
-      console.log("Loading players... forceReload:",forceReload);
-      const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
-      if(error){console.error("❌ Load failed:",error);return;}
-      players=data.map(r=>r.player);
-      startHcp=players.map(()=>Array(maxRounds).fill(0));
-      afterHcp=players.map(()=>Array(maxRounds).fill(0));
-      pointsHistory=players.map(()=>Array(maxRounds).fill(null));
-      adjHistory=players.map(()=>Array(maxRounds).fill(""));
-      renderTable();
+   async function loadPlayers(forceReload=false){
+  console.log("Loading players... forceReload:",forceReload);
+  const { data, error } = await supabase.from("scores").select("*").order("id", { ascending: true });
+  if (error) { console.error("❌ Load failed:", error); return; }
+
+  if (!players.length || forceReload) {
+    players = data.map(r => r.player);
+    if (!startHcp.length) {
+      startHcp = players.map(() => Array(maxRounds).fill(0));
+      afterHcp = players.map(() => Array(maxRounds).fill(0));
+      pointsHistory = players.map(() => Array(maxRounds).fill(null));
+      adjHistory = players.map(() => Array(maxRounds).fill(""));
     }
+  }
+
+  renderTable();
+}
 
     function unlockInputs(){
       const pw=document.getElementById("pwInput").value;
