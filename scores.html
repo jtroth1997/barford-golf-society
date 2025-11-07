@@ -2,121 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scores & Handicap Calculator | Barford Golf Society</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barford Golf Society | Scores</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
+    :root {
       --green:#005a2b;
-      --green-2:#0a6b34;
       --gold:#d4af37;
       --cream:#f7f7f5;
       --dark-bg:#1e1e1e;
       --dark-card:#2a2a2a;
-      --text:#1b1b1b;
       --text-light:#f7f7f5;
-      --muted:#888;
-      --danger:#b30000;
     }
-    *{box-sizing:border-box}
-    body{
-      font-family:"Inter",sans-serif;margin:0;color:var(--text);
-      background:linear-gradient(135deg,var(--cream) 40%,#e9f2e9);
-      transition:background .4s,color .4s;
-    }
-    body.dark-mode{background:var(--dark-bg);color:var(--text-light)}
-
-    /* Header / Nav */
-    .site-header{background:var(--green);color:var(--gold);padding:15px 0;border-bottom:3px solid var(--gold)}
-    .header-container{max-width:1200px;margin:auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
-    .site-title{margin:0;color:var(--gold)}
-    .site-nav ul{margin:0;padding:0;display:flex;gap:20px;list-style:none}
-    .site-nav a{color:#fff;text-decoration:none;font-weight:600}
-    .site-nav a.active,.site-nav a:hover{color:var(--gold)}
-
-    /* Leader banner */
-    #leaderboard{
-      text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;
-      padding:10px;border-bottom:2px solid var(--green);
-    }
-    #leaderboard.hidden { display:none; } /* ✅ truly hidden when blur is active */
-
-    /* Card */
-    .scores-container{
-      max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;
-      box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden;transition:background .4s,color .4s
-    }
-    body.dark-mode .scores-container{background:var(--dark-card);color:var(--text-light);box-shadow:0 4px 15px rgba(255,255,255,.1)}
-    header.calc-header{
-      background:linear-gradient(to right,var(--green),var(--green-2));
-      color:var(--gold);text-align:center;padding:18px 16px;font-size:1.6rem;font-weight:800
-    }
-
-    /* Topbar */
-    .topbar{
-      position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
-      background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05);padding:12px
-    }
-    body.dark-mode .topbar{background:var(--dark-card)}
-    .btn{padding:8px 12px;border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:.25s;font-size:.9rem}
-    .btn:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-    .btn-unlock{background:var(--gold);color:#1b1b1b}
-    .btn-lock{background:var(--green);color:#fff}
-    .btn-calc{background:#ffcc00;color:#1b1b1b}
-    .btn-prev,.btn-next{background:#ddd;color:#1b1b1b}
-    .btn-add{background:#c0c0c0;color:#1b1b1b}
-    .btn-download{background:var(--green);color:var(--gold)}
-    .btn-reset{background:var(--danger);color:#fff}
-    .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold)}
-    input[type=password],input[type=number]{border-radius:6px;border:1px solid #ccc;padding:8px;min-width:140px}
-    input:focus{border-color:var(--gold);box-shadow:0 0 5px rgba(212,175,55,.4);outline:none}
-    .badge{margin-left:auto;background:#eaf7ea;border:1px solid #bfe5bf;color:#0f5a0f;border-radius:10px;padding:5px 8px;font-size:.78rem}
-    .badge.error{background:#fde9e9;border-color:#f3b2b2;color:#7a1212}
-
-    main{padding:20px}
-    #tableWrap{position:relative}
-
-    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
-    body.dark-mode table{background:var(--dark-card)}
-    th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1}
-    th{background:var(--green);color:var(--gold);text-transform:uppercase}
-    tbody tr:nth-child(even){background:#f8f8f8}
-    body.dark-mode tbody tr:nth-child(even){background:#333}
-    input.hcp-frozen{background:#f6f6f6;border-color:#e1e1e1;color:#777}
-    body.dark-mode input.hcp-frozen{background:#2e2e2e;border-color:#3a3a3a;color:#aaa}
-
-    /* Table-only frost overlay (buttons still clickable) */
-    .blur-overlay{
-      position:absolute;inset:0;border-radius:12px;pointer-events:none;z-index:5;
-      display:none;justify-content:center;align-items:center;opacity:0;transition:opacity .35s ease;
-      background:rgba(255,255,255,.45);backdrop-filter:blur(22px) brightness(.9);-webkit-backdrop-filter:blur(22px) brightness(.9);
-      color:var(--green);font-weight:800
-    }
-    .blur-overlay.active{display:flex;opacity:1}
-
-    /* Final results modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center;z-index:1200}
-    .modal-backdrop.active{display:flex}
-    .modal{background:#fff;color:#1b1b1b;border-radius:12px;max-width:560px;width:92%;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
-    .modal h3{margin:0 0 10px;color:var(--green)}
-    .modal pre{background:#f7f7f7;border-radius:8px;padding:12px;max-height:50vh;overflow:auto}
-    .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-    body.dark-mode .modal{background:var(--dark-card);color:var(--text-light)}
-    body.dark-mode .modal pre{background:#333;color:#eee}
-
-    footer{text-align:center;background:var(--green);color:var(--gold);padding:20px;border-top:4px solid var(--gold);margin-top:40px}
-
-    @media(max-width:768px){
-      .header-container{flex-direction:column;gap:10px}
-      .site-nav ul{flex-wrap:wrap;justify-content:center}
-      th,td{padding:8px;font-size:.9rem}
-      .btn{padding:6px 10px;font-size:.8rem}
-      table{display:block;overflow-x:auto;white-space:nowrap}
-    }
+    body{font-family:"Inter",sans-serif;margin:0;background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);color:#1b1b1b;transition:background .4s,color .4s;}
+    body.dark-mode{background:var(--dark-bg);color:var(--text-light);}
+    .site-header{background:var(--green);color:var(--gold);padding:15px 0;border-bottom:3px solid var(--gold);}
+    .header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:auto;padding:0 20px;}
+    .site-title{font-size:1.5em;margin:0;color:var(--gold);}
+    .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+    .site-nav a{color:white;text-decoration:none;font-weight:600;}
+    .site-nav a.active,.site-nav a:hover{color:var(--gold);}
+    .leaderboard-banner{text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;padding:10px;border-bottom:2px solid var(--green);}
+    .scores-container{max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden;transition:background .4s,color .4s;}
+    body.dark-mode .scores-container{background:var(--dark-card);color:var(--text-light);}
+    header.calc-header{background:linear-gradient(to right,var(--green),#0a6b34);color:var(--gold);text-align:center;padding:20px;font-size:1.8rem;font-weight:700;}
+    .topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05);position:sticky;top:0;z-index:10;}
+    body.dark-mode .topbar{background:var(--dark-card);}
+    input[type=password],input[type=number]{border-radius:6px;border:1px solid #ccc;padding:8px;}
+    input:focus{border-color:var(--gold);box-shadow:0 0 5px rgba(212,175,55,.4);outline:none;}
+    .btn{padding:8px 12px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all .25s ease;font-size:.9rem;}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+    .btn-unlock{background:var(--gold);color:#1b1b1b;}
+    .btn-lock{background:var(--green);color:#fff;}
+    .btn-calc{background:#ffcc00;color:#1b1b1b;}
+    .btn-next,.btn-prev{background:#ddd;color:#1b1b1b;}
+    .btn-add{background:#c0c0c0;color:#1b1b1b;}
+    .btn-download{background:var(--green);color:var(--gold);}
+    .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
+    main{padding:20px;}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;}
+    body.dark-mode table{background:var(--dark-card);}
+    th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
+    th{background:var(--green);color:var(--gold);text-transform:uppercase;}
+    tbody tr:nth-child(even){background:#f8f8f8;}
+    body.dark-mode tbody tr:nth-child(even){background:#333;}
+    footer{text-align:center;background:var(--green);color:var(--gold);padding:20px;border-top:4px solid var(--gold);margin-top:40px;}
+    .blur-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(25px);display:none;justify-content:center;align-items:center;z-index:900;color:var(--gold);font-size:1.8rem;text-align:center;padding:20px;}
+    .blur-overlay.active{display:flex;}
+    @media(max-width:768px){.header-container{flex-direction:column;gap:10px;}th,td{padding:8px;font-size:.9rem;}table{display:block;overflow-x:auto;white-space:nowrap;}}
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="site-header">
     <div class="header-container">
       <h1 class="site-title">Barford Golf Society</h1>
@@ -125,19 +61,15 @@
           <li><a href="index.html">Home</a></li>
           <li><a href="events.html">Events</a></li>
           <li><a href="scores.html" class="active">Scores</a></li>
-          <li><a href="admin.html">Admin</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <!-- Leaderboard banner -->
-  <div id="leaderboard">🏌️ Leaderboard loading…</div>
+  <div id="leaderboard" class="leaderboard-banner">🏌️ Leaderboard loading...</div>
 
-  <!-- Scores -->
   <div class="scores-container">
     <header class="calc-header">Golf Society Handicap Calculator</header>
-
     <div class="topbar">
       <input type="password" id="pwInput" placeholder="Enter password">
       <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
@@ -147,178 +79,67 @@
       <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
-      <button class="btn btn-reset" onclick="resetSeason()">Reset Season</button>
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
-      <button class="btn btn-reset" onclick="zeroTestData()">Zero Test Data</button>
-      <span id="syncBadge" class="badge">Synced</span>
+      <button class="btn btn-lock" onclick="resetSeason()">Reset Season</button>
     </div>
 
     <main>
-      <h3 id="roundHeader" style="margin:10px 0 16px 0">Round 1 of 7</h3>
-
-      <div id="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Player</th>
-              <th id="hcpHeader">Round 1 HCP</th>
-              <th>Points</th>
-              <th>Adj</th>
-              <th>Next HCP</th>
-              <th>Total (Best 5)</th>
-              <th>DNP</th>
-            </tr>
-          </thead>
-          <tbody id="playersTable"></tbody>
-        </table>
-
-        <!-- Frost only over the table -->
-        <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked</div>
-      </div>
+      <h3 id="roundHeader">Round 1 of 7</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th id="hcpHeader">Round 1 HCP</th>
+            <th>Points</th>
+            <th>Adj</th>
+            <th>Next HCP</th>
+            <th>Total (Best 5)</th>
+          </tr>
+        </thead>
+        <tbody id="playersTable"></tbody>
+      </table>
     </main>
   </div>
 
-  <!-- Final results -->
-  <div id="resultsBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal">
-      <h3>🏆 Final Results</h3>
-      <pre id="resultsText"></pre>
-      <div class="actions">
-        <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
-        <button class="btn btn-lock" onclick="document.getElementById('resultsBackdrop').classList.remove('active')">Close</button>
-      </div>
-    </div>
-  </div>
+  <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked</div>
 
-  <footer><p>© 2025 Barford Golf Society | Scores & Handicap Calculator</p></footer>
+  <footer><p>© 2025 Barford Golf Society</p></footer>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-  /* ========= SUPABASE ========= */
-  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";      // ← replace with your project URL
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";   // ← replace with your anon key
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  /* ========= GLOBALS ========= */
   const PASSWORD = "westbrom1997";
-  const maxRounds = 7;
+
   let unlocked = false;
   let currentRound = 1;
-
-  // Core state – per player (index): arrays [1..7]
+  const maxRounds = 7;
   let players = [];
-  let hcpHistory = [];    // start HCP per round (frozen at Calculate)
-  let pointsHistory = [];
-  let adjHistory = [];
-  let nextHcpLive = [];   // rolling after-HCP from last calculated round
+  let startHcp = [], afterHcp = [], pointsHistory = [], adjHistory = [];
 
-  let calcLocked = false;
-
-  const syncBadge = (msg, isError=false) => {
-    const el = document.getElementById('syncBadge');
-    el.textContent = msg;
-    el.classList.toggle('error', !!isError);
-  };
-
-  const ensureArrays = i => {
-    if(!hcpHistory[i]) hcpHistory[i] = Array(maxRounds+1).fill(null);
-    if(!pointsHistory[i]) pointsHistory[i] = Array(maxRounds+1).fill(null);
-    if(!adjHistory[i]) adjHistory[i] = Array(maxRounds+1).fill(null);
-    if(typeof nextHcpLive[i] !== "number") nextHcpLive[i] = 0;
-  };
-
-  /* ========= LOAD DATA ========= */
   async function loadPlayers(){
-    syncBadge("Loading…");
-    const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
-    if(error){ console.error(error); syncBadge("DB error",true); return; }
-    players = (data||[]).map(r=>r.player);
-
-    // start clean in memory; base HCP from scores becomes round 1 default
-    hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
-    players.forEach((_,i)=>{
-      ensureArrays(i);
-      const base = data[i]?.handicap ?? 0;
-      hcpHistory[i][1] = base;     // default Round 1 start (not frozen yet until Calculate)
-      nextHcpLive[i] = base;       // seed rolling
-    });
-
-    await loadRoundEntries();
-    render();
-    syncBadge("Synced");
+    const {data, error} = await supabase.from("scores").select("*").order("id");
+    if(error){console.error(error);return;}
+    if(!data) return;
+    players = data.map(r=>r.player);
+    startHcp = players.map(()=>Array(maxRounds).fill(0));
+    afterHcp = players.map(()=>Array(maxRounds).fill(0));
+    pointsHistory = players.map(()=>Array(maxRounds).fill(null));
+    adjHistory = players.map(()=>Array(maxRounds).fill(""));
+    renderTable();
   }
 
-  async function loadRoundEntries(){
-    const { data, error } = await supabase
-      .from("round_entries")
-      .select("*")
-      .order("round",{ascending:true});
-    if(error){ console.warn(error.message); syncBadge("DB error",true); return; }
-    const pIndex = Object.fromEntries(players.map((p,i)=>[p,i]));
-    (data||[]).forEach(row=>{
-      const i = pIndex[row.player];
-      if(i===undefined) return;
-      ensureArrays(i);
-      const rd = Math.max(1, Math.min(maxRounds, row.round));
-      if(typeof row.hcp === "number")   hcpHistory[i][rd] = row.hcp;
-      if(typeof row.points === "number")pointsHistory[i][rd] = row.points;
-      if(typeof row.adj === "number" || row.adj===0) adjHistory[i][rd] = row.adj;
-    });
+  function toggleTheme(){document.body.classList.toggle('dark-mode');}
 
-    // Rebuild rolling after-HCPs and seed future rounds if missing
-    players.forEach((_,i)=>{
-      let rolling = hcpHistory[i][1] ?? 0;
-      for(let rd=1; rd<=maxRounds; rd++){
-        // If frozen value exists for rd, that’s the start for rd.
-        if(typeof hcpHistory[i][rd] === "number") {
-          rolling = hcpHistory[i][rd];
-        }
-        const adj = adjHistory[i][rd];
-        if(typeof adj === "number"){
-          const after = Math.max(0, Math.round((hcpHistory[i][rd]??rolling) + adj));
-          rolling = after;
-          // Prefill next round start if not yet set
-          if(rd+1<=maxRounds && hcpHistory[i][rd+1]==null) hcpHistory[i][rd+1]=after;
-        } else {
-          // If this round has no frozen HCP and no adj, it should at least show the current rolling as prefill
-          if(hcpHistory[i][rd]==null) hcpHistory[i][rd] = rolling;
-        }
-      }
-      nextHcpLive[i] = rolling;
-    });
-  }
-
-  /* ========= THEME ========= */
-  function toggleTheme(){
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('bgsTheme', document.body.classList.contains('dark-mode') ? 'dark':'light');
-  }
-  if(localStorage.getItem('bgsTheme')==='dark') document.body.classList.add('dark-mode');
-
-  /* ========= LOCK / BLUR & BANNER ========= */
   function unlockInputs(){
-    const pw = document.getElementById("pwInput").value;
-    if(pw!==PASSWORD) return alert("Incorrect password!");
-    unlocked = true;
-    alert("Scores unlocked");
-    render();
+    const pw=document.getElementById("pwInput").value;
+    if(pw!==PASSWORD) return alert("Incorrect password");
+    unlocked=true;renderTable();
   }
-  function lockInputs(){
-    unlocked = false;
-    alert("Scores locked");
-    render();
-  }
-  function updateBlurAndBanner(){
-    const overlay = document.getElementById('blurOverlay');
-    const banner = document.getElementById('leaderboard');
-    const show = (!unlocked && currentRound>=6);
-    overlay.classList.toggle('active', show);
-    banner.classList.toggle('hidden', show); /* ✅ fully hide banner on blur */
-  }
+  function lockInputs(){unlocked=false;renderTable();}
 
-  /* ========= STABLEFORD ========= */
   function stablefordAdj(pts){
     if(pts>=43)return -3;
     if(pts>=38)return -2;
@@ -329,227 +150,105 @@
     return +3;
   }
 
-  /* ========= CALCULATE ========= */
   async function calculateHandicaps(){
-    if(!unlocked) return alert("⛳ Scores are locked!");
-    if(calcLocked) return alert("Please wait a moment…");
-    calcLocked=true; setTimeout(()=>calcLocked=false,1000);
-
-    syncBadge("Saving…");
-    const rd = currentRound;
-
-    // Find top score for bonus -1
-    const all = [];
+    if(!unlocked) return alert("Locked");
     for(let i=0;i<players.length;i++){
-      const v = parseInt(document.getElementById(`points_${i}`)?.value);
-      if(!isNaN(v)) all.push(v);
+      const h=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
+      const pts=parseInt(document.getElementById(`pts_${i}`).value);
+      if(isNaN(pts)) continue;
+      const adj=stablefordAdj(pts);
+      const next=Math.max(0,h+adj);
+      startHcp[i][currentRound-1]=h;
+      afterHcp[i][currentRound-1]=next;
+      pointsHistory[i][currentRound-1]=pts;
+      adjHistory[i][currentRound-1]=(adj>0?"+":"")+adj;
+      await supabase.from("round_entries").upsert({
+        player:players[i],
+        round:currentRound,
+        hcp:h,
+        points:pts,
+        adj:adj,
+        next_hcp:next
+      });
+      if(currentRound<maxRounds && !startHcp[i][currentRound]) startHcp[i][currentRound]=next;
     }
-    const top = all.length ? Math.max(...all) : null;
-
-    const upserts = [];
-    for(let i=0;i<players.length;i++){
-      ensureArrays(i);
-
-      // Freeze starting HCP for this round
-      let startH = hcpHistory[i][rd];
-      const hcpEl = document.getElementById(`hcp_${i}`);
-      if(startH==null || startH===""){
-        const entered = parseFloat(hcpEl?.value);
-        startH = isNaN(entered) ? (nextHcpLive[i] ?? 0) : entered;
-        hcpHistory[i][rd] = startH; // ✅ frozen now
-      }else{
-        if(hcpEl) hcpEl.value = startH; // keep visible and not blanked
-      }
-
-      // Points & adj
-      const pts = parseInt(document.getElementById(`points_${i}`)?.value);
-      if(isNaN(pts)){
-        pointsHistory[i][rd]=null; adjHistory[i][rd]=null;
-        upserts.push({player:players[i],round:rd,hcp:startH,points:null,adj:null});
-        continue;
-      }
-      pointsHistory[i][rd] = pts;
-
-      let adj = stablefordAdj(pts);
-      if(top!==null && pts===top) adj -= 1;
-      adjHistory[i][rd] = adj;
-
-      // Compute after-HCP & seed next round start if empty
-      const after = Math.max(0, Math.round(startH + adj));
-      nextHcpLive[i] = after;
-      if(rd<maxRounds && hcpHistory[i][rd+1]==null) hcpHistory[i][rd+1]=after;
-
-      upserts.push({player:players[i],round:rd,hcp:startH,points:pts,adj});
-    }
-
-    // Persist all in one batch
-    const { error } = await supabase.from("round_entries").upsert(upserts, { onConflict:"player,round" });
-    if(error){ console.warn(error.message); syncBadge("Save error",true); }
-    else syncBadge("Synced");
-
-    render();
-
-    if(currentRound===maxRounds){
-      setTimeout(showFinalResults, 350);
-    }
+    renderTable();
   }
 
-  /* ========= TOTALS ========= */
   function calculateTotals(){
-    return players.map((name,i)=>{
-      const vals = (pointsHistory[i]||[]).slice(1).filter(v=>typeof v==="number");
-      const total = vals.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-      return { i, name, total };
+    return players.map((p,i)=>{
+      const scores=pointsHistory[i].filter(v=>v!==null);
+      const total=scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+      return {i,name:p,total};
     }).sort((a,b)=>b.total-a.total);
   }
 
-  /* ========= RENDER ========= */
-  function render(){
-    const tbody = document.getElementById('playersTable');
+  function renderTable(){
+    const tbody=document.getElementById("playersTable");
     tbody.innerHTML="";
-
-    // Dynamic headers
-    document.getElementById('roundHeader').textContent = `Round ${currentRound} of ${maxRounds}`;
-    document.getElementById('hcpHeader').textContent = `Round ${currentRound} HCP`;
-
-    const totals = calculateTotals();
+    const totals=calculateTotals();
     totals.forEach((p,rank)=>{
-      const i = p.i, rd = currentRound;
-      ensureArrays(i);
-
-      // Show frozen start HCP if exists, else prefill from previous outcome
-      let startH = hcpHistory[i][rd];
-      if(startH==null){
-        const prevStart = (rd>1) ? hcpHistory[i][rd-1] : hcpHistory[i][1];
-        if(typeof prevStart==="number" && typeof adjHistory[i][rd-1]==="number"){
-          startH = Math.max(0, Math.round(prevStart + adjHistory[i][rd-1]));
-        }else{
-          startH = (typeof prevStart==="number") ? prevStart : (nextHcpLive[i] ?? 0);
-        }
-      }
-
-      const pts = pointsHistory[i][rd] ?? "";
-      const adj = adjHistory[i][rd];
-      const adjText = (typeof adj==="number") ? ((adj>0?"+":"")+adj) : "";
-      const nextDisplay = (typeof adj==="number") ? Math.max(0, Math.round(startH + adj)) : 0;
-
-      const readOnly = unlocked ? "" : "readonly";
-      const frozenClass = (typeof adj==="number") ? "hcp-frozen" : "";
-      const dnp = (pts==="") ? "checked" : "";
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
+      const s=startHcp[p.i][currentRound-1]||0;
+      const pts=pointsHistory[p.i][currentRound-1]??"";
+      const adj=adjHistory[p.i][currentRound-1]||"";
+      const next=afterHcp[p.i][currentRound-1]||s;
+      const readonly=unlocked?"":"readonly";
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${rank+1}</td>
         <td>${p.name}</td>
-        <td><input id="hcp_${i}" class="${frozenClass}" type="number" value="${startH}" ${readOnly}></td>
-        <td><input id="points_${i}" type="number" value="${pts}" ${readOnly}></td>
-        <td id="adj_${i}">${adjText}</td>
-        <td id="next_${i}">${nextDisplay}</td>
-        <td id="total_${i}">${p.total}</td>
-        <td><input type="checkbox" disabled ${dnp}></td>
-      `;
+        <td><input type="number" id="hcp_${p.i}" value="${s}" ${readonly}></td>
+        <td><input type="number" id="pts_${p.i}" value="${pts}" ${readonly}></td>
+        <td>${adj}</td>
+        <td>${next}</td>
+        <td>${p.total}</td>`;
       tbody.appendChild(tr);
     });
-
-    // Leader banner
-    const t = calculateTotals();
-    if(t.length){
-      const leader = t[0];
-      document.getElementById('leaderboard').textContent =
-        `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
+    document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
+    document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
+    const leader=document.getElementById("leaderboard");
+    if(!unlocked && currentRound>=6){
+      document.getElementById("blurOverlay").classList.add("active");
+      leader.style.display="none";
+    }else{
+      document.getElementById("blurOverlay").classList.remove("active");
+      leader.style.display="block";
     }
-
-    updateBlurAndBanner();
   }
 
-  /* ========= NAV ========= */
-  function nextRound(){ if(currentRound<maxRounds){ currentRound++; render(); } }
-  function prevRound(){ if(currentRound>1){ currentRound--; render(); } }
+  function nextRound(){if(currentRound<maxRounds){currentRound++;renderTable();}}
+  function prevRound(){if(currentRound>1){currentRound--;renderTable();}}
 
-  /* ========= ADD PLAYER ========= */
   async function addPlayer(){
-    if(!unlocked) return alert("Enter password to add a player.");
-    const name = prompt("Enter new player name:");
-    if(!name) return;
-    await supabase.from("scores").insert([{player:name,round:1,handicap:0,points:0,next_handicap:0,adj:0,total:0,dnp:false}]);
+    if(!unlocked)return alert("Locked");
+    const name=prompt("Enter player name:");if(!name)return;
+    await supabase.from("scores").insert([{player:name,handicap:0}]);
     await loadPlayers();
   }
 
-  /* ========= FINAL RESULTS ========= */
-  function showFinalResults(){
-    const totals = calculateTotals();
-    const lines = totals.map((t,i)=>`${i+1}. ${t.name} — ${t.total} pts`).join("\n");
-    document.getElementById('resultsText').textContent = lines;
-    document.getElementById('resultsBackdrop').classList.add('active');
-  }
-
-  /* ========= RESET (keeps players) ========= */
-  async function resetSeason(){
-    const pw = prompt("Enter password to reset season:");
-    if(pw!==PASSWORD) return alert("Incorrect password!");
-    if(!confirm("Reset all rounds & handicaps to 0? Players remain.")) return;
-
-    syncBadge("Resetting…");
-
-    // Wipe per-round history
-    const del = await supabase.from("round_entries").delete().neq("player","");
-    if(del.error) console.warn(del.error.message);
-
-    // Reset base HCP in scores to 0
-    await supabase.from("scores").update({handicap:0,next_handicap:0,points:0,adj:0,total:0,dnp:false});
-
-    // Reset local
-    hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
-    currentRound = 1;
-    await loadPlayers();
-    alert("Season reset complete.");
-    syncBadge("Synced");
-  }
-
-  /* ========= ZERO TEST DATA (hard clean start at 0) ========= */
-  async function zeroTestData(){
-    const pw = prompt("Enter password to ZERO all test data:");
-    if(pw!==PASSWORD) return alert("Incorrect password!");
-    if(!confirm("This will set ALL base handicaps to 0 and wipe ALL round entries. Continue?")) return;
-
-    syncBadge("Zeroing…");
-
-    // Wipe round_entries completely
-    await supabase.from("round_entries").delete().neq("player","");
-
-    // Force all scores base to 0
-    await supabase.from("scores").update({handicap:0,next_handicap:0,points:0,adj:0,total:0,dnp:false});
-
-    // Local zero
-    hcpHistory=[]; pointsHistory=[]; adjHistory=[]; nextHcpLive=[];
-    currentRound = 1;
-    await loadPlayers();
-    alert("All test data zeroed. You’re good to test from scratch.");
-    syncBadge("Synced");
-  }
-
-  /* ========= CSV ========= */
   function downloadCsv(){
-    const totalsMap = Object.fromEntries(calculateTotals().map(p=>[p.name,p.total]));
-    const rows = [["Player","Round","RoundHCP","Points","Adj","NextHCP_AfterRound","Total(Best5 @R7)"]];
-    players.forEach((name,i)=>{
-      for(let rd=1; rd<=maxRounds; rd++){
-        const h = hcpHistory[i]?.[rd];
-        const pts = pointsHistory[i]?.[rd];
-        const adj = adjHistory[i]?.[rd];
-        const nextAfter = (typeof h==="number" && typeof adj==="number") ? Math.max(0, Math.round(h + adj)) : "";
-        const totalOut = (rd===maxRounds) ? (totalsMap[name]||0) : "";
-        rows.push([name,rd,(h??""),(pts??""),(adj??""),nextAfter,totalOut]);
-      }
-    });
-    const csv = rows.map(r=>r.join(",")).join("\n");
-    const blob = new Blob([csv],{type:"text/csv"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download="BarfordGolfScores_AllRounds.csv"; a.click();
+    let csv="Player,Round,StartHCP,NextHCP,Points,Adj,Total\n";
+    for(let i=0;i<players.length;i++){
+      csv+=`${players[i]},${currentRound},${startHcp[i][currentRound-1]},${afterHcp[i][currentRound-1]},${pointsHistory[i][currentRound-1]},${adjHistory[i][currentRound-1]},${calculateTotals().find(p=>p.name===players[i])?.total||0}\n`;
+    }
+    const blob=new Blob([csv],{type:"text/csv"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="scores.csv";a.click();
   }
 
-  /* ========= INIT ========= */
-  function toggleTheme(){document.body.classList.toggle('dark-mode')}
+  async function resetSeason(){
+    const pw=prompt("Enter password to reset:");
+    if(pw!==PASSWORD)return alert("Incorrect password");
+    if(!confirm("Reset all scores and handicaps?"))return;
+    await supabase.from("round_entries").delete().neq("player","");
+    startHcp = players.map(()=>Array(maxRounds).fill(0));
+    afterHcp = players.map(()=>Array(maxRounds).fill(0));
+    pointsHistory = players.map(()=>Array(maxRounds).fill(null));
+    adjHistory = players.map(()=>Array(maxRounds).fill("");
+    currentRound=1;renderTable();
+  }
+
   loadPlayers();
   </script>
 </body>
