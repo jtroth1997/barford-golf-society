@@ -132,6 +132,28 @@
     let currentRound = 1, unlocked = false;
     let players = [];
     const startHcp=[], afterHcp=[], pointsHistory=[], adjHistory=[];
+// === REALTIME SUBSCRIPTION ===
+const scoresChannel = supabase.channel('scores-changes')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'scores' },
+    payload => {
+      console.log('Realtime update from scores:', payload);
+      loadPlayers(); // refresh the leaderboard automatically
+    }
+  )
+  .subscribe(status => console.log('Scores Channel Status:', status));
+
+const roundsChannel = supabase.channel('rounds-changes')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'round_entries' },
+    payload => {
+      console.log('Realtime update from round_entries:', payload);
+      loadPlayers(); // refresh the data automatically
+    }
+  )
+  .subscribe(status => console.log('Rounds Channel Status:', status));
 
     /* --- Alphabetised Players --- */
     const defaultPlayers = [
