@@ -85,7 +85,7 @@
       padding:16px;
       background:#fff;
       box-shadow:0 3px 10px rgba(0,0,0,.05);
-      position:sticky;top:0;z-index:10; /* stays above table area */
+      position:sticky;top:0;z-index:10;
     }
     body.dark-mode .topbar{background:var(--dark-card);}
     input[type=password],input[type=number]{
@@ -136,14 +136,14 @@
     /* FROSTED BLUR — table-only, never blocks buttons */
     .blur-overlay{
       position:absolute;
-      inset:0;                    /* covers only #tableContainer */
+      inset:0;
       background:rgba(255,255,255,.45);
       backdrop-filter:blur(22px) brightness(.9);
       -webkit-backdrop-filter:blur(22px) brightness(.9);
       display:none;
       justify-content:center;
       align-items:center;
-      z-index:5;                  /* under sticky .topbar (z=10) */
+      z-index:5;                  /* topbar is z=10 */
       color:var(--green);
       font-size:1.4rem;
       font-weight:700;
@@ -270,7 +270,7 @@
   let playerScores = [];
   let lastAdj = [];
   let calcLocked = false;
-  let calculatedThisRound = false;  // ✅ only advance HCPs if we calculated
+  let calculatedThisRound = false;
 
   // === LOAD PLAYERS FROM SUPABASE ===
   async function loadPlayers() {
@@ -279,8 +279,7 @@
     if (data?.length) {
       players = data.map(r=>r.player);
       currentHcp = data.map(r=>r.handicap||0);
-      // Next HCP should START at 0 visually until you Calculate
-      nextHcp = players.map(()=>0);                    // ✅ start zeros for display
+      nextHcp = players.map(()=>0);        // Start Next HCP at 0 until Calculate
       playerScores = players.map(()=>Array(maxRounds).fill(null));
       lastAdj = players.map(()=>"");
     }
@@ -294,7 +293,7 @@
   }
   if(localStorage.getItem('bgsTheme')==='dark')document.body.classList.add('dark-mode');
 
-  // === BLUR LOGIC (Rounds 6 & 7 only, when locked) ===
+  // === BLUR LOGIC ===
   function showBlurOverlay(show){
     const overlay=document.getElementById("blurOverlay");
     overlay.classList.toggle("active",show);
@@ -354,9 +353,8 @@
         playerScores[i][currentRound-1]=null;
         lastAdj[i]="";
         adjCell.textContent="";
-        // keep nextHcp as current HCP when no score entered
         nextHcp[i]=h;
-        nextCell.textContent = h;
+        nextCell.textContent=h;
         continue;
       }
 
@@ -368,7 +366,7 @@
       lastAdj[i]=(adj>0?"+":"")+adj;
       adjCell.textContent=lastAdj[i];
       const newH=Math.max(0,Math.round(h+adj));
-      nextHcp[i]=newH;                 // ✅ only set after Calculate
+      nextHcp[i]=newH;
       nextCell.textContent=newH;
 
       await supabase.from("scores").update({
@@ -400,7 +398,6 @@
     totals.forEach((p,rank)=>{
       const scoreVal=playerScores[p.i][currentRound-1]??"";
       const adj=lastAdj[p.i]||"";
-      // Visually show 0 for Next HCP until calculated; if calculated this round it’s already set
       const nextDisplay = nextHcp[p.i] ?? 0;
       const dnp=scoreVal===""?"checked":"";
       const readOnly=unlocked?"":"readonly";
@@ -426,13 +423,17 @@
         `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
     }
     document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
+
+    // 🔁 Dynamically set "Round X HCP" in the table header
+    const hcpHeaderEl = document.getElementById("hcpHeader");
+    if(hcpHeaderEl) hcpHeaderEl.textContent = `Round ${currentRound} HCP`;
+
     updateBlur();
   }
 
   // === ROUND NAVIGATION ===
   function nextRound(){
     if(currentRound<maxRounds){
-      // Only apply nextHcp → currentHcp if this round was calculated
       if(calculatedThisRound){
         for(let i=0;i<players.length;i++){
           currentHcp[i]=nextHcp[i] ?? currentHcp[i];
