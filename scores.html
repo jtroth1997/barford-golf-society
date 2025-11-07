@@ -234,7 +234,14 @@
       const existing = data.map(p=>p.player);
       for(const name of defaultPlayers){
         if(!existing.includes(name)){
-          await supabase.from("scores").insert([{player:name,handicap:0,points:0,next_handicap:0,adj:0,total:0}]);
+         await supabase.from("scores").update({
+  points: pts,
+  adj: adj,
+  next_handicap: next,
+  total: 0,
+  updated_at: new Date().toISOString()
+}).eq("player", players[i]);
+
         }
       }
     }
