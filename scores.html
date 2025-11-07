@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barford Golf Society | Scores</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --green:#005a2b;
@@ -116,6 +117,7 @@
     }
   </style>
 </head>
+
 <body>
   <header class="site-header">
     <div class="header-container">
@@ -167,16 +169,15 @@
   </div>
 
   <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked</div>
-
   <footer><p>© 2025 Barford Golf Society</p></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // === SUPABASE CONNECTION ===
-    // Replace the placeholders below with your actual project details before publishing
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co"; // ✅ your live Supabase URL
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"; // ✅ your anon key
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     // === GLOBALS ===
     const PASSWORD = "westbrom1997";
     let unlocked = false;
@@ -184,20 +185,19 @@
     const maxRounds = 7;
     let players = [];
 
-    // round-by-round state
     const startHcp = [];
     const afterHcp = [];
     const pointsHistory = [];
     const adjHistory = [];
 
-    // === THEME TOGGLE ===
+    // === THEME ===
     function toggleTheme(){
       document.body.classList.toggle("dark-mode");
       localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
     }
     if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-    // === LOAD PLAYERS FROM SUPABASE ===
+    // === LOAD PLAYERS ===
     async function loadPlayers(){
       const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
       if(error){console.error(error);return;}
@@ -208,27 +208,23 @@
           afterHcp[i]=Array(maxRounds).fill(0);
           pointsHistory[i]=Array(maxRounds).fill(null);
           adjHistory[i]=Array(maxRounds).fill("");
-          startHcp[i][0]=r=>r.handicap; // initial hcp
+          startHcp[i][0]=data[i].handicap||0;
         }
       }
       renderTable();
     }
 
-    // === LOCK / UNLOCK ===
     function unlockInputs(){
       const pw=document.getElementById("pwInput").value;
       if(pw!==PASSWORD)return alert("Incorrect password!");
-      unlocked=true;
-      alert("Unlocked");
+      unlocked=true;alert("Unlocked");
       renderTable();updateBlur();
     }
     function lockInputs(){
-      unlocked=false;
-      alert("Locked");
+      unlocked=false;alert("Locked");
       renderTable();updateBlur();
     }
 
-    // === STABLEFORD ADJUSTMENT LOGIC ===
     function stablefordAdj(pts){
       if(pts>=43)return -3;
       if(pts>=38)return -2;
@@ -239,7 +235,6 @@
       return +3;
     }
 
-    // === CALCULATE HANDICAPS ===
     async function calculateHandicaps(){
       if(!unlocked)return alert("Locked!");
 
@@ -251,13 +246,11 @@
         const adj=stablefordAdj(pts);
         const next=Math.max(0,start+adj);
 
-        // freeze current round values
         if(!startHcp[i][currentRound-1]) startHcp[i][currentRound-1]=start;
         afterHcp[i][currentRound-1]=next;
         pointsHistory[i][currentRound-1]=pts;
         adjHistory[i][currentRound-1]=(adj>0?"+":"")+adj;
 
-        // seed next round if empty
         const nextIndex=currentRound;
         if(nextIndex<maxRounds && startHcp[i][nextIndex]===0) startHcp[i][nextIndex]=next;
 
@@ -271,11 +264,9 @@
         });
       }
       renderTable();
-
       if(currentRound===maxRounds) showFinalResults();
     }
 
-    // === CALCULATE TOTALS ===
     function calculateTotals(){
       return players.map((name,i)=>{
         const scores=pointsHistory[i].filter(v=>v!==null);
@@ -284,7 +275,6 @@
       }).sort((a,b)=>b.total-a.total);
     }
 
-    // === RENDER TABLE ===
     function renderTable(){
       const tbody=document.getElementById("playersTable");
       tbody.innerHTML="";
@@ -312,14 +302,18 @@
         tbody.appendChild(tr);
       });
 
-      const leader=calculateTotals()[0];
       const lb=document.getElementById("leaderboard");
-      lb.textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound}/${maxRounds}`;
+      const totalsNow = calculateTotals();
+      if (totalsNow.length && totalsNow[0].name) {
+        const leader = totalsNow[0];
+        lb.textContent = `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound}/${maxRounds}`;
+      } else {
+        lb.textContent = `🏌️ Leaderboard loading... | Round ${currentRound}/${maxRounds}`;
+      }
       document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
       updateBlur();
     }
 
-    // === BLUR OVERLAY ===
     function updateBlur(){
       const overlay=document.getElementById("blurOverlay");
       const lb=document.getElementById("leaderboard");
@@ -332,11 +326,9 @@
       }
     }
 
-    // === ROUND NAVIGATION ===
     function nextRound(){if(currentRound<maxRounds){currentRound++;renderTable();}}
     function prevRound(){if(currentRound>1){currentRound--;renderTable();}}
 
-    // === ADD PLAYER ===
     async function addPlayer(){
       if(!unlocked)return alert("Enter password to add player.");
       const name=prompt("Enter new player name:");
@@ -345,7 +337,6 @@
       await loadPlayers();
     }
 
-    // === FINAL RESULTS ===
     function showFinalResults(){
       const totals=calculateTotals();
       let msg="🏆 FINAL RESULTS 🏆\n\n";
@@ -353,7 +344,6 @@
       alert(msg);
     }
 
-    // === DOWNLOAD CSV ===
     function downloadCsv(){
       let csv="Player,Total,Round,Points,HCP,Next HCP\n";
       for(let i=0;i<players.length;i++){
@@ -366,7 +356,6 @@
       a.click();
     }
 
-    // === RESET SEASON ===
     async function resetSeason(){
       const pw=prompt("Enter password to reset season:");
       if(pw!==PASSWORD)return alert("Incorrect password");
@@ -379,7 +368,6 @@
       location.reload();
     }
 
-    // === INIT ===
     loadPlayers();
   </script>
 </body>
