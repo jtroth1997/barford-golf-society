@@ -418,6 +418,30 @@
         }
       )
       .subscribe();
+        /* --- Real-time Sync --- */
+    supabase
+      .channel('scores-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'scores' },
+        payload => {
+          console.log('Scores table changed:', payload);
+          loadPlayers(); // refresh table instantly
+        }
+      )
+      .subscribe();
+
+    supabase
+      .channel('round-entries-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'round_entries' },
+        payload => {
+          console.log('Round entries changed:', payload);
+          loadPlayers(); // refresh when round data changes
+        }
+      )
+      .subscribe();
   </script>
 </body>
 </html>
