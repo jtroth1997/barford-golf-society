@@ -111,6 +111,7 @@ const PASSWORD="westbrom1997";
 let unlocked=false;
 const maxRounds=7;
 let currentRound=1;
+let allData=[];
 
 const playersList=[
   "Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver","Clive Irwin","Colin Oliver",
@@ -120,6 +121,7 @@ const playersList=[
   "Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"
 ].sort();
 
+// ensure players exist in main table
 async function ensurePlayers(){
   const {data}=await supabase.from("scores").select("player");
   const existing=data?data.map(x=>x.player):[];
@@ -128,6 +130,14 @@ async function ensurePlayers(){
     const rows=missing.map(p=>({player:p,handicap:0,points:0,next_handicap:0,adj:0,total:0}));
     await supabase.from("scores").insert(rows);
   }
+}
+
+// load round entries
+async function loadRoundData(){
+  const {data,error}=await supabase.from("round_entries").select("*");
+  if(error){console.error(error);return;}
+  allData=data||[];
+  await loadScores();
 }
 
 async function loadScores(){
@@ -141,14 +151,21 @@ function renderTable(data){
   tb.innerHTML="";
   if(!data||!data.length)return;
   const sorted=[...data].sort((a,b)=>b.total-a.total);
+
   sorted.forEach((r,rank)=>{
+    const entry=allData.find(e=>e.player===r.player && e.round===currentRound);
+    const hcp=entry?entry.hcp:r.handicap;
+    const pts=entry?entry.points:"";
+    const adj=entry?entry.adj:"";
+    const next=entry?entry.next_hcp:"";
     const tr=document.createElement("tr");
     tr.innerHTML=`<td>${rank+1}</td><td>${r.player}</td>
-    <td><input type="number" id="hcp_${r.player}" value="${r.handicap}" ${unlocked?"":"readonly"}></td>
-    <td><input type="number" id="pts_${r.player}" value="${r.points}" ${unlocked?"":"readonly"}></td>
-    <td>${r.adj}</td><td>${r.next_handicap}</td><td>${r.total}</td>`;
+      <td><input type="number" id="hcp_${r.player}" value="${hcp}" ${unlocked?"":"readonly"}></td>
+      <td><input type="number" id="pts_${r.player}" value="${pts}" ${unlocked?"":"readonly"}></td>
+      <td>${adj}</td><td>${next}</td><td>${r.total}</td>`;
     tb.appendChild(tr);
   });
+
   document.getElementById("leaderboard").textContent=`🏆 Leader: ${sorted[0].player} — ${sorted[0].total} pts | Round ${currentRound}/${maxRounds}`;
   document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
 }
@@ -168,38 +185,57 @@ function stablefordAdj(p){
 
 async function calculateHandicaps(){
   if(!unlocked)return alert("Locked!");
-  const {data}=await supabase.from("scores").select("player,handicap");
+  const {data}=await supabase.from("scores").select("player,handicap,next_handicap");
   for(const r of data){
     const s=parseFloat(document.getElementById(`hcp_${r.player}`).value)||0;
     const pts=parseInt(document.getElementById(`pts_${r.player}`).value)||0;
     const change=stablefordAdj(pts);
     const next=Math.max(0,s+change);
+
+    // save round entry
+    await supabase.from("round_entries").upsert({
+      player:r.player,round:currentRound,hcp:s,points:pts,adj:change,next_hcp:next,updated_at:new Date().toISOString()
+    },{onConflict:["player","round"]});
+
+    // update master
     await supabase.from("scores").update({
       handicap:s,points:pts,adj:change,next_handicap:next,total:pts
     }).eq("player",r.player);
   }
-  setTimeout(loadScores,800);
+  await loadRoundData();
 }
 
 async function resetSeason(){
   const pw=prompt("Enter password to reset:");
   if(pw!==PASSWORD)return alert("Wrong password");
   await supabase.from("scores").update({handicap:0,points:0,adj:0,next_handicap:0,total:0});
-  alert("Season reset!");loadScores();
+  await supabase.from("round_entries").delete().neq("id",0);
+  alert("Season reset!");await loadRoundData();
 }
 
 function nextRound(){
-  if(currentRound<maxRounds){currentRound++;loadScores();}
+  if(currentRound<maxRounds){
+    currentRound++;
+    // carry forward handicap
+    allData.forEach(e=>{
+      if(e.round===currentRound-1){
+        const exists=allData.find(r=>r.player===e.player && r.round===currentRound);
+        if(!exists){
+          allData.push({player:e.player,round:currentRound,hcp:e.next_hcp,points:null,adj:null,next_hcp:null});
+        }
+      }
+    });
+    renderTable(JSON.parse(JSON.stringify(allData)));
+  }
 }
 function prevRound(){
-  if(currentRound>1){currentRound--;loadScores();}
+  if(currentRound>1){currentRound--;renderTable(JSON.parse(JSON.stringify(allData)));}
 }
 
 function downloadCsv(){
-  let csv="Player,Handicap,Points,Adj,Next Handicap,Total\n";
-  document.querySelectorAll("#playersTable tr").forEach(tr=>{
-    const cells=[...tr.children].map(td=>td.innerText||td.querySelector("input")?.value||"");
-    csv+=cells.join(",")+"\n";
+  let csv="Player,Round,HCP,Points,Adj,Next HCP\n";
+  allData.forEach(r=>{
+    csv+=`${r.player},${r.round},${r.hcp||""},${r.points||""},${r.adj||""},${r.next_hcp||""}\n`;
   });
   const blob=new Blob([csv],{type:"text/csv"});
   const a=document.createElement("a");
@@ -208,26 +244,22 @@ function downloadCsv(){
   a.click();
 }
 
-// 🌓 Dark Mode
 function toggleTheme(){
   document.body.classList.toggle("dark-mode");
-  localStorage.setItem("bgsTheme",
-    document.body.classList.contains("dark-mode")?"dark":"light");
+  localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
 }
-if(localStorage.getItem("bgsTheme")==="dark")
-  document.body.classList.add("dark-mode");
+if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-// realtime refresh
 let reloadTimeout;
 supabase.channel("scores-sync")
 .on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>{
   clearTimeout(reloadTimeout);
-  reloadTimeout=setTimeout(()=>loadScores(),1000);
+  reloadTimeout=setTimeout(()=>loadRoundData(),800);
 }).subscribe();
 
 (async()=>{
   await ensurePlayers();
-  await loadScores();
+  await loadRoundData();
 })();
 </script>
 </body>
