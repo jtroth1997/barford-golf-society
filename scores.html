@@ -394,6 +394,30 @@
 
     /* --- Initialise --- */
     ensurePlayersExist().then(loadPlayers);
+        /* --- Real-time Sync --- */
+    supabase
+      .channel('scores-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'scores' },
+        payload => {
+          console.log('Scores table changed:', payload);
+          loadPlayers(); // refresh the data whenever anyone updates
+        }
+      )
+      .subscribe();
+
+    supabase
+      .channel('round-entries-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'round_entries' },
+        payload => {
+          console.log('Round entries changed:', payload);
+          loadPlayers(); // refresh again for round entries
+        }
+      )
+      .subscribe();
   </script>
 </body>
 </html>
