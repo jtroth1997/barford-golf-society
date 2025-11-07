@@ -53,7 +53,6 @@
 
     /* SCORES CONTAINER */
     .scores-container{
-      position:relative;
       max-width:1200px;
       margin:30px auto;
       background:#fff;
@@ -86,7 +85,7 @@
       padding:16px;
       background:#fff;
       box-shadow:0 3px 10px rgba(0,0,0,.05);
-      position:sticky;top:0;z-index:10;
+      position:sticky;top:0;z-index:10; /* stays above table area */
     }
     body.dark-mode .topbar{background:var(--dark-card);}
     input[type=password],input[type=number]{
@@ -115,7 +114,8 @@
     .btn-reset{background:#b30000;color:#fff;}
 
     /* TABLE */
-    main{padding:20px;position:relative;}
+    main{padding:20px;}
+    #tableContainer{position:relative;} /* anchor overlay here */
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;}
     body.dark-mode table{background:var(--dark-card);}
     th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
@@ -133,42 +133,46 @@
       margin-top:40px;
     }
 
-    /* BLUR OVERLAY */
-    .blur-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.45);
-      backdrop-filter: blur(22px) brightness(0.9);
-      -webkit-backdrop-filter: blur(22px) brightness(0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 5;
-      color: var(--green);
-      font-size: 1.4rem;
-      font-weight: 700;
-      text-align: center;
-      pointer-events: none;
-      border-radius: 0 0 12px 12px;
-      transition: opacity 0.4s ease;
-      opacity: 0;
+    /* FROSTED BLUR — table-only, never blocks buttons */
+    .blur-overlay{
+      position:absolute;
+      inset:0;                    /* covers only #tableContainer */
+      background:rgba(255,255,255,.45);
+      backdrop-filter:blur(22px) brightness(.9);
+      -webkit-backdrop-filter:blur(22px) brightness(.9);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:5;                  /* under sticky .topbar (z=10) */
+      color:var(--green);
+      font-size:1.4rem;
+      font-weight:700;
+      text-align:center;
+      pointer-events:none;        /* clicks pass through */
+      border-radius:12px;
+      opacity:0;
+      transition:opacity .35s ease;
     }
-    .blur-overlay.active {
-      display: flex;
-      opacity: 1;
-    }
+    .blur-overlay.active{display:flex;opacity:1;}
 
-    /* MOBILE */
-    @media(max-width:768px){
-      .header-container{flex-direction:column;gap:10px;}
-      .site-nav ul{flex-wrap:wrap;justify-content:center;}
-      th,td{padding:8px;font-size:.9rem;}
-      .btn{padding:6px 10px;font-size:.8rem;}
-      table{display:block;overflow-x:auto;white-space:nowrap;}
+    /* Simple modal for final results */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.5);
+      display:none;justify-content:center;align-items:center;z-index:1200;
     }
+    .modal-backdrop.active{display:flex;}
+    .modal{
+      background:#fff;border-radius:12px;max-width:520px;width:92%;
+      padding:18px 20px;box-shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+    .modal h3{margin:0 0 10px;color:var(--green);}
+    .modal pre{
+      background:#f7f7f7;border-radius:8px;padding:12px;max-height:50vh;overflow:auto;
+    }
+    .modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+    .modal .btn{font-size:.85rem}
+    body.dark-mode .modal{background:var(--dark-card);color:var(--text-light);}
+    body.dark-mode .modal pre{background:#333;color:#eee;}
   </style>
 </head>
 
@@ -225,11 +229,23 @@
           </thead>
           <tbody id="playersTable"></tbody>
         </table>
-      </div>
 
-      <!-- Frosted blur overlay inside container -->
-      <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked</div>
+        <!-- Frosted blur ONLY over the table area -->
+        <div id="blurOverlay" class="blur-overlay">🔒 Scores hidden until unlocked</div>
+      </div>
     </main>
+  </div>
+
+  <!-- Modal for final results -->
+  <div id="resultsBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="resultsTitle">
+    <div class="modal">
+      <h3 id="resultsTitle">🏆 Final Results</h3>
+      <pre id="resultsText"></pre>
+      <div class="actions">
+        <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
+        <button class="btn btn-lock" onclick="closeResults()">Close</button>
+      </div>
+    </div>
   </div>
 
   <footer>
@@ -240,7 +256,7 @@
   <script>
   // === SUPABASE CONNECTION ===
   const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"; // Replace with your anon key only
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // === GLOBALS ===
@@ -254,29 +270,31 @@
   let playerScores = [];
   let lastAdj = [];
   let calcLocked = false;
+  let calculatedThisRound = false;  // ✅ only advance HCPs if we calculated
 
-  // === LOAD PLAYERS ===
+  // === LOAD PLAYERS FROM SUPABASE ===
   async function loadPlayers() {
     const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
     if (error) { console.error(error); return; }
     if (data?.length) {
       players = data.map(r=>r.player);
       currentHcp = data.map(r=>r.handicap||0);
-      nextHcp = data.map(r=>r.next_handicap||0);
+      // Next HCP should START at 0 visually until you Calculate
+      nextHcp = players.map(()=>0);                    // ✅ start zeros for display
       playerScores = players.map(()=>Array(maxRounds).fill(null));
       lastAdj = players.map(()=>"");
     }
     renderLeaderboard();
   }
 
-  // === THEME ===
+  // === THEME TOGGLE ===
   function toggleTheme(){
     document.body.classList.toggle('dark-mode');
     localStorage.setItem('bgsTheme',document.body.classList.contains('dark-mode')?'dark':'light');
   }
   if(localStorage.getItem('bgsTheme')==='dark')document.body.classList.add('dark-mode');
 
-  // === BLUR ===
+  // === BLUR LOGIC (Rounds 6 & 7 only, when locked) ===
   function showBlurOverlay(show){
     const overlay=document.getElementById("blurOverlay");
     overlay.classList.toggle("active",show);
@@ -293,7 +311,6 @@
     alert("Scores unlocked");
     renderLeaderboard();updateBlur();
   }
-
   function lockInputs(){
     unlocked=false;
     alert("Scores locked");
@@ -313,10 +330,13 @@
 
   // === CALCULATE HANDICAPS ===
   async function calculateHandicaps(){
-    if(!unlocked)return alert("⛳ Scores are locked!");
-    if(calcLocked)return alert("Already calculated!");
+    if(!unlocked)
+      return alert("⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!");
+    if(calcLocked)return alert("Already calculated! Wait before next round.");
     calcLocked=true;
     setTimeout(()=>calcLocked=false,3000);
+
+    calculatedThisRound = false;
 
     const valid=[];for(let i=0;i<players.length;i++){
       const v=parseInt(document.getElementById(`points_${i}`).value);
@@ -329,28 +349,37 @@
       const pts=parseInt(document.getElementById(`points_${i}`).value);
       const adjCell=document.getElementById(`adj_${i}`);
       const nextCell=document.getElementById(`newHcp_${i}`);
+
       if(isNaN(pts)){
         playerScores[i][currentRound-1]=null;
         lastAdj[i]="";
         adjCell.textContent="";
+        // keep nextHcp as current HCP when no score entered
         nextHcp[i]=h;
-        nextCell.textContent=h;
+        nextCell.textContent = h;
         continue;
       }
+
+      calculatedThisRound = true;
+
       playerScores[i][currentRound-1]=pts;
       let adj=stablefordAdj(pts);
       if(top!==null&&pts===top)adj-=1;
       lastAdj[i]=(adj>0?"+":"")+adj;
       adjCell.textContent=lastAdj[i];
       const newH=Math.max(0,Math.round(h+adj));
-      nextHcp[i]=newH;
+      nextHcp[i]=newH;                 // ✅ only set after Calculate
       nextCell.textContent=newH;
+
       await supabase.from("scores").update({
         points:pts,adj:adj,next_handicap:newH,round:currentRound
       }).eq("player",players[i]);
     }
     renderLeaderboard();
-    if(currentRound===maxRounds)setTimeout(showFinalResults,500);
+
+    if(currentRound===maxRounds){
+      setTimeout(showFinalResults,300);
+    }
   }
 
   // === TOTALS ===
@@ -362,44 +391,54 @@
     }).sort((a,b)=>b.total-a.total);
   }
 
-  // === RENDER ===
+  // === RENDER LEADERBOARD ===
   function renderLeaderboard(){
     const tbody=document.getElementById("playersTable");
     tbody.innerHTML="";
     const totals=calculateTotals();
+
     totals.forEach((p,rank)=>{
       const scoreVal=playerScores[p.i][currentRound-1]??"";
       const adj=lastAdj[p.i]||"";
-      const next=nextHcp[p.i]??0;
+      // Visually show 0 for Next HCP until calculated; if calculated this round it’s already set
+      const nextDisplay = nextHcp[p.i] ?? 0;
       const dnp=scoreVal===""?"checked":"";
       const readOnly=unlocked?"":"readonly";
       const tr=document.createElement("tr");
       tr.innerHTML=`
         <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
         <td>${p.name}</td>
-        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${readOnly}></td>
-        <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${readOnly}></td>
+        <td><input type="number" id="hcp_${p.i}" value="${currentHcp[p.i]}" ${readOnly}
+          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
+        <td><input type="number" id="points_${p.i}" value="${scoreVal}" ${readOnly}
+          onfocus="${unlocked?'':'alert(`⛳ Stop trying to add your score — it doesn’t change the fact you’re bad at golf!`);this.blur();'}"></td>
         <td id="adj_${p.i}">${adj}</td>
-        <td id="newHcp_${p.i}">${next}</td>
+        <td id="newHcp_${p.i}">${nextDisplay}</td>
         <td id="season_${p.i}">${p.total}</td>
         <td><input type="checkbox" id="dnp_${p.i}" disabled ${dnp}></td>`;
       tbody.appendChild(tr);
     });
+
     const totalsNow=calculateTotals();
     if(totalsNow.length){
       const leader=totalsNow[0];
-      document.getElementById("leaderboard").textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
+      document.getElementById("leaderboard").textContent=
+        `🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound} of ${maxRounds}`;
     }
     document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
     updateBlur();
   }
 
-  // === ROUND NAV ===
+  // === ROUND NAVIGATION ===
   function nextRound(){
     if(currentRound<maxRounds){
-      for(let i=0;i<players.length;i++){
-        currentHcp[i]=nextHcp[i]??currentHcp[i];
+      // Only apply nextHcp → currentHcp if this round was calculated
+      if(calculatedThisRound){
+        for(let i=0;i<players.length;i++){
+          currentHcp[i]=nextHcp[i] ?? currentHcp[i];
+        }
       }
+      calculatedThisRound = false;
       currentRound++;
       renderLeaderboard();
     }
@@ -413,16 +452,21 @@
     if(!unlocked)return alert("Enter password to add a player.");
     const name=prompt("Enter new player name:");
     if(!name)return;
-    await supabase.from("scores").insert([{player:name,round:1,handicap:0,points:0,next_handicap:0,adj:0,total:0,dnp:false}]);
+    await supabase.from("scores").insert([{
+      player:name,round:1,handicap:0,points:0,next_handicap:0,adj:0,total:0,dnp:false
+    }]);
     await loadPlayers();
   }
 
-  // === FINAL RESULTS ===
+  // === FINAL RESULTS POPUP (modal) ===
   function showFinalResults(){
     const totals=calculateTotals();
-    let text="🏆 FINAL RESULTS 🏆\n\n";
-    totals.forEach((t,i)=>text+=`${i+1}. ${t.name} — ${t.total} pts\n`);
-    alert(text);
+    const lines = totals.map((t,i)=>`${i+1}. ${t.name} — ${t.total} pts`).join("\n");
+    document.getElementById("resultsText").textContent = lines;
+    document.getElementById("resultsBackdrop").classList.add("active");
+  }
+  function closeResults(){
+    document.getElementById("resultsBackdrop").classList.remove("active");
   }
 
   // === RESET SEASON ===
@@ -430,6 +474,7 @@
     const pw=prompt("Enter password to reset season:");
     if(pw!==PASSWORD)return alert("Incorrect password!");
     if(!confirm("Are you sure you want to reset all scores and handicaps to 0?"))return;
+
     for(let i=0;i<players.length;i++){
       currentHcp[i]=0;
       nextHcp[i]=0;
@@ -440,22 +485,24 @@
       }).eq("player",players[i]);
     }
     currentRound=1;
-    alert("Season reset complete.");
+    calculatedThisRound=false;
+    alert("Season has been reset!");
     renderLeaderboard();
   }
 
   // === DOWNLOAD CSV ===
   function downloadCsv(){
+    const totalsMap = Object.fromEntries(calculateTotals().map(p=>[p.name,p.total]));
     let csv="Player,Total(Best5),Round,Points,CurrentHCP,NextHCP\n";
     for(let i=0;i<players.length;i++){
-      csv+=`${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total||0},${currentRound},${playerScores[i][currentRound-1]||""},${currentHcp[i]},${nextHcp[i]||""}\n`;
+      csv+=`${players[i]},${totalsMap[players[i]]||0},${currentRound},${playerScores[i][currentRound-1]||""},${currentHcp[i]},${nextHcp[i]||0}\n`;
     }
     const blob=new Blob([csv],{type:"text/csv"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);a.download="BarfordGolfScores.csv";a.click();
   }
 
-  // === INIT ===
+  // === INITIALISE ===
   loadPlayers();
   </script>
 </body>
