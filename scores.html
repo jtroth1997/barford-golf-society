@@ -65,9 +65,7 @@ const SUPABASE_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const PASSWORD="westbrom1997";
-const maxRounds=7;
-let currentRound=1,unlocked=false;
-let players=[],handicaps=[],points=[],adj=[],nextHcp=[],totals=[];
+let unlocked=false;
 
 const defaultPlayers=["Bekim","Brad Davies","Burt Pickering","Cam Tolley","Chris Harris","Chris Oliver","Clive Irwin","Colin Oliver","David Hardcastle","David Jordan","David Pritchard","Derek Lewis","Elliot Hobbs","Emma Saywell","Gary Moyce","John Blackwell","John Close","John Hawkes","Lucie Byerley","Liz Oliver","Martc Taylor","Matt Oliver","Mike Cook","Nick Benbow","Nick Wright","Richard Jones","Robert Pocknell","Simon Meade","Simon Morgan","Tim Oliver","Vince Hall","Wes Lacey","Will Hunt","Will Lovell","Zac Lovell"].sort();
 
@@ -84,55 +82,46 @@ async function ensurePlayers(){
 async function loadScores(){
   const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
   if(error){console.error(error);return;}
-  players=data.map(r=>r.player);
-  handicaps=data.map(r=>r.handicap||0);
-  points=data.map(r=>r.points||0);
-  adj=data.map(r=>r.adj||0);
-  nextHcp=data.map(r=>r.next_handicap||0);
-  totals=data.map(r=>r.total||0);
-  renderTable();
+  renderTable(data);
 }
 
-function renderTable(){
-  const tb=document.getElementById("playersTable");
-  tb.innerHTML="";
-  const combined=players.map((p,i)=>({p,total:totals[i]})).sort((a,b)=>b.total-a.total);
-  combined.forEach((r,rank)=>{
-    const i=players.indexOf(r.p);
+function renderTable(data){
+  const tb=document.getElementById("playersTable");tb.innerHTML="";
+  if(!data||!data.length)return;
+  const sorted=[...data].sort((a,b)=>b.total-a.total);
+  sorted.forEach((r,rank)=>{
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${rank+1}</td><td>${r.p}</td>
-    <td><input type="number" id="hcp_${i}" value="${handicaps[i]}" ${unlocked?"":"readonly"}></td>
-    <td><input type="number" id="pts_${i}" value="${points[i]}" ${unlocked?"":"readonly"}></td>
-    <td>${adj[i]}</td><td>${nextHcp[i]}</td><td>${totals[i]}</td>`;
+    tr.innerHTML=`<td>${rank+1}</td><td>${r.player}</td>
+    <td><input type="number" id="hcp_${r.player}" value="${r.handicap}" ${unlocked?"":"readonly"}></td>
+    <td><input type="number" id="pts_${r.player}" value="${r.points}" ${unlocked?"":"readonly"}></td>
+    <td>${r.adj}</td><td>${r.next_handicap}</td><td>${r.total}</td>`;
     tb.appendChild(tr);
   });
-  const lb=document.getElementById("leaderboard");
-  if(combined.length>0){
-    lb.textContent=`🏆 Leader: ${combined[0].p} — ${combined[0].total} pts`;
-  }else lb.textContent="No data yet";
+  document.getElementById("leaderboard").textContent=`🏆 Leader: ${sorted[0].player} — ${sorted[0].total} pts`;
 }
 
 function unlockInputs(){
   const pw=document.getElementById("pwInput").value;
   if(pw!==PASSWORD)return alert("Incorrect password");
-  unlocked=true;renderTable();
+  unlocked=true;loadScores();
 }
-function lockInputs(){unlocked=false;renderTable();}
+function lockInputs(){unlocked=false;loadScores();}
+
 function stablefordAdj(p){if(p>=43)return-3;if(p>=38)return-2;if(p>=31)return-1;if(p>=26)return 0;if(p>=21)return 1;if(p>=16)return 2;return 3;}
 
 async function calculateHandicaps(){
   if(!unlocked)return alert("Locked!");
-  for(let i=0;i<players.length;i++){
-    const s=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
-    const pts=parseInt(document.getElementById(`pts_${i}`).value)||0;
+  const {data}=await supabase.from("scores").select("player,handicap");
+  for(const r of data){
+    const s=parseFloat(document.getElementById(`hcp_${r.player}`).value)||0;
+    const pts=parseInt(document.getElementById(`pts_${r.player}`).value)||0;
     const change=stablefordAdj(pts);
     const next=Math.max(0,s+change);
-    const total=pts;
     await supabase.from("scores").update({
-      handicap:s,points:pts,adj:change,next_handicap:next,total:total
-    }).eq("player",players[i]);
+      handicap:s,points:pts,adj:change,next_handicap:next,total:pts
+    }).eq("player",r.player);
   }
-  loadScores();
+  setTimeout(loadScores,800); // 👈 wait for Supabase write before reloading
 }
 
 async function resetSeason(){
@@ -141,15 +130,15 @@ async function resetSeason(){
   alert("Season reset!");loadScores();
 }
 
-// === Realtime sync ===
+// ✅ realtime updates with delay to avoid overwrite
+let reloadTimeout;
 supabase.channel("scores-sync")
-.on("postgres_changes",{event:"*",schema:"public",table:"scores"},payload=>{
-  console.log("Realtime change:",payload);
-  loadScores();
+.on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>{
+  clearTimeout(reloadTimeout);
+  reloadTimeout=setTimeout(()=>loadScores(),1200); // wait 1.2s before refreshing
 }).subscribe();
 
 (async()=>{
-  console.log("Loading...");
   await ensurePlayers();
   await loadScores();
 })();
