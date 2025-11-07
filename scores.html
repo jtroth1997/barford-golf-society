@@ -14,23 +14,70 @@
       --dark-card:#2a2a2a;
       --text-light:#f7f7f5;
     }
-    body{font-family:"Inter",sans-serif;margin:0;background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);color:#1b1b1b;transition:background .4s,color .4s;}
+
+    body{
+      font-family:"Inter",sans-serif;
+      margin:0;
+      background:linear-gradient(135deg,var(--cream)40%,#e9f2e9);
+      color:#1b1b1b;
+      transition:background .4s,color .4s;
+    }
     body.dark-mode{background:var(--dark-bg);color:var(--text-light);}
-    .site-header{background:var(--green);color:var(--gold);padding:15px 0;border-bottom:3px solid var(--gold);}
-    .header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:auto;padding:0 20px;}
+
+    .site-header{
+      background:var(--green);
+      color:var(--gold);
+      padding:15px 0;
+      border-bottom:3px solid var(--gold);
+    }
+    .header-container{
+      display:flex;justify-content:space-between;align-items:center;
+      max-width:1200px;margin:auto;padding:0 20px;
+    }
     .site-title{font-size:1.5em;margin:0;color:var(--gold);}
     .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
     .site-nav a{color:white;text-decoration:none;font-weight:600;}
     .site-nav a.active,.site-nav a:hover{color:var(--gold);}
-    .leaderboard-banner{text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;padding:10px;border-bottom:2px solid var(--green);}
-    .scores-container{max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden;transition:background .4s,color .4s;}
-    body.dark-mode .scores-container{background:var(--dark-card);color:var(--text-light);}
-    header.calc-header{background:linear-gradient(to right,var(--green),#0a6b34);color:var(--gold);text-align:center;padding:20px;font-size:1.8rem;font-weight:700;}
-    .topbar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05);position:sticky;top:0;z-index:10;}
+
+    .leaderboard-banner{
+      text-align:center;background:var(--gold);color:#1b1b1b;font-weight:700;
+      padding:10px;border-bottom:2px solid var(--green);
+    }
+
+    .scores-container{
+      max-width:1200px;margin:30px auto;background:#fff;border-radius:12px;
+      box-shadow:0 5px 20px rgba(0,0,0,.1);overflow:hidden;
+      transition:background .4s,color .4s;
+    }
+    body.dark-mode .scores-container{
+      background:var(--dark-card);color:var(--text-light);
+    }
+
+    header.calc-header{
+      background:linear-gradient(to right,var(--green),#0a6b34);
+      color:var(--gold);text-align:center;padding:20px;font-size:1.8rem;font-weight:700;
+    }
+
+    .topbar{
+      display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+      padding:16px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.05);
+      position:sticky;top:0;z-index:10;
+    }
     body.dark-mode .topbar{background:var(--dark-card);}
-    input[type=password],input[type=number]{border-radius:6px;border:1px solid #ccc;padding:8px;}
-    input:focus{border-color:var(--gold);box-shadow:0 0 5px rgba(212,175,55,.4);outline:none;}
-    .btn{padding:8px 12px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all .25s ease;font-size:.9rem;}
+    input[type=password],input[type=number]{
+      border-radius:6px;border:1px solid #ccc;padding:8px;
+      transition:border .2s,box-shadow .2s;
+    }
+    input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 5px rgba(212,175,55,.4);
+      outline:none;
+    }
+
+    .btn{
+      padding:8px 12px;border:none;border-radius:8px;
+      font-weight:600;cursor:pointer;transition:all .25s ease;font-size:.9rem;
+    }
     .btn:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,.15);}
     .btn-unlock{background:var(--gold);color:#1b1b1b;}
     .btn-lock{background:var(--green);color:#fff;}
@@ -39,6 +86,8 @@
     .btn-add{background:#c0c0c0;color:#1b1b1b;}
     .btn-download{background:var(--green);color:var(--gold);}
     .btn-theme{background:none;border:1px solid var(--gold);color:var(--gold);}
+    .btn-reset{background:#b30000;color:#fff;}
+
     main{padding:20px;}
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;}
     body.dark-mode table{background:var(--dark-card);}
@@ -46,10 +95,25 @@
     th{background:var(--green);color:var(--gold);text-transform:uppercase;}
     tbody tr:nth-child(even){background:#f8f8f8;}
     body.dark-mode tbody tr:nth-child(even){background:#333;}
-    footer{text-align:center;background:var(--green);color:var(--gold);padding:20px;border-top:4px solid var(--gold);margin-top:40px;}
-    .blur-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(25px);display:none;justify-content:center;align-items:center;z-index:900;color:var(--gold);font-size:1.8rem;text-align:center;padding:20px;}
+
+    footer{text-align:center;background:var(--green);color:var(--gold);
+      padding:20px;border-top:4px solid var(--gold);margin-top:40px;}
+
+    .blur-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.55);
+      backdrop-filter:blur(22px);
+      display:none;justify-content:center;align-items:center;
+      z-index:900;color:var(--gold);font-size:1.8rem;text-align:center;padding:20px;
+    }
     .blur-overlay.active{display:flex;}
-    @media(max-width:768px){.header-container{flex-direction:column;gap:10px;}th,td{padding:8px;font-size:.9rem;}table{display:block;overflow-x:auto;white-space:nowrap;}}
+
+    @media(max-width:768px){
+      .header-container{flex-direction:column;gap:10px;}
+      .site-nav ul{flex-wrap:wrap;justify-content:center;}
+      .btn{padding:6px 10px;font-size:.8rem;}
+      table{display:block;overflow-x:auto;white-space:nowrap;}
+      th,td{padding:8px;font-size:.9rem;}
+    }
   </style>
 </head>
 <body>
@@ -80,7 +144,7 @@
       <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
       <button class="btn btn-download" onclick="downloadCsv()">Download CSV</button>
       <button class="btn btn-theme" onclick="toggleTheme()">🌓</button>
-      <button class="btn btn-lock" onclick="resetSeason()">Reset Season</button>
+      <button class="btn btn-reset" onclick="resetSeason()">Reset Season</button>
     </div>
 
     <main>
@@ -108,148 +172,215 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";      // ← replace with your project URL
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";   // ← replace with your anon key
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const PASSWORD = "westbrom1997";
+    // === SUPABASE CONNECTION ===
+    // Replace the placeholders below with your actual project details before publishing
+    const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co"; // ✅ your live Supabase URL
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"; // ✅ your anon key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // === GLOBALS ===
+    const PASSWORD = "westbrom1997";
+    let unlocked = false;
+    let currentRound = 1;
+    const maxRounds = 7;
+    let players = [];
 
-  let unlocked = false;
-  let currentRound = 1;
-  const maxRounds = 7;
-  let players = [];
-  let startHcp = [], afterHcp = [], pointsHistory = [], adjHistory = [];
+    // round-by-round state
+    const startHcp = [];
+    const afterHcp = [];
+    const pointsHistory = [];
+    const adjHistory = [];
 
-  async function loadPlayers(){
-    const {data, error} = await supabase.from("scores").select("*").order("id");
-    if(error){console.error(error);return;}
-    if(!data) return;
-    players = data.map(r=>r.player);
-    startHcp = players.map(()=>Array(maxRounds).fill(0));
-    afterHcp = players.map(()=>Array(maxRounds).fill(0));
-    pointsHistory = players.map(()=>Array(maxRounds).fill(null));
-    adjHistory = players.map(()=>Array(maxRounds).fill(""));
-    renderTable();
-  }
+    // === THEME TOGGLE ===
+    function toggleTheme(){
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("bgsTheme",document.body.classList.contains("dark-mode")?"dark":"light");
+    }
+    if(localStorage.getItem("bgsTheme")==="dark")document.body.classList.add("dark-mode");
 
-  function toggleTheme(){document.body.classList.toggle('dark-mode');}
+    // === LOAD PLAYERS FROM SUPABASE ===
+    async function loadPlayers(){
+      const {data,error}=await supabase.from("scores").select("*").order("id",{ascending:true});
+      if(error){console.error(error);return;}
+      if(data?.length){
+        players=data.map(r=>r.player);
+        for(let i=0;i<players.length;i++){
+          startHcp[i]=Array(maxRounds).fill(0);
+          afterHcp[i]=Array(maxRounds).fill(0);
+          pointsHistory[i]=Array(maxRounds).fill(null);
+          adjHistory[i]=Array(maxRounds).fill("");
+          startHcp[i][0]=r=>r.handicap; // initial hcp
+        }
+      }
+      renderTable();
+    }
 
-  function unlockInputs(){
-    const pw=document.getElementById("pwInput").value;
-    if(pw!==PASSWORD) return alert("Incorrect password");
-    unlocked=true;renderTable();
-  }
-  function lockInputs(){unlocked=false;renderTable();}
+    // === LOCK / UNLOCK ===
+    function unlockInputs(){
+      const pw=document.getElementById("pwInput").value;
+      if(pw!==PASSWORD)return alert("Incorrect password!");
+      unlocked=true;
+      alert("Unlocked");
+      renderTable();updateBlur();
+    }
+    function lockInputs(){
+      unlocked=false;
+      alert("Locked");
+      renderTable();updateBlur();
+    }
 
-  function stablefordAdj(pts){
-    if(pts>=43)return -3;
-    if(pts>=38)return -2;
-    if(pts>=31)return -1;
-    if(pts>=26)return 0;
-    if(pts>=21)return +1;
-    if(pts>=16)return +2;
-    return +3;
-  }
+    // === STABLEFORD ADJUSTMENT LOGIC ===
+    function stablefordAdj(pts){
+      if(pts>=43)return -3;
+      if(pts>=38)return -2;
+      if(pts>=31)return -1;
+      if(pts>=26)return 0;
+      if(pts>=21)return +1;
+      if(pts>=16)return +2;
+      return +3;
+    }
 
-  async function calculateHandicaps(){
-    if(!unlocked) return alert("Locked");
-    for(let i=0;i<players.length;i++){
-      const h=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
-      const pts=parseInt(document.getElementById(`pts_${i}`).value);
-      if(isNaN(pts)) continue;
-      const adj=stablefordAdj(pts);
-      const next=Math.max(0,h+adj);
-      startHcp[i][currentRound-1]=h;
-      afterHcp[i][currentRound-1]=next;
-      pointsHistory[i][currentRound-1]=pts;
-      adjHistory[i][currentRound-1]=(adj>0?"+":"")+adj;
-      await supabase.from("round_entries").upsert({
-        player:players[i],
-        round:currentRound,
-        hcp:h,
-        points:pts,
-        adj:adj,
-        next_hcp:next
+    // === CALCULATE HANDICAPS ===
+    async function calculateHandicaps(){
+      if(!unlocked)return alert("Locked!");
+
+      for(let i=0;i<players.length;i++){
+        const start=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
+        const pts=parseInt(document.getElementById(`pts_${i}`).value);
+        if(isNaN(pts))continue;
+
+        const adj=stablefordAdj(pts);
+        const next=Math.max(0,start+adj);
+
+        // freeze current round values
+        if(!startHcp[i][currentRound-1]) startHcp[i][currentRound-1]=start;
+        afterHcp[i][currentRound-1]=next;
+        pointsHistory[i][currentRound-1]=pts;
+        adjHistory[i][currentRound-1]=(adj>0?"+":"")+adj;
+
+        // seed next round if empty
+        const nextIndex=currentRound;
+        if(nextIndex<maxRounds && startHcp[i][nextIndex]===0) startHcp[i][nextIndex]=next;
+
+        await supabase.from("round_entries").upsert({
+          player:players[i],
+          round:currentRound,
+          hcp:start,
+          points:pts,
+          adj:adj,
+          next_hcp:next
+        });
+      }
+      renderTable();
+
+      if(currentRound===maxRounds) showFinalResults();
+    }
+
+    // === CALCULATE TOTALS ===
+    function calculateTotals(){
+      return players.map((name,i)=>{
+        const scores=pointsHistory[i].filter(v=>v!==null);
+        const total=scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+        return {i,name,total};
+      }).sort((a,b)=>b.total-a.total);
+    }
+
+    // === RENDER TABLE ===
+    function renderTable(){
+      const tbody=document.getElementById("playersTable");
+      tbody.innerHTML="";
+      const totals=calculateTotals();
+      const hcpHeader=document.getElementById("hcpHeader");
+      hcpHeader.textContent=`Round ${currentRound} HCP`;
+
+      totals.forEach((p,rank)=>{
+        const i=p.i;
+        const start=startHcp[i][currentRound-1]||0;
+        const pts=pointsHistory[i][currentRound-1]??"";
+        const adj=adjHistory[i][currentRound-1]||"";
+        const next=afterHcp[i][currentRound-1]||"";
+
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${rank+1}</td>
+          <td>${p.name}</td>
+          <td><input type="number" id="hcp_${i}" value="${start}" ${unlocked?"":"readonly"}></td>
+          <td><input type="number" id="pts_${i}" value="${pts}" ${unlocked?"":"readonly"}></td>
+          <td>${adj}</td>
+          <td>${next}</td>
+          <td>${p.total}</td>
+        `;
+        tbody.appendChild(tr);
       });
-      if(currentRound<maxRounds && !startHcp[i][currentRound]) startHcp[i][currentRound]=next;
+
+      const leader=calculateTotals()[0];
+      const lb=document.getElementById("leaderboard");
+      lb.textContent=`🏆 Leader: ${leader.name} — ${leader.total} pts | Round ${currentRound}/${maxRounds}`;
+      document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
+      updateBlur();
     }
-    renderTable();
-  }
 
-  function calculateTotals(){
-    return players.map((p,i)=>{
-      const scores=pointsHistory[i].filter(v=>v!==null);
-      const total=scores.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-      return {i,name:p,total};
-    }).sort((a,b)=>b.total-a.total);
-  }
-
-  function renderTable(){
-    const tbody=document.getElementById("playersTable");
-    tbody.innerHTML="";
-    const totals=calculateTotals();
-    totals.forEach((p,rank)=>{
-      const s=startHcp[p.i][currentRound-1]||0;
-      const pts=pointsHistory[p.i][currentRound-1]??"";
-      const adj=adjHistory[p.i][currentRound-1]||"";
-      const next=afterHcp[p.i][currentRound-1]||s;
-      const readonly=unlocked?"":"readonly";
-      const tr=document.createElement("tr");
-      tr.innerHTML=`
-        <td>${rank+1}</td>
-        <td>${p.name}</td>
-        <td><input type="number" id="hcp_${p.i}" value="${s}" ${readonly}></td>
-        <td><input type="number" id="pts_${p.i}" value="${pts}" ${readonly}></td>
-        <td>${adj}</td>
-        <td>${next}</td>
-        <td>${p.total}</td>`;
-      tbody.appendChild(tr);
-    });
-    document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
-    document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
-    const leader=document.getElementById("leaderboard");
-    if(!unlocked && currentRound>=6){
-      document.getElementById("blurOverlay").classList.add("active");
-      leader.style.display="none";
-    }else{
-      document.getElementById("blurOverlay").classList.remove("active");
-      leader.style.display="block";
+    // === BLUR OVERLAY ===
+    function updateBlur(){
+      const overlay=document.getElementById("blurOverlay");
+      const lb=document.getElementById("leaderboard");
+      if(currentRound>=6 && !unlocked){
+        overlay.classList.add("active");
+        lb.style.visibility="hidden";
+      }else{
+        overlay.classList.remove("active");
+        lb.style.visibility="visible";
+      }
     }
-  }
 
-  function nextRound(){if(currentRound<maxRounds){currentRound++;renderTable();}}
-  function prevRound(){if(currentRound>1){currentRound--;renderTable();}}
+    // === ROUND NAVIGATION ===
+    function nextRound(){if(currentRound<maxRounds){currentRound++;renderTable();}}
+    function prevRound(){if(currentRound>1){currentRound--;renderTable();}}
 
-  async function addPlayer(){
-    if(!unlocked)return alert("Locked");
-    const name=prompt("Enter player name:");if(!name)return;
-    await supabase.from("scores").insert([{player:name,handicap:0}]);
-    await loadPlayers();
-  }
-
-  function downloadCsv(){
-    let csv="Player,Round,StartHCP,NextHCP,Points,Adj,Total\n";
-    for(let i=0;i<players.length;i++){
-      csv+=`${players[i]},${currentRound},${startHcp[i][currentRound-1]},${afterHcp[i][currentRound-1]},${pointsHistory[i][currentRound-1]},${adjHistory[i][currentRound-1]},${calculateTotals().find(p=>p.name===players[i])?.total||0}\n`;
+    // === ADD PLAYER ===
+    async function addPlayer(){
+      if(!unlocked)return alert("Enter password to add player.");
+      const name=prompt("Enter new player name:");
+      if(!name)return;
+      await supabase.from("scores").insert([{player:name,handicap:0,points:0,next_handicap:0,adj:0,total:0}]);
+      await loadPlayers();
     }
-    const blob=new Blob([csv],{type:"text/csv"});
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="scores.csv";a.click();
-  }
 
-  async function resetSeason(){
-    const pw=prompt("Enter password to reset:");
-    if(pw!==PASSWORD)return alert("Incorrect password");
-    if(!confirm("Reset all scores and handicaps?"))return;
-    await supabase.from("round_entries").delete().neq("player","");
-    startHcp = players.map(()=>Array(maxRounds).fill(0));
-    afterHcp = players.map(()=>Array(maxRounds).fill(0));
-    pointsHistory = players.map(()=>Array(maxRounds).fill(null));
-    adjHistory = players.map(()=>Array(maxRounds).fill("");
-    currentRound=1;renderTable();
-  }
+    // === FINAL RESULTS ===
+    function showFinalResults(){
+      const totals=calculateTotals();
+      let msg="🏆 FINAL RESULTS 🏆\n\n";
+      totals.forEach((t,i)=>msg+=`${i+1}. ${t.name} — ${t.total} pts\n`);
+      alert(msg);
+    }
 
-  loadPlayers();
+    // === DOWNLOAD CSV ===
+    function downloadCsv(){
+      let csv="Player,Total,Round,Points,HCP,Next HCP\n";
+      for(let i=0;i<players.length;i++){
+        csv+=`${players[i]},${calculateTotals().find(p=>p.name===players[i])?.total||0},${currentRound},${pointsHistory[i][currentRound-1]||""},${startHcp[i][currentRound-1]||""},${afterHcp[i][currentRound-1]||""}\n`;
+      }
+      const blob=new Blob([csv],{type:"text/csv"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="BarfordGolfScores.csv";
+      a.click();
+    }
+
+    // === RESET SEASON ===
+    async function resetSeason(){
+      const pw=prompt("Enter password to reset season:");
+      if(pw!==PASSWORD)return alert("Incorrect password");
+      if(!confirm("This will clear all scores and handicaps to 0. Continue?"))return;
+      await supabase.from("scores").update({
+        handicap:0,points:0,next_handicap:0,adj:0,total:0
+      });
+      await supabase.from("round_entries").delete().neq("id",0);
+      alert("Season reset!");
+      location.reload();
+    }
+
+    // === INIT ===
+    loadPlayers();
   </script>
 </body>
 </html>
