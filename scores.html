@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Barford Golf Society Handicap Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
   --green: #083d0b;
@@ -75,63 +77,21 @@ input[type=password]:focus, input[type=number]:focus {
 .btn-reset { background: #b22222; color: var(--white); }
 .btn-add { background: var(--silver); color: var(--dark); }
 .btn-pass { background: var(--bronze); color: var(--white); }
-
-main {
-  padding: 20px;
-  max-width: 1100px;
-  margin: auto;
-}
-.round-info {
-  text-align: center;
-  margin-bottom: 15px;
-  font-weight: 600;
-  color: var(--green);
-}
-.progress-bar {
-  width: 80%;
-  height: 10px;
-  background: #ddd;
-  border-radius: 10px;
-  margin: 8px auto 20px;
-  overflow: hidden;
-}
-.progress-bar div {
-  height: 100%;
-  width: 0%;
-  background: var(--gold);
-  transition: width 0.5s ease;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-  animation: fadeIn 0.6s ease;
-}
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-th, td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #f1f1f1;
-}
-th {
-  background: var(--green);
-  color: var(--gold);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.9rem;
-}
-tbody tr:nth-child(even) { background: #f8f8f8; }
-tbody tr:hover { background: var(--highlight); }
-.blur-locked { filter: blur(6px); pointer-events: none; opacity: 0.6; }
-@media (max-width: 700px) {
-  th, td { font-size: 12px; padding: 8px; }
-  .btn { font-size: 0.8rem; padding: 6px 10px; }
+.btn-export { background: var(--gold); color: var(--dark); }
+main { padding:20px;max-width:1100px;margin:auto;}
+.round-info{text-align:center;margin-bottom:15px;font-weight:600;color:var(--green);}
+.progress-bar{width:80%;height:10px;background:#ddd;border-radius:10px;margin:8px auto 20px;overflow:hidden;}
+.progress-bar div{height:100%;width:0%;background:var(--gold);transition:width 0.5s ease;}
+table{width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
+th,td{padding:12px;text-align:center;border-bottom:1px solid #f1f1f1;}
+th{background:var(--green);color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;font-size:0.9rem;}
+tbody tr:nth-child(even){background:#f8f8f8;}
+tbody tr:hover{background:var(--highlight);}
+#chartContainer{display:none;margin-top:40px;padding:20px;background:var(--white);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);padding:10px 20px;border-radius:8px;opacity:0;transition:opacity 0.4s;}
+@media(max-width:700px){
+ th,td{font-size:12px;padding:8px;}
+ .btn{font-size:0.8rem;padding:6px 10px;}
 }
 </style>
 </head>
@@ -148,6 +108,8 @@ tbody tr:hover { background: var(--highlight); }
   <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
   <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
   <button class="btn btn-reset" id="resetBtn" style="display:none" onclick="confirmReset()">Reset League</button>
+  <button class="btn btn-export" id="exportLeaderboardBtn" style="display:none" onclick="exportLeaderboardCSV()">Export Leaderboard (CSV)</button>
+  <button class="btn btn-export" id="exportAllBtn" style="display:none" onclick="exportAllCSV()">Export All (CSV)</button>
 </div>
 
 <main>
@@ -155,7 +117,6 @@ tbody tr:hover { background: var(--highlight); }
     <h3 id="roundHeader">Round 1 of 7</h3>
     <div class="progress-bar"><div id="progressFill"></div></div>
   </div>
-
   <div id="tableContainer">
     <table>
       <thead>
@@ -167,64 +128,97 @@ tbody tr:hover { background: var(--highlight); }
       <tbody id="playersTable"></tbody>
     </table>
   </div>
-</main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div id="chartContainer">
+    <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
+    <canvas id="hcpChart"></canvas>
+  </div>
+</main>
+<div id="toast"></div>
+
 <script>
-const supabase = window.supabase.createClient(
-  "https://tzzkgfehtnuizamzlbgr.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"
-);
-let PASSWORD = "westbrom1997";
+// ======= CONFIG =======
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const PASSWORD_DEFAULT = "westbrom1997";
+
+// ======= INIT =======
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let PASSWORD = PASSWORD_DEFAULT;
 let unlocked = false;
 let currentRound = 1;
 const maxRounds = 7;
-let players = [];
-let currentHcp = [];
-let nextHcp = [];
-let playerScores = [];
-let lastAdj = [];
+let players = [], currentHcp=[], nextHcp=[], playerScores=[], lastAdj=[];
 
-async function loadData() {
-  const { data, error } = await supabase.from("scores").select("*").order("player", { ascending: true });
-  if (error) { console.error(error); return; }
-  if (!data.length) {
-    console.log("No players in Supabase, using defaults");
-    players = ["Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver"];
-    currentHcp = new Array(players.length).fill(0);
-    nextHcp = new Array(players.length).fill(null);
-    playerScores = players.map(()=>Array(maxRounds).fill(null));
-    lastAdj = new Array(players.length).fill("");
-  } else {
-    players = data.map(r=>r.player);
-    currentHcp = data.map(r=>r.handicap||0);
-    nextHcp = data.map(r=>r.next_handicap||0);
-    playerScores = data.map(()=>Array(maxRounds).fill(null));
-    lastAdj = data.map(r=>r.adj ? (r.adj>0?`+${r.adj}`:r.adj):"");
-  }
-  renderLeaderboard();
+// ======= HELPER =======
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.style.opacity=1;
+  setTimeout(()=>t.style.opacity=0,2500);
 }
-
-async function saveData() {
-  for (let i=0;i<players.length;i++){
-    const player=players[i];
-    const total=playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-    const pts=playerScores[i][currentRound-1]||0;
-    const adj=lastAdj[i]?parseInt(lastAdj[i]):0;
-    const next=nextHcp[i]??currentHcp[i];
-    await supabase.from("scores").upsert({
-      player:player,round:currentRound,handicap:currentHcp[i],
-      points:pts,adj:adj,next_handicap:next,total:total,updated_at:new Date().toISOString()
-    },{onConflict:['player']});
-  }
-}
-
 function stablefordAdj(pts){if(pts>=43)return-3;if(pts>=38)return-2;if(pts>=31)return-1;
   if(pts>=26)return 0;if(pts>=21)return+1;if(pts>=16)return+2;return+3;}
 
-function unlockInputs(){const pw=document.getElementById("pwInput").value;if(pw!==PASSWORD)return alert("Wrong password");unlocked=true;renderLeaderboard();}
-function lockInputs(){unlocked=false;renderLeaderboard();}
+// ======= LOAD DATA =======
+async function loadData(){
+  const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
+  if(error){console.error(error);return;}
+  if(!data.length){
+    players=["Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver"];
+    currentHcp=new Array(players.length).fill(0);
+    nextHcp=new Array(players.length).fill(null);
+    playerScores=players.map(()=>Array(maxRounds).fill(null));
+    lastAdj=new Array(players.length).fill("");
+  }else{
+    // latest handicap per player
+    const latestByPlayer={};
+    data.forEach(r=>{
+      if(!latestByPlayer[r.player]||r.round>latestByPlayer[r.player].round)latestByPlayer[r.player]=r;
+    });
+    players=Object.keys(latestByPlayer);
+    currentHcp=players.map(p=>latestByPlayer[p].handicap||0);
+    nextHcp=players.map(p=>latestByPlayer[p].next_handicap||0);
+    playerScores=players.map(p=>{
+      const rounds=data.filter(r=>r.player===p);
+      const arr=Array(maxRounds).fill(null);
+      rounds.forEach(r=>{arr[r.round-1]=r.points;});
+      return arr;
+    });
+    lastAdj=players.map(p=>{
+      const r=latestByPlayer[p];
+      return r.adj? (r.adj>0?`+${r.adj}`:r.adj):"";
+    });
+  }
+  renderLeaderboard();
+  subscribeRealtime();
+}
 
+// ======= REALTIME =======
+function subscribeRealtime(){
+  supabase.channel('realtime:scores')
+    .on('postgres_changes',{event:'*',schema:'public',table:'scores'},payload=>{
+      loadData(); // reload everything for simplicity
+    }).subscribe();
+}
+
+// ======= SAVE =======
+async function saveData(){
+  for(let i=0;i<players.length;i++){
+    const player=players[i];
+    const total=playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+    const pts=playerScores[i][currentRound-1]||0;
+    const adj=parseInt(lastAdj[i])||0;
+    const next=nextHcp[i]??currentHcp[i];
+    await supabase.from("scores").insert({
+      player,round:currentRound,handicap:currentHcp[i],
+      points:pts,adj:adj,next_handicap:next,total:total,
+      updated_at:new Date().toISOString()
+    });
+  }
+  showToast("Data saved to Supabase");
+}
+
+// ======= CALC =======
 function calculateHandicaps(){
   if(!unlocked)return alert("Unlock first");
   for(let i=0;i<players.length;i++){
@@ -238,8 +232,10 @@ function calculateHandicaps(){
     currentHcp[i]=hcp;nextHcp[i]=next;
   }
   renderLeaderboard();saveData();
+  drawChart();
 }
 
+// ======= TOTALS =======
 function calculateTotals(){
   return players.map((n,i)=>{
     const s=playerScores[i].filter(v=>v!==null);
@@ -248,12 +244,14 @@ function calculateTotals(){
   }).sort((a,b)=>b.total-a.total);
 }
 
+// ======= RENDER =======
 function renderLeaderboard(){
   const tbody=document.getElementById("playersTable");
   tbody.innerHTML="";
   const totals=calculateTotals();
   totals.forEach((p,rank)=>{
-    const i=p.i;const tr=document.createElement("tr");
+    const i=p.i;
+    const tr=document.createElement("tr");
     tr.innerHTML=`<td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
     <td>${p.name}</td>
     <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
@@ -263,18 +261,82 @@ function renderLeaderboard(){
     tbody.appendChild(tr);
   });
   document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
-  document.getElementById("newHcpHeader").textContent=`Next HCP`;
   document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
   document.getElementById("progressFill").style.width=(currentRound/maxRounds*100)+"%";
+  document.getElementById("chartContainer").style.display= unlocked ? "block":"none";
+  document.getElementById("exportLeaderboardBtn").style.display= unlocked ? "inline-block":"none";
+  document.getElementById("exportAllBtn").style.display= unlocked ? "inline-block":"none";
 }
 
+// ======= ROUNDS =======
 function nextRound(){if(currentRound<maxRounds){for(let i=0;i<players.length;i++){currentHcp[i]=nextHcp[i]??currentHcp[i];lastAdj[i]="";}currentRound++;renderLeaderboard();}}
 function prevRound(){if(currentRound>1){currentRound--;renderLeaderboard();}}
 
-function addPlayer(){const name=prompt("Enter player name:");if(!name)return;players.push(name);currentHcp.push(0);nextHcp.push(null);playerScores.push(Array(maxRounds).fill(null));lastAdj.push("");saveData();renderLeaderboard();}
-function changePassword(){const oldPw=prompt("Enter current password:");if(oldPw!==PASSWORD)return alert("Incorrect password");const newPw=prompt("Enter new password:");if(newPw){PASSWORD=newPw;alert("Password changed!");}}
-function confirmReset(){const pw=prompt("Enter password to reset league:");if(pw!==PASSWORD)return alert("Incorrect password");supabase.from("scores").delete().neq("id",0);alert("League reset!");loadData();}
+// ======= ADMIN =======
+function unlockInputs(){
+  const pw=document.getElementById("pwInput").value;
+  if(pw!==PASSWORD)return alert("Wrong password");
+  unlocked=true;renderLeaderboard();showToast("Unlocked");
+}
+function lockInputs(){unlocked=false;renderLeaderboard();showToast("Locked");}
+function addPlayer(){
+  if(!unlocked)return alert("Unlock first");
+  const name=prompt("Enter player name:");if(!name)return;
+  players.push(name);currentHcp.push(0);nextHcp.push(null);playerScores.push(Array(maxRounds).fill(null));lastAdj.push("");
+  saveData();renderLeaderboard();
+}
+function changePassword(){
+  const oldPw=prompt("Enter current password:");if(oldPw!==PASSWORD)return alert("Incorrect password");
+  const newPw=prompt("Enter new password:");if(newPw){PASSWORD=newPw;alert("Password changed!");}
+}
+function confirmReset(){
+  const pw=prompt("Enter password to reset league:");if(pw!==PASSWORD)return alert("Incorrect password");
+  supabase.from("scores").delete().neq("id",0).then(()=>{alert("League reset!");loadData();});
+}
 
+// ======= CSV EXPORTS =======
+function toCSV(arr){return arr.map(r=>Object.values(r).map(v=>`"${v??""}"`).join(",")).join("\n");}
+async function exportAllCSV(){
+  const {data,error}=await supabase.from("scores").select("*");
+  if(error){alert("Error fetching data");return;}
+  const csv=toCSV(data);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const link=document.createElement("a");
+  const d=new Date().toISOString().split("T")[0];
+  link.href=URL.createObjectURL(blob);
+  link.download=`barford_full_${d}.csv`;
+  link.click();
+}
+function exportLeaderboardCSV(){
+  const totals=calculateTotals();
+  const rows=totals.map(p=>({Rank:p.i+1,Player:p.name,Total:p.total}));
+  const csv=toCSV(rows);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const link=document.createElement("a");
+  const d=new Date().toISOString().split("T")[0];
+  link.href=URL.createObjectURL(blob);
+  link.download=`barford_leaderboard_${d}.csv`;
+  link.click();
+}
+
+// ======= CHART =======
+let chart;
+function drawChart(){
+  if(!unlocked)return;
+  const ctx=document.getElementById("hcpChart").getContext("2d");
+  const labels=Array.from({length:maxRounds},(_,i)=>"R"+(i+1));
+  const datasets=players.map((p,i)=>({
+    label:p,
+    data:playerScores[i].map((_,r)=>nextHcp[i]??currentHcp[i]),
+    borderWidth:2,
+    fill:false,
+    borderColor:`hsl(${i*60},60%,40%)`
+  }));
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{type:"line",data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+}
+
+// ======= START =======
 loadData();
 </script>
 </body>
