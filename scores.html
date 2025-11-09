@@ -1,41 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Barford Handicap Calculator - v1.0.3</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Scores | Barford Golf Society</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --green:#005a2b; --gold:#d4af37;
+  --dark-bg:#1b1b1b; --dark-card:#2b2b2b;
+  --light-bg:#f7f7f5; --light-card:#ffffff;
+}
+body {
+  font-family:"Inter",sans-serif; margin:0;
+  background:var(--light-bg); color:#1b1b1b;
+  transition:background .3s,color .3s;
+}
+.dark { background:var(--dark-bg); color:#eee; }
+.site-header,footer{background:var(--green);color:#fff;padding:15px 0;}
+.header-container{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:0 20px;}
+.site-title{color:var(--gold);}
+.site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+.site-nav a{color:#fff;text-decoration:none;font-weight:600;}
+.site-nav a:hover,.active{color:var(--gold);}
+#calculator{max-width:1100px;margin:40px auto;padding:20px;background:var(--light-card);border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.1);}
+.dark #calculator{background:var(--dark-card);}
+footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);padding:20px;margin-top:40px;}
+.toggle{position:fixed;top:10px;right:10px;background:var(--gold);color:#1b1b1b;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer;}
+.dark .toggle{background:#333;color:var(--gold);}
+button{background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;margin:4px;transition:background .3s,transform .2s;}
+button:hover{background:#0a6b34;transform:scale(1.02);}
+button.gold{background:var(--gold);color:#1b1b1b;}
+.progress-bar{width:80%;height:10px;background:#ddd;border-radius:10px;margin:8px auto 20px;overflow:hidden;}
+.progress-bar div{height:100%;width:0%;background:var(--gold);transition:width 0.5s ease;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{padding:10px;text-align:center;border-bottom:1px solid #ccc;}
+th{background:var(--green);color:var(--gold);}
+.dark th{background:#093; color:var(--gold);}
+input[type=number],input[type=password]{padding:6px;border-radius:6px;border:1px solid #ccc;}
+.dark input{background:#333;color:#eee;border-color:#666;}
+</style>
 </head>
 <body>
 
-<h1 style="color:red;">🏌️‍♂️ THIS IS THE NEW VERSION (v1.0.3) — Best 5 Rounds Logic ADDED 🏌️‍♂️</h1>
-<p>If you can see this red message, you’re running the updated logic with totals.</p>
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">Barford Golf Society</h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html" class="active">Scores</a></li>
+        <li><a href="admin.html">Admin</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
-<p>
-  Password: <input type="password" id="pw">
-  <button onclick="unlock()">Unlock</button>
-  <button onclick="lock()">Lock</button>
-</p>
+<div class="toggle" onclick="toggleDarkMode()">🌙</div>
 
-<p>
-  <button onclick="calculate()">Calculate Round</button>
-  <button onclick="nextRound()">Next Round</button>
-  <button onclick="prevRound()">Prev Round</button>
-  <button onclick="addPlayer()">Add Player</button>
-  <button onclick="resetLeague()">Reset</button>
-</p>
+<section id="calculator">
+  <h2>🏌️ Barford Golf Society Handicap Calculator</h2>
+  <p><b>Version:</b> v1.0.4 (Admin Style + Supabase)</p>
 
-<p id="roundInfo">Round 1 of 7</p>
+  <div>
+    Password: <input type="password" id="pw">
+    <button onclick="unlock()">Unlock</button>
+    <button onclick="lock()">Lock</button>
+    <button onclick="calculate()">Calculate</button>
+    <button onclick="nextRound()">Next ▶</button>
+    <button onclick="prevRound()">◀ Prev</button>
+    <button onclick="addPlayer()">+ Player</button>
+    <button onclick="resetLeague()" class="gold">Reset</button>
+  </div>
 
-<pre id="output">Loading players...</pre>
+  <div class="round-info">
+    <h3 id="roundHeader">Round 1 of 7</h3>
+    <div class="progress-bar"><div id="progressFill"></div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Player</th><th>Handicap</th><th>Points</th><th>Adj</th><th>Next HCP</th><th>Total (Best 5)</th>
+      </tr>
+    </thead>
+    <tbody id="playersTable"></tbody>
+  </table>
+</section>
+
+<footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-console.log("⛳ NEW VERSION v1.0.3 LOADED — Best-5-Round Totals Enabled");
+// Dark mode toggle
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('bgsDarkMode',document.body.classList.contains('dark'));
+  document.querySelector('.toggle').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
+}
+if(localStorage.getItem('bgsDarkMode')==='true'){document.body.classList.add('dark');document.querySelector('.toggle').textContent='☀️';}
 
-// ---------- PUBLIC TEST CREDENTIALS ----------
+// Supabase Setup
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-// ---------------------------------------------
-
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const PASSWORD = "westbrom1997";
@@ -44,142 +113,110 @@ let currentRound = 1;
 const maxRounds = 7;
 let players = [];
 
-// Load all players
+// Load Players
 async function loadPlayers() {
-  const { data, error } = await supabase
-    .from("scores")
-    .select("*")
-    .order("id", { ascending: true });
-  if (error) return console.error("Supabase error:", error);
+  const { data, error } = await supabase.from("scores").select("*").order("id", { ascending: true });
+  if (error) return console.error(error);
   players = data || [];
-  display();
+  render();
+}
+supabase.channel("scores").on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers).subscribe();
+
+// Render Table
+function render() {
+  const tbody = document.getElementById("playersTable");
+  tbody.innerHTML = "";
+  players.forEach((p, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.player}</td>
+      <td><input type="number" id="hcp_${i}" value="${p.handicap ?? 0}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="pts_${i}" value="${p.points ?? ""}" ${unlocked?"":"disabled"}></td>
+      <td>${p.adj ?? ""}</td>
+      <td>${p.next_handicap ?? ""}</td>
+      <td>${p.total ?? 0}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
+  document.getElementById("progressFill").style.width = ((currentRound/maxRounds)*100)+"%";
 }
 
-// Realtime updates
-supabase.channel("scores")
-  .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
-  .subscribe();
-
-// Display
-function display() {
-  let text = "PLAYER | HCP | POINTS | ADJ | NEXT | TOTAL\n";
-  text += "---------------------------------------------\n";
-  for (const p of players) {
-    text += `${p.player || "?"} | ${p.handicap ?? "-"} | ${p.points ?? "-"} | ${p.adj ?? "-"} | ${p.next_handicap ?? "-"} | ${p.total ?? "-"}\n`;
-  }
-  document.getElementById("output").textContent = text;
-  document.getElementById("roundInfo").textContent = "Round " + currentRound + " of " + maxRounds;
-}
-
-// Handicap adjustment rules
-function getAdj(points) {
-  if (points >= 43) return -3;
-  if (points >= 38) return -2;
-  if (points >= 31) return -1;
-  if (points >= 26) return 0;
-  if (points >= 21) return 1;
-  if (points >= 16) return 2;
+// Adjustment Rules
+function getAdj(points){
+  if(points>=43)return -3;
+  if(points>=38)return -2;
+  if(points>=31)return -1;
+  if(points>=26)return 0;
+  if(points>=21)return 1;
+  if(points>=16)return 2;
   return 3;
 }
 
-// Calculate totals for each player (best 5 rounds)
-async function updateTotals() {
-  // Fetch all rounds for each player
-  for (const p of players) {
-    const { data, error } = await supabase
-      .from("scores")
-      .select("points")
-      .eq("player", p.player);
-
-    if (error) { console.error(error); continue; }
-
-    const pointsArray = (data || [])
-      .map(r => r.points)
-      .filter(v => v !== null && !isNaN(v))
-      .sort((a,b)=>b-a)
-      .slice(0,5);
-
-    const total = pointsArray.reduce((a,b)=>a+b,0);
-
-    await supabase.from("scores")
-      .update({ total })
-      .eq("id", p.id);
-  }
-  loadPlayers();
-}
-
-// Calculate round
-async function calculate() {
-  if (!unlocked) return alert("Unlock first.");
-  for (const p of players) {
-    const raw = prompt("Enter points for " + p.player + ":", p.points ?? "");
-    const pts = raw === "" ? null : parseInt(raw);
-    const adj = pts === null ? null : getAdj(pts);
-    const topScore = Math.max(...players.map(x => x.points ?? -Infinity));
-    const finalAdj = (pts === topScore && pts !== null) ? adj - 1 : adj;
-    const nextHcp = pts === null ? p.handicap : Math.max(0, Math.round((p.handicap ?? 0) + finalAdj));
-
+// Calculate
+async function calculate(){
+  if(!unlocked)return alert("Unlock first");
+  const topScore = Math.max(...players.map((p,i)=>{
+    const val=parseInt(document.getElementById("pts_"+i)?.value);
+    return isNaN(val)?-Infinity:val;
+  }));
+  for(let i=0;i<players.length;i++){
+    const pts=parseInt(document.getElementById("pts_"+i)?.value);
+    if(isNaN(pts))continue;
+    const adj=getAdj(pts);
+    const finalAdj=pts===topScore?adj-1:adj;
+    const hcp=parseFloat(document.getElementById("hcp_"+i)?.value)||0;
+    const nextHcp=Math.max(0,Math.round(hcp+finalAdj));
     await supabase.from("scores").update({
-      points: pts,
-      adj: finalAdj,
-      next_handicap: nextHcp,
-      round: currentRound,
-      updated_at: new Date().toISOString()
-    }).eq("id", p.id);
+      points:pts,adj:finalAdj,next_handicap:nextHcp,round:currentRound,updated_at:new Date().toISOString()
+    }).eq("id",players[i].id);
   }
-
-  alert("✅ Round calculated. Now updating totals...");
+  alert("✅ Round calculated");
   await updateTotals();
 }
 
-// Next round
-async function nextRound() {
-  if (currentRound >= maxRounds) return alert("League finished.");
-  currentRound++;
-  for (const p of players) {
-    const newHcp = p.next_handicap ?? p.handicap;
-    await supabase.from("scores").update({
-      handicap: newHcp,
-      points: null,
-      adj: null,
-      round: currentRound
-    }).eq("id", p.id);
+// Best 5 Totals
+async function updateTotals(){
+  for(const p of players){
+    const { data } = await supabase.from("scores").select("points").eq("player",p.player);
+    const total=(data||[]).map(r=>r.points).filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+    await supabase.from("scores").update({total}).eq("id",p.id);
   }
-  unlocked = false;
   loadPlayers();
 }
 
-// Previous round
-function prevRound() {
-  if (currentRound > 1) currentRound--;
-  display();
+// Next/Prev
+async function nextRound(){
+  if(currentRound>=maxRounds)return alert("Finished");
+  currentRound++;
+  for(const p of players){
+    await supabase.from("scores").update({
+      handicap:p.next_handicap??p.handicap,points:null,adj:null,round:currentRound
+    }).eq("id",p.id);
+  }
+  unlocked=false;
+  loadPlayers();
 }
+function prevRound(){if(currentRound>1){currentRound--;render();}}
 
 // Locking
-function unlock() {
-  const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.3"); }
-  else alert("Wrong password");
-}
-function lock() { unlocked = false; alert("Locked"); }
+function unlock(){if(document.getElementById("pw").value===PASSWORD){unlocked=true;alert("Unlocked");render();}else alert("Wrong password");}
+function lock(){unlocked=false;alert("Locked");render();}
 
-// Add player
-async function addPlayer() {
-  const name = prompt("Enter player name:");
-  if (!name) return;
-  await supabase.from("scores").insert([
-    { player: name, handicap: 0, points: null, adj: null, next_handicap: 0, total: 0, round: currentRound }
-  ]);
+// Add Player
+async function addPlayer(){
+  const name=prompt("Enter new player:");
+  if(!name)return;
+  await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound}]);
   loadPlayers();
 }
 
-// Reset league
-async function resetLeague() {
-  const pw = prompt("Enter password:");
-  if (pw !== PASSWORD) return alert("Wrong password");
-  await supabase.from("scores").delete().neq("id", 0);
-  currentRound = 1;
-  loadPlayers();
+// Reset League
+async function resetLeague(){
+  const pw=prompt("Confirm password:");
+  if(pw!==PASSWORD)return alert("Wrong password");
+  await supabase.from("scores").delete().neq("id",0);
+  currentRound=1;loadPlayers();
 }
 
 // Start
