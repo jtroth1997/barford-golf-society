@@ -2,13 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Barford Handicap Calculator - NEW v1.0.2</title>
+  <title>Barford Handicap Calculator - v1.0.3</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h1 style="color:red;">⚠️ THIS IS THE NEW VERSION (v1.0.2) — Uploaded 2025-11-07 ⚠️</h1>
-<p>If you can see this red message, the site is using the updated file connected to Supabase.</p>
+<h1 style="color:red;">🏌️‍♂️ THIS IS THE NEW VERSION (v1.0.3) — Best 5 Rounds Logic ADDED 🏌️‍♂️</h1>
+<p>If you can see this red message, you’re running the updated logic with totals.</p>
 
 <p>
   Password: <input type="password" id="pw">
@@ -29,7 +29,7 @@
 <pre id="output">Loading players...</pre>
 
 <script>
-console.log("🚨 NEW VERSION v1.0.2 LOADED — 2025-11-07 🚨");
+console.log("⛳ NEW VERSION v1.0.3 LOADED — Best-5-Round Totals Enabled");
 
 // ---------- PUBLIC TEST CREDENTIALS ----------
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
@@ -60,7 +60,7 @@ supabase.channel("scores")
   .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
   .subscribe();
 
-// Display simple text table
+// Display
 function display() {
   let text = "PLAYER | HCP | POINTS | ADJ | NEXT | TOTAL\n";
   text += "---------------------------------------------\n";
@@ -82,6 +82,32 @@ function getAdj(points) {
   return 3;
 }
 
+// Calculate totals for each player (best 5 rounds)
+async function updateTotals() {
+  // Fetch all rounds for each player
+  for (const p of players) {
+    const { data, error } = await supabase
+      .from("scores")
+      .select("points")
+      .eq("player", p.player);
+
+    if (error) { console.error(error); continue; }
+
+    const pointsArray = (data || [])
+      .map(r => r.points)
+      .filter(v => v !== null && !isNaN(v))
+      .sort((a,b)=>b-a)
+      .slice(0,5);
+
+    const total = pointsArray.reduce((a,b)=>a+b,0);
+
+    await supabase.from("scores")
+      .update({ total })
+      .eq("id", p.id);
+  }
+  loadPlayers();
+}
+
 // Calculate round
 async function calculate() {
   if (!unlocked) return alert("Unlock first.");
@@ -101,11 +127,12 @@ async function calculate() {
       updated_at: new Date().toISOString()
     }).eq("id", p.id);
   }
-  alert("✅ Calculated and saved (v1.0.2).");
-  loadPlayers();
+
+  alert("✅ Round calculated. Now updating totals...");
+  await updateTotals();
 }
 
-// Go to next round
+// Next round
 async function nextRound() {
   if (currentRound >= maxRounds) return alert("League finished.");
   currentRound++;
@@ -128,15 +155,15 @@ function prevRound() {
   display();
 }
 
-// Unlock / Lock editing
+// Locking
 function unlock() {
   const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.2"); }
+  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.3"); }
   else alert("Wrong password");
 }
 function lock() { unlocked = false; alert("Locked"); }
 
-// Add new player
+// Add player
 async function addPlayer() {
   const name = prompt("Enter player name:");
   if (!name) return;
@@ -146,7 +173,7 @@ async function addPlayer() {
   loadPlayers();
 }
 
-// Reset all data
+// Reset league
 async function resetLeague() {
   const pw = prompt("Enter password:");
   if (pw !== PASSWORD) return alert("Wrong password");
@@ -155,7 +182,7 @@ async function resetLeague() {
   loadPlayers();
 }
 
-// Start loading
+// Start
 loadPlayers();
 </script>
 
