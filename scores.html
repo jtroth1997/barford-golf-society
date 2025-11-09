@@ -1,377 +1,158 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Barford Golf Society Handicap Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<style>
-:root {
-  --green: #083d0b;
-  --gold: #d4af37;
-  --cream: #f7f7f5;
-  --dark: #1b1b1b;
-  --white: #ffffff;
-  --silver: #c0c0c0;
-  --bronze: #cd7f32;
-  --highlight: #e9f5ec;
-}
-
-body {
-  font-family: "Inter", sans-serif;
-  background: linear-gradient(135deg, var(--cream) 40%, #e7ece7);
-  color: var(--dark);
-  margin: 0;
-  padding: 0;
-}
-
-header {
-  background: linear-gradient(to right, var(--green), #145214);
-  color: var(--gold);
-  text-align: center;
-  padding: 20px;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.topbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  background: var(--white);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-input[type=password], input[type=number] {
-  font-family: inherit;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  padding: 8px;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-input[type=password]:focus, input[type=number]:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 5px rgba(212,175,55,0.4);
-  outline: none;
-}
-
-.btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  font-size: 0.9rem;
-}
-.btn:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-.btn:active { transform: scale(0.98); }
-
-.btn-unlock { background: var(--gold); color: var(--dark); }
-.btn-lock   { background: var(--green); color: var(--white); }
-.btn-calc   { background: #ffcc00; color: var(--dark); }
-.btn-next, .btn-prev { background: #ddd; color: var(--dark); }
-.btn-reset { background: #b22222; color: var(--white); }
-.btn-add { background: var(--silver); color: var(--dark); }
-.btn-pass { background: var(--bronze); color: var(--white); }
-
-main {
-  padding: 20px;
-  max-width: 1100px;
-  margin: auto;
-}
-
-.round-info {
-  text-align: center;
-  margin-bottom: 15px;
-  font-weight: 600;
-  color: var(--green);
-}
-
-.progress-bar {
-  width: 80%;
-  height: 10px;
-  background: #ddd;
-  border-radius: 10px;
-  margin: 8px auto 20px;
-  overflow: hidden;
-}
-.progress-bar div {
-  height: 100%;
-  width: 0%;
-  background: var(--gold);
-  transition: width 0.5s ease;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--white);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-  animation: fadeIn 0.6s ease;
-}
-
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-
-th, td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #f1f1f1;
-}
-th {
-  background: var(--green);
-  color: var(--gold);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.9rem;
-}
-tbody tr:nth-child(even) { background: #f8f8f8; }
-tbody tr:hover { background: var(--highlight); }
-
-#popupModal {
-  display: none;
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--green);
-  border: 2px solid var(--gold);
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-  padding: 20px 30px;
-  color: var(--white);
-  text-align: center;
-  animation: slideDown 0.4s ease;
-  z-index: 9999;
-}
-#popupModal h3 { margin-bottom: 10px; color: var(--gold); }
-#popupModal button {
-  background: var(--gold);
-  border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--dark);
-}
-#popupModal button:hover { background: var(--white); }
-
-@keyframes slideDown {
-  from {top: -50px; opacity: 0;}
-  to {top: 20px; opacity: 1;}
-}
-
-.blur-locked { filter: blur(6px); pointer-events: none; opacity: 0.6; }
-
-@media (max-width: 700px) {
-  th, td { font-size: 12px; padding: 8px; }
-  .btn { font-size: 0.8rem; padding: 6px 10px; }
-}
-</style>
+  <meta charset="utf-8">
+  <title>Barford Handicap Calculator - v1.0.1</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<header>🏌️ Barford Golf Society Handicap Calculator</header>
+<h2>Barford Handicap Calculator (v1.0.1)</h2>
+<p>This line proves this is the new version uploaded on <b>2025-11-07</b>.</p>
 
-<div class="topbar">
-  <input type="password" id="pwInput" placeholder="Enter password">
-  <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
-  <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
-  <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
-  <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
-  <button class="btn btn-next" id="nextBtn" onclick="nextRound()">Next ▶</button>
-  <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
-  <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
-  <button class="btn btn-reset" id="resetBtn" style="display:none" onclick="confirmReset()">Reset League</button>
-</div>
+<p>
+  Password: <input type="password" id="pw">
+  <button onclick="unlock()">Unlock</button>
+  <button onclick="lock()">Lock</button>
+</p>
 
-<main>
-  <div class="round-info">
-    <h3 id="roundHeader">Round 1 of 7</h3>
-    <div class="progress-bar"><div id="progressFill"></div></div>
-  </div>
+<p>
+  <button onclick="calculate()">Calculate Round</button>
+  <button onclick="nextRound()">Next Round</button>
+  <button onclick="prevRound()">Prev Round</button>
+  <button onclick="addPlayer()">Add Player</button>
+  <button onclick="resetLeague()">Reset</button>
+</p>
 
-  <div id="popupModal">
-    <h3 id="popupText"></h3>
-    <button onclick="closePopup()">OK</button>
-  </div>
+<p id="roundInfo">Round 1 of 7</p>
 
-  <div id="tableContainer">
-    <table>
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Player</th>
-          <th id="hcpHeader">Round 1 HCP</th>
-          <th>Points</th>
-          <th>Adj</th>
-          <th id="newHcpHeader">Next HCP</th>
-          <th>Total (Best 5)</th>
-          <th>DNP</th>
-        </tr>
-      </thead>
-      <tbody id="playersTable"></tbody>
-    </table>
-  </div>
-</main>
+<pre id="output">Loading players...</pre>
 
 <script>
+console.log("Barford Handicap Calculator v1.0.1 — Loaded OK");
+
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let PASSWORD = "westbrom1997";
+const PASSWORD = "westbrom1997";
 let unlocked = false;
 let currentRound = 1;
 const maxRounds = 7;
-let playersData = [];
+let players = [];
 
-async function fetchPlayers() {
-  const { data, error } = await supabase.from("scores").select("*");
-  if (error) console.error(error);
-  playersData = data || [];
-  renderLeaderboard();
+// Load players (adds timestamp to prevent caching)
+async function loadPlayers() {
+  const { data, error } = await supabase
+    .from("scores")
+    .select("*")
+    .order("id",{ascending:true});
+  if (error) return console.error("Supabase error:", error);
+  players = data || [];
+  display();
 }
 
-supabase.channel("scores-changes")
-  .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, () => fetchPlayers())
+// Realtime sync
+supabase.channel("scores")
+  .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
   .subscribe();
 
-function showPopup(msg){
-  const modal=document.getElementById("popupModal");
-  document.getElementById("popupText").textContent=msg;
-  modal.style.display="block";
-  setTimeout(()=>modal.style.display="none",3500);
-}
-function closePopup(){document.getElementById("popupModal").style.display="none";}
-
-function updateHeaders(){
-  document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
-  document.getElementById("newHcpHeader").textContent=`Next Round HCP`;
-  document.getElementById("nextBtn").textContent=currentRound===maxRounds?"Finish":"Next ▶";
-  document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
-  const progress=(currentRound/maxRounds)*100;
-  document.getElementById("progressFill").style.width=progress+"%";
-  document.getElementById("resetBtn").style.display=currentRound>=maxRounds?"inline-block":"none";
-}
-
-function unlockInputs(){
-  const pw=document.getElementById("pwInput").value;
-  if(pw!==PASSWORD)return alert("Incorrect password!");
-  unlocked=true;showPopup("✅ Scores Unlocked");
-  renderLeaderboard();
-}
-function lockInputs(){unlocked=false;showPopup("🔒 Scores Locked");renderLeaderboard();}
-
-function stablefordAdj(pts){
-  if(pts>=43)return -3;
-  if(pts>=38)return -2;
-  if(pts>=31)return -1;
-  if(pts>=26)return 0;
-  if(pts>=21)return +1;
-  if(pts>=16)return +2;
-  return +3;
-}
-
-async function calculateHandicaps(){
-  if(!unlocked)return alert("Unlock first!");
-  const top=Math.max(...playersData.map(p=>p.points||0));
-  for(const p of playersData){
-    const pts=parseInt(document.getElementById(`points_${p.id}`).value)||null;
-    const hcp=parseFloat(document.getElementById(`hcp_${p.id}`).value)||0;
-    if(pts===null){p.points=null;p.adj=null;p.next_handicap=hcp;continue;}
-    const adj=stablefordAdj(pts)-(pts===top?1:0);
-    const nextH=Math.max(0,Math.round(hcp+adj));
-    p.points=pts;p.adj=adj;p.next_handicap=nextH;
-    p.handicap=hcp;
-    p.total=calcTotal(p.id);
-    p.round=currentRound;
-    p.updated_at=new Date().toISOString();
-    await supabase.from("scores").upsert(p);
+// Display
+function display() {
+  let text = "";
+  text += "Player | HCP | Points | Adj | Next | Total\n";
+  text += "---------------------------------------------\n";
+  for (const p of players) {
+    text += `${p.player || "?"} | ${p.handicap ?? "-"} | ${p.points ?? "-"} | ${p.adj ?? "-"} | ${p.next_handicap ?? "-"} | ${p.total ?? "-"}\n`;
   }
-  renderLeaderboard();
-  showPopup("🏌️ Handicaps updated!");
+  document.getElementById("output").textContent = text;
+  document.getElementById("roundInfo").textContent = "Round " + currentRound + " of " + maxRounds;
 }
 
-function calcTotal(id){
-  const player=playersData.find(x=>x.id===id);
-  if(!player)return 0;
-  return player.total||0;
+// Handicap adjustment logic
+function getAdj(points) {
+  if (points >= 43) return -3;
+  if (points >= 38) return -2;
+  if (points >= 31) return -1;
+  if (points >= 26) return 0;
+  if (points >= 21) return 1;
+  if (points >= 16) return 2;
+  return 3;
 }
 
-function calculateTotals(){
-  return [...playersData].sort((a,b)=>(b.total||0)-(a.total||0));
+// Calculate
+async function calculate() {
+  if (!unlocked) return alert("Unlock first.");
+  for (const p of players) {
+    const raw = prompt("Enter points for " + p.player + ":", p.points ?? "");
+    const pts = raw === "" ? null : parseInt(raw);
+    const adj = pts === null ? null : getAdj(pts);
+    const topScore = Math.max(...players.map(x => x.points ?? -Infinity));
+    const finalAdj = (pts === topScore && pts !== null) ? adj - 1 : adj;
+    const nextHcp = pts === null ? p.handicap : Math.max(0, Math.round((p.handicap ?? 0) + finalAdj));
+    await supabase.from("scores").update({
+      points: pts,
+      adj: finalAdj,
+      next_handicap: nextHcp,
+      round: currentRound,
+      updated_at: new Date().toISOString()
+    }).eq("id", p.id);
+  }
+  alert("Round calculated and saved (v1.0.1).");
+  loadPlayers();
 }
 
-function renderLeaderboard(){
-  const tbody=document.getElementById("playersTable");
-  tbody.innerHTML="";
-  const sorted=calculateTotals();
-  sorted.forEach((p,rank)=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
-      <td>${p.player}</td>
-      <td><input type="number" id="hcp_${p.id}" value="${p.handicap||0}" ${unlocked?"":"disabled"}></td>
-      <td><input type="number" id="points_${p.id}" value="${p.points||""}" ${unlocked?"":"disabled"}></td>
-      <td id="adj_${p.id}">${p.adj??""}</td>
-      <td id="newHcp_${p.id}">${p.next_handicap??""}</td>
-      <td id="season_${p.id}">${p.total??0}</td>
-      <td><input type="checkbox" id="dnp_${p.id}" disabled ${p.points==null?"checked":""}></td>`;
-    tbody.appendChild(tr);
-  });
-  updateHeaders();
+// Next round
+async function nextRound() {
+  if (currentRound >= maxRounds) return alert("League finished.");
+  currentRound++;
+  for (const p of players) {
+    const newHcp = p.next_handicap ?? p.handicap;
+    await supabase.from("scores").update({
+      handicap: newHcp,
+      points: null,
+      adj: null,
+      round: currentRound
+    }).eq("id", p.id);
+  }
+  unlocked = false;
+  loadPlayers();
 }
 
-async function addPlayer(){
-  const name=prompt("Enter new player name:");
-  if(!name)return;
-  const { data, error } = await supabase.from("scores").insert([{ player:name, handicap:0, points:null, adj:null, next_handicap:0, total:0, round:currentRound, updated_at:new Date().toISOString() }]).select();
-  if(error)console.error(error);
-  showPopup(`👤 Player "${name}" added.`);
-  await fetchPlayers();
+// Prev round
+function prevRound() {
+  if (currentRound > 1) currentRound--;
+  display();
 }
 
-function nextRound(){
-  if(currentRound<maxRounds){currentRound++;showPopup(`➡️ Round ${currentRound}`);}else{showPopup("🏁 League complete!");}
-  updateHeaders();
+// Lock/unlock
+function unlock() {
+  const val = document.getElementById("pw").value;
+  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.1"); }
+  else alert("Wrong password");
+}
+function lock() { unlocked = false; alert("Locked"); }
+
+// Add player
+async function addPlayer() {
+  const name = prompt("Enter player name:");
+  if (!name) return;
+  await supabase.from("scores").insert([{ player: name, handicap: 0, points: null, adj: null, next_handicap: 0, total: 0, round: currentRound }]);
+  loadPlayers();
 }
 
-function prevRound(){if(currentRound>1){currentRound--;updateHeaders();}}
-
-async function confirmReset(){
-  const pw=prompt("Enter password to reset:");
-  if(pw!==PASSWORD)return alert("Incorrect password!");
-  await supabase.from("scores").delete().neq("id",0);
-  currentRound=1;
-  await fetchPlayers();
-  showPopup("🏌️ League reset!");
+// Reset
+async function resetLeague() {
+  const pw = prompt("Enter password:");
+  if (pw !== PASSWORD) return alert("Wrong password");
+  await supabase.from("scores").delete().neq("id", 0);
+  currentRound = 1;
+  loadPlayers();
 }
 
-async function changePassword(){
-  const oldPw=prompt("Enter current password:");
-  if(oldPw!==PASSWORD)return alert("Incorrect password!");
-  const newPw=prompt("Enter new password:");
-  if(!newPw)return;
-  PASSWORD=newPw;
-  showPopup("🔐 Password changed!");
-}
-
-fetchPlayers();
-updateHeaders();
+// Start
+loadPlayers();
 </script>
+
 </body>
 </html>
