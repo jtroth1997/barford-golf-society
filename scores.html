@@ -2,13 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Barford Handicap Calculator - v1.0.1</title>
+  <title>Barford Handicap Calculator - NEW v1.0.2</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h2>Barford Handicap Calculator (v1.0.1)</h2>
-<p>This line proves this is the new version uploaded on <b>2025-11-07</b>.</p>
+<h1 style="color:red;">⚠️ THIS IS THE NEW VERSION (v1.0.2) — Uploaded 2025-11-07 ⚠️</h1>
+<p>If you can see this red message, the site is using the updated file connected to Supabase.</p>
 
 <p>
   Password: <input type="password" id="pw">
@@ -29,10 +29,13 @@
 <pre id="output">Loading players...</pre>
 
 <script>
-console.log("Barford Handicap Calculator v1.0.1 — Loaded OK");
+console.log("🚨 NEW VERSION v1.0.2 LOADED — 2025-11-07 🚨");
 
+// ---------- PUBLIC TEST CREDENTIALS ----------
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+// ---------------------------------------------
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const PASSWORD = "westbrom1997";
@@ -41,26 +44,25 @@ let currentRound = 1;
 const maxRounds = 7;
 let players = [];
 
-// Load players (adds timestamp to prevent caching)
+// Load all players
 async function loadPlayers() {
   const { data, error } = await supabase
     .from("scores")
     .select("*")
-    .order("id",{ascending:true});
+    .order("id", { ascending: true });
   if (error) return console.error("Supabase error:", error);
   players = data || [];
   display();
 }
 
-// Realtime sync
+// Realtime updates
 supabase.channel("scores")
   .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
   .subscribe();
 
-// Display
+// Display simple text table
 function display() {
-  let text = "";
-  text += "Player | HCP | Points | Adj | Next | Total\n";
+  let text = "PLAYER | HCP | POINTS | ADJ | NEXT | TOTAL\n";
   text += "---------------------------------------------\n";
   for (const p of players) {
     text += `${p.player || "?"} | ${p.handicap ?? "-"} | ${p.points ?? "-"} | ${p.adj ?? "-"} | ${p.next_handicap ?? "-"} | ${p.total ?? "-"}\n`;
@@ -69,7 +71,7 @@ function display() {
   document.getElementById("roundInfo").textContent = "Round " + currentRound + " of " + maxRounds;
 }
 
-// Handicap adjustment logic
+// Handicap adjustment rules
 function getAdj(points) {
   if (points >= 43) return -3;
   if (points >= 38) return -2;
@@ -80,7 +82,7 @@ function getAdj(points) {
   return 3;
 }
 
-// Calculate
+// Calculate round
 async function calculate() {
   if (!unlocked) return alert("Unlock first.");
   for (const p of players) {
@@ -90,6 +92,7 @@ async function calculate() {
     const topScore = Math.max(...players.map(x => x.points ?? -Infinity));
     const finalAdj = (pts === topScore && pts !== null) ? adj - 1 : adj;
     const nextHcp = pts === null ? p.handicap : Math.max(0, Math.round((p.handicap ?? 0) + finalAdj));
+
     await supabase.from("scores").update({
       points: pts,
       adj: finalAdj,
@@ -98,11 +101,11 @@ async function calculate() {
       updated_at: new Date().toISOString()
     }).eq("id", p.id);
   }
-  alert("Round calculated and saved (v1.0.1).");
+  alert("✅ Calculated and saved (v1.0.2).");
   loadPlayers();
 }
 
-// Next round
+// Go to next round
 async function nextRound() {
   if (currentRound >= maxRounds) return alert("League finished.");
   currentRound++;
@@ -119,29 +122,31 @@ async function nextRound() {
   loadPlayers();
 }
 
-// Prev round
+// Previous round
 function prevRound() {
   if (currentRound > 1) currentRound--;
   display();
 }
 
-// Lock/unlock
+// Unlock / Lock editing
 function unlock() {
   const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.1"); }
+  if (val === PASSWORD) { unlocked = true; alert("Unlocked v1.0.2"); }
   else alert("Wrong password");
 }
 function lock() { unlocked = false; alert("Locked"); }
 
-// Add player
+// Add new player
 async function addPlayer() {
   const name = prompt("Enter player name:");
   if (!name) return;
-  await supabase.from("scores").insert([{ player: name, handicap: 0, points: null, adj: null, next_handicap: 0, total: 0, round: currentRound }]);
+  await supabase.from("scores").insert([
+    { player: name, handicap: 0, points: null, adj: null, next_handicap: 0, total: 0, round: currentRound }
+  ]);
   loadPlayers();
 }
 
-// Reset
+// Reset all data
 async function resetLeague() {
   const pw = prompt("Enter password:");
   if (pw !== PASSWORD) return alert("Wrong password");
@@ -150,7 +155,7 @@ async function resetLeague() {
   loadPlayers();
 }
 
-// Start
+// Start loading
 loadPlayers();
 </script>
 
