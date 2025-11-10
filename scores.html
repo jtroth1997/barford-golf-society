@@ -53,32 +53,67 @@ header {
 }
 .navbar a:hover { color: var(--gold); }
 
-.dark-mode { background: #121212; color: var(--gold); }
-.dark-mode header { background: #000; color: var(--gold); }
-.dark-mode .navbar { background: #000; }
+/* Dark Mode Styles */
+.dark-mode {
+  background: #121212;
+  color: var(--gold);
+}
+.dark-mode header {
+  background: #000;
+  color: var(--gold);
+}
+.dark-mode .navbar {
+  background: #000;
+}
 .dark-mode .navbar a { color: var(--gold); }
 .dark-mode .navbar a:hover { color: #fff; }
 
 .dark-toggle {
-  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-  display: flex; align-items: center; gap: 6px;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.dark-toggle input { width: 18px; height: 18px; cursor: pointer; }
+.dark-toggle input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
 .topbar {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-  padding: 16px; background: var(--white);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--white);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 input[type=password], input[type=number] {
-  font-family: inherit; border-radius: 6px; border: 1px solid #ccc; padding: 8px;
+  font-family: inherit;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 8px;
   transition: border 0.2s, box-shadow 0.2s;
 }
 input[type=password]:focus, input[type=number]:focus {
-  border-color: var(--gold); box-shadow: 0 0 5px rgba(212,175,55,0.4); outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 5px rgba(212,175,55,0.4);
+  outline: none;
 }
 .btn {
-  padding: 8px 12px; border: none; border-radius: 8px; font-weight: 600;
-  cursor: pointer; transition: all 0.25s ease; font-size: 0.9rem;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 0.9rem;
 }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 .btn:active { transform: scale(0.98); }
@@ -104,6 +139,39 @@ tbody tr:hover{background:var(--highlight);}
 #chartContainer{display:none;margin-top:40px;padding:20px;background:var(--white);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
 .dark-mode #chartContainer{background:#1f1f1f;}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);padding:10px 20px;border-radius:8px;opacity:0;transition:opacity 0.4s;}
+/* secret/blur styles */
+.table-secret {
+  position: relative;
+}
+.table-secret .secret-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+.table-secret tbody {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+.table-secret tbody input { color: transparent; text-shadow: 0 0 8px rgba(0,0,0,0.2); }
+/* when unlocked, remove blur */
+.table-secret.unlocked tbody {
+  filter: none;
+  pointer-events: auto;
+}
+.table-secret.unlocked tbody input { color: initial; text-shadow: none; }
+
+#secretNotice {
+  text-align: center;
+  padding: 8px;
+  color: #b22222;
+  font-weight: 700;
+  display: none;
+}
 @media(max-width:700px){
  th,td{font-size:12px;padding:8px;}
  .btn{font-size:0.8rem;padding:6px 10px;}
@@ -145,7 +213,8 @@ tbody tr:hover{background:var(--highlight);}
   </div>
 
   <div id="tableContainer">
-    <table>
+    <div id="secretNotice">Round locked — unlock to view/edit this round</div>
+    <table id="playersTableWrap" class="">
       <thead>
         <tr>
           <th>Rank</th><th>Player</th><th id="hcpHeader">Round 1 HCP</th><th>Points</th>
@@ -167,6 +236,7 @@ tbody tr:hover{background:var(--highlight);}
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const PASSWORD_DEFAULT = "westbrom1997";
+
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let PASSWORD = PASSWORD_DEFAULT;
@@ -176,130 +246,298 @@ const maxRounds = 7;
 let players = [], currentHcp = [], nextHcp = [], playerScores = [], lastAdj = [];
 let realtimeChannel = null;
 
-function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.opacity=1;setTimeout(()=>t.style.opacity=0,2500);}
-function stablefordAdj(pts){if(pts>=43)return-3;if(pts>=38)return-2;if(pts>=31)return-1;if(pts>=26)return 0;if(pts>=21)return+1;if(pts>=16)return+2;return+3;}
-
-async function loadData(){
- document.body.style.cursor="wait";
- const {data,error}=await supabase.from("scores").select("*").order("player",{ascending:true});
- document.body.style.cursor="default";
- if(error){console.error(error);return;}
- if(!data.length){
-  players=["Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver"];
-  currentHcp=new Array(players.length).fill(0);
-  nextHcp=new Array(players.length).fill(null);
-  playerScores=players.map(()=>Array(maxRounds).fill(null));
-  lastAdj=new Array(players.length).fill("");
- } else {
-  const latestByPlayer={};
-  data.forEach(r=>{if(!latestByPlayer[r.player]||r.round>latestByPlayer[r.player].round)latestByPlayer[r.player]=r;});
-  players=Object.keys(latestByPlayer);
-  currentHcp=players.map(p=>latestByPlayer[p].handicap||0);
-  nextHcp=players.map(p=>latestByPlayer[p].next_handicap||0);
-  playerScores=players.map(p=>{
-   const rounds=data.filter(r=>r.player===p);
-   const arr=Array(maxRounds).fill(null);
-   rounds.forEach(r=>{arr[r.round-1]=r.points;});
-   return arr;
-  });
-  lastAdj=players.map(p=>{
-   const r=latestByPlayer[p];
-   return r.adj?(r.adj>0?`+${r.adj}`:r.adj):"";
-  });
- }
- renderLeaderboard(); subscribeRealtime();
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.opacity = 1;
+  setTimeout(() => (t.style.opacity = 0), 2500);
 }
 
-function subscribeRealtime(){
- if(realtimeChannel) supabase.removeChannel(realtimeChannel);
- realtimeChannel=supabase.channel("public:scores").on("postgres_changes",
- {event:"*",schema:"public",table:"scores"},
- payload=>{console.log("Realtime update:",payload);loadData();}).subscribe();
+function stablefordAdj(pts) {
+  if (pts >= 43) return -3;
+  if (pts >= 38) return -2;
+  if (pts >= 31) return -1;
+  if (pts >= 26) return 0;
+  if (pts >= 21) return +1;
+  if (pts >= 16) return +2;
+  return +3;
 }
 
-async function saveData(){
- const updates=[];
- for(let i=0;i<players.length;i++){
-  const player=players[i];
-  const total=playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-  const pts=playerScores[i][currentRound-1]||0;
-  const adj=parseInt(lastAdj[i])||0;
-  const next=nextHcp[i]??currentHcp[i];
-  updates.push({player,round:currentRound,handicap:currentHcp[i],points:pts,adj:adj,next_handicap:next,total:total,updated_at:new Date().toISOString()});
- }
- const {error}=await supabase.from("scores").upsert(updates,{onConflict:["player","round"]});
- if(error){console.error(error);showToast("⚠️ Error saving data");} else showToast("✅ Data saved to Supabase");
-}
+async function loadData() {
+  document.body.style.cursor = "wait";
+  const { data, error } = await supabase.from("scores").select("*").order("player", { ascending: true });
+  document.body.style.cursor = "default";
+  if (error) { console.error(error); return; }
 
-function calculateHandicaps(){
- if(!unlocked)return alert("Unlock first");
- for(let i=0;i<players.length;i++){
-  const hcp=parseFloat(document.getElementById(`hcp_${i}`).value)||0;
-  const pts=parseInt(document.getElementById(`points_${i}`).value);
-  if(isNaN(pts))continue;
-  const adj=stablefordAdj(pts);
-  const next=Math.max(0,hcp+adj);
-  playerScores[i][currentRound-1]=pts;
-  lastAdj[i]=(adj>0?"+":"")+adj;
-  currentHcp[i]=hcp; nextHcp[i]=next;
- }
- renderLeaderboard(); saveData(); drawChart();
-}
-
-function calculateTotals(){return players.map((n,i)=>{const s=playerScores[i].filter(v=>v!==null);const total=s.sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);return{i,name:n,total};}).sort((a,b)=>b.total-a.total);}
-function renderLeaderboard(){
- const tbody=document.getElementById("playersTable");tbody.innerHTML="";
- const totals=calculateTotals();
- totals.forEach((p,rank)=>{const i=p.i;const tr=document.createElement("tr");
- tr.innerHTML=`<td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td><td>${p.name}</td><td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td><td><input type="number" id="points_${i}" value="${playerScores[i][currentRound-1]??""}" ${unlocked?"":"disabled"}></td><td>${lastAdj[i]}</td><td>${nextHcp[i]??""}</td><td>${p.total}</td><td><input type="checkbox" disabled ${playerScores[i][currentRound-1]==null?"checked":""}></td>`;tbody.appendChild(tr);});
- document.getElementById("hcpHeader").textContent=`Round ${currentRound} HCP`;
- document.getElementById("roundHeader").textContent=`Round ${currentRound} of ${maxRounds}`;
- document.getElementById("progressFill").style.width=(currentRound/maxRounds*100)+"%";
- document.getElementById("chartContainer").style.display=unlocked?"block":"none";
- document.getElementById("exportLeaderboardBtn").style.display=unlocked?"inline-block":"none";
- document.getElementById("exportAllBtn").style.display=unlocked?"inline-block":"none";
- document.getElementById("clearLeagueBtn").style.display=unlocked?"inline-block":"none";
-}
-
-function nextRound(){if(currentRound<maxRounds){for(let i=0;i<players.length;i++){currentHcp[i]=nextHcp[i]??currentHcp[i];lastAdj[i]="";}currentRound++;renderLeaderboard();}}
-function prevRound(){if(currentRound>1){currentRound--;renderLeaderboard();}}
-
-function unlockInputs(){const pw=document.getElementById("pwInput").value;if(pw!==PASSWORD)return alert("Wrong password");unlocked=true;renderLeaderboard();showToast("Unlocked");}
-function lockInputs(){unlocked=false;renderLeaderboard();showToast("Locked");}
-function addPlayer(){if(!unlocked)return alert("Unlock first");const name=prompt("Enter player name:");if(!name)return;players.push(name);currentHcp.push(0);nextHcp.push(null);playerScores.push(Array(maxRounds).fill(null));lastAdj.push("");saveData();renderLeaderboard();}
-function changePassword(){const oldPw=prompt("Enter current password:");if(oldPw!==PASSWORD)return alert("Incorrect password");const newPw=prompt("Enter new password:");if(newPw){PASSWORD=newPw;alert("Password changed!");}}
-
-async function confirmReset(){
- const pw=prompt("Enter password to clear the league:");
- if(pw!==PASSWORD)return alert("Incorrect password");
- const {error}=await supabase.from("scores").delete().neq("id",0);
- if(error){console.error(error);alert("❌ Error clearing league. Please try again.");}
- else {
-  alert("✅ League cleared successfully!");
-  players=["Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver"];
-  currentHcp=new Array(players.length).fill(0);
-  nextHcp=new Array(players.length).fill(null);
-  playerScores=players.map(()=>Array(maxRounds).fill(null));
-  lastAdj=new Array(players.length).fill("");
-  currentRound=1;
+  if (!data.length) {
+    players = ["Brad Davies", "Will Lovell", "Richard Jones", "David Hardcastle", "Tim Oliver"];
+    currentHcp = new Array(players.length).fill(0);
+    nextHcp = new Array(players.length).fill(null);
+    playerScores = players.map(() => Array(maxRounds).fill(null));
+    lastAdj = new Array(players.length).fill("");
+  } else {
+    const latestByPlayer = {};
+    data.forEach(r => {
+      if (!latestByPlayer[r.player] || r.round > latestByPlayer[r.player].round)
+        latestByPlayer[r.player] = r;
+    });
+    players = Object.keys(latestByPlayer);
+    currentHcp = players.map(p => latestByPlayer[p].handicap || 0);
+    nextHcp = players.map(p => latestByPlayer[p].next_handicap || 0);
+    playerScores = players.map(p => {
+      const rounds = data.filter(r => r.player === p);
+      const arr = Array(maxRounds).fill(null);
+      rounds.forEach(r => { arr[r.round - 1] = r.points; });
+      return arr;
+    });
+    lastAdj = players.map(p => {
+      const r = latestByPlayer[p];
+      return r.adj ? (r.adj > 0 ? `+${r.adj}` : r.adj) : "";
+    });
+  }
   renderLeaderboard();
-  showToast("League reset");
+  subscribeRealtime();
+}
+
+function subscribeRealtime() {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+
+  realtimeChannel = supabase
+    .channel("public:scores")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "scores" },
+      payload => {
+        console.log("Realtime update:", payload);
+        loadData();
+      }
+    )
+    .subscribe(status => {
+      if (status === "SUBSCRIBED") console.log("✅ Realtime connected");
+    });
+}
+
+async function saveData() {
+  const updates = [];
+
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
+    const total = playerScores[i]
+      .filter(v => v !== null)
+      .sort((a,b)=>b-a)
+      .slice(0,5)
+      .reduce((a,b)=>a+b,0);
+    const pts = playerScores[i][currentRound-1] || 0;
+    const adj = parseInt(lastAdj[i]) || 0;
+    const next = nextHcp[i] ?? currentHcp[i];
+
+    updates.push({
+      player,
+      round: currentRound,
+      handicap: currentHcp[i],
+      points: pts,
+      adj,
+      next_handicap: next,
+      total,
+      updated_at: new Date().toISOString()
+    });
+  }
+
+  const { error } = await supabase
+    .from("scores")
+    .upsert(updates, { onConflict: ["player", "round"] });
+
+  if (error) {
+    console.error(error);
+    showToast("⚠️ Error saving data");
+  } else {
+    showToast("✅ Data saved to Supabase");
+  }
+}
+
+function calculateHandicaps() {
+  if (!unlocked) return alert("Unlock first");
+  for (let i = 0; i < players.length; i++) {
+    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
+    const pts = parseInt(document.getElementById(`points_${i}`).value);
+    if (isNaN(pts)) continue;
+    const adj = stablefordAdj(pts);
+    const next = Math.max(0, hcp + adj);
+    playerScores[i][currentRound - 1] = pts;
+    lastAdj[i] = (adj > 0 ? "+" : "") + adj;
+    currentHcp[i] = hcp; 
+    nextHcp[i] = next;
+  }
+  renderLeaderboard();
   saveData();
- }
+  drawChart();
 }
 
-function toCSV(arr){return arr.map(r=>Object.values(r).map(v=>`"${v??""}"`).join(",")).join("\n");}
-async function exportAllCSV(){const{data,error}=await supabase.from("scores").select("*");if(error)return alert("Error fetching data");const csv=toCSV(data);const blob=new Blob([csv],{type:"text/csv"});const link=document.createElement("a");const d=new Date().toISOString().split("T")[0];link.href=URL.createObjectURL(blob);link.download=`barford_full_${d}.csv`;link.click();}
-function exportLeaderboardCSV(){const totals=calculateTotals();const rows=totals.map(p=>({Rank:p.i+1,Player:p.name,Total:p.total}));const csv=toCSV(rows);const blob=new Blob([csv],{type:"text/csv"});const link=document.createElement("a");const d=new Date().toISOString().split("T")[0];link.href=URL.createObjectURL(blob);link.download=`barford_leaderboard_${d}.csv`;link.click();}
+function calculateTotals() {
+  return players.map((n, i) => {
+    const s = playerScores[i].filter(v => v !== null);
+    const total = s.sort((a, b) => b - a).slice(0, 5).reduce((a, b) => a + b, 0);
+    return { i, name: n, total };
+  }).sort((a, b) => b.total - a.total);
+}
 
+function renderLeaderboard() {
+  const tbody = document.getElementById("playersTable");
+  tbody.innerHTML = "";
+  const totals = calculateTotals();
+  totals.forEach((p, rank) => {
+    const i = p.i;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : rank + 1}</td>
+      <td>${p.name}</td>
+      <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked ? "" : "disabled"}></td>
+      <td><input type="number" id="points_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked ? "" : "disabled"}></td>
+      <td>${lastAdj[i]}</td>
+      <td>${nextHcp[i] ?? ""}</td>
+      <td>${p.total}</td>
+      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1] == null ? "checked" : ""}></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById("hcpHeader").textContent = `Round ${currentRound} HCP`;
+  document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
+  document.getElementById("progressFill").style.width = (currentRound / maxRounds * 100) + "%";
+  document.getElementById("chartContainer").style.display = unlocked ? "block" : "none";
+  document.getElementById("exportLeaderboardBtn").style.display = unlocked ? "inline-block" : "none";
+  document.getElementById("exportAllBtn").style.display = unlocked ? "inline-block" : "none";
+  document.getElementById("clearLeagueBtn").style.display = unlocked ? "inline-block" : "none";
+
+  // --- secret round blur logic ---
+  const wrap = document.getElementById("playersTableWrap");
+  const secretNotice = document.getElementById("secretNotice");
+  // if round is 6 or 7 and not unlocked -> blur and show notice
+  if ((currentRound === 6 || currentRound === 7) && !unlocked) {
+    wrap.classList.add("table-secret");
+    wrap.classList.remove("unlocked");
+    secretNotice.style.display = "block";
+  } else {
+    wrap.classList.remove("table-secret");
+    wrap.classList.add("unlocked");
+    secretNotice.style.display = "none";
+  }
+}
+
+function nextRound() {
+  if (currentRound < maxRounds) {
+    for (let i = 0; i < players.length; i++) {
+      currentHcp[i] = nextHcp[i] ?? currentHcp[i];
+      lastAdj[i] = "";
+    }
+    currentRound++;
+    renderLeaderboard();
+  }
+}
+function prevRound() {
+  if (currentRound > 1) { currentRound--; renderLeaderboard(); }
+}
+
+/* Password + Admin Controls */
+function unlockInputs() {
+  const pw = document.getElementById("pwInput").value;
+  if (pw !== PASSWORD) return alert("Wrong password");
+  unlocked = true; renderLeaderboard(); showToast("Unlocked");
+}
+function lockInputs() { unlocked = false; renderLeaderboard(); showToast("Locked"); }
+function addPlayer() {
+  if (!unlocked) return alert("Unlock first");
+  const name = prompt("Enter player name:"); if (!name) return;
+  players.push(name);
+  currentHcp.push(0);
+  nextHcp.push(null);
+  playerScores.push(Array(maxRounds).fill(null));
+  lastAdj.push("");
+  saveData(); renderLeaderboard();
+}
+function changePassword() {
+  const oldPw = prompt("Enter current password:");
+  if (oldPw !== PASSWORD) return alert("Incorrect password");
+  const newPw = prompt("Enter new password:");
+  if (newPw) { PASSWORD = newPw; alert("Password changed!"); }
+}
+async function confirmReset() {
+  const pw = prompt("Enter password to clear the league:");
+  if (pw !== PASSWORD) return alert("Incorrect password");
+  const { error } = await supabase.from("scores").delete().neq("id", 0);
+  if (error) {
+    console.error(error);
+    alert("❌ Error clearing league. Please try again.");
+  } else {
+    alert("✅ League cleared successfully!");
+    players = ["Brad Davies", "Will Lovell", "Richard Jones", "David Hardcastle", "Tim Oliver"];
+    currentHcp = new Array(players.length).fill(0);
+    nextHcp = new Array(players.length).fill(null);
+    playerScores = players.map(() => Array(maxRounds).fill(null));
+    lastAdj = new Array(players.length).fill("");
+    currentRound = 1;
+    renderLeaderboard();
+    showToast("League reset");
+    saveData();
+  }
+}
+
+/* CSV Exports */
+function toCSV(arr) { return arr.map(r => Object.values(r).map(v => `"${v ?? ""}"`).join(",")).join("\n"); }
+async function exportAllCSV() {
+  const { data, error } = await supabase.from("scores").select("*");
+  if (error) return alert("Error fetching data");
+  const csv = toCSV(data);
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  const d = new Date().toISOString().split("T")[0];
+  link.href = URL.createObjectURL(blob);
+  link.download = `barford_full_${d}.csv`;
+  link.click();
+}
+function exportLeaderboardCSV() {
+  const totals = calculateTotals();
+  const rows = totals.map(p => ({ Rank: p.i + 1, Player: p.name, Total: p.total }));
+  const csv = toCSV(rows);
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  const d = new Date().toISOString().split("T")[0];
+  link.href = URL.createObjectURL(blob);
+  link.download = `barford_leaderboard_${d}.csv`;
+  link.click();
+}
+
+/* Charts */
 let chart;
-function drawChart(){if(!unlocked)return;const ctx=document.getElementById("hcpChart").getContext("2d");const labels=Array.from({length:maxRounds},(_,i)=>"R"+(i+1));const datasets=players.map((p,i)=>({label:p,data:playerScores[i].map((_,r)=>nextHcp[i]??currentHcp[i]),borderWidth:2,fill:false,borderColor:`hsl(${i*60},60%,40%)`}));if(chart)chart.destroy();chart=new Chart(ctx,{type:"line",data:{labels,datasets},options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+function drawChart() {
+  if (!unlocked) return;
+  const ctx = document.getElementById("hcpChart").getContext("2d");
+  const labels = Array.from({ length: maxRounds }, (_, i) => "R" + (i + 1));
+  const datasets = players.map((p, i) => ({
+    label: p,
+    data: playerScores[i].map((_, r) => nextHcp[i] ?? currentHcp[i]),
+    borderWidth: 2,
+    fill: false,
+    borderColor: `hsl(${i * 60}, 60%, 40%)`
+  }));
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+  });
 }
 
-const switchBtn=document.getElementById("darkSwitch");
-switchBtn.addEventListener("change",()=>{document.body.classList.toggle("dark-mode",switchBtn.checked);localStorage.setItem("darkMode",switchBtn.checked?"on":"off");});
-if(localStorage.getItem("darkMode")==="on"){document.body.classList.add("dark-mode");switchBtn.checked=true;}
+/* Dark Mode Toggle */
+const switchBtn = document.getElementById("darkSwitch");
+switchBtn.addEventListener("change", () => {
+  document.body.classList.toggle("dark-mode", switchBtn.checked);
+  localStorage.setItem("darkMode", switchBtn.checked ? "on" : "off");
+});
+if (localStorage.getItem("darkMode") === "on") {
+  document.body.classList.add("dark-mode");
+  switchBtn.checked = true;
+}
 
+/* Start App */
 loadData();
 </script>
 </body>
