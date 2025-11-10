@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Events | Barford Golf Society</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 :root{
   --green:#005a2b;--gold:#d4af37;--light-bg:#f7f7f5;--card:#fff;
@@ -20,23 +22,25 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .event-card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
 .event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
 .event-name{color:var(--green);font-size:1.3rem;font-weight:700;}
-.rsvp-form{margin-top:15px;border-top:1px solid #ccc;padding-top:15px;}
-label{display:block;margin-top:8px;font-weight:600;}
-select,input[type="text"],input[type="date"],button{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
-button{background:var(--green);color:#fff;font-weight:600;cursor:pointer;margin-top:10px;}
-button:hover{background:#0a6b34;}
-button.danger{background:#b22222;}
-.hidden{display:none;}
-.notice{background:#ffeecc;color:#333;padding:10px;border-radius:6px;margin:10px 0;font-size:0.95rem;}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
 #createEventForm{background:#fff;padding:20px;border-radius:10px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+button{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-family:inherit;}
+button:hover{opacity:0.9;}
+button.danger{background:#b22222;color:#fff;}
+button.primary{background:var(--green);color:#fff;}
+.hidden{display:none;}
+.notice{background:#ffeecc;color:#333;padding:10px;border-radius:6px;margin:10px 0;font-size:0.95rem;}
+label{display:block;margin-top:10px;font-weight:600;}
+input,select{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;width:100%;box-sizing:border-box;}
 .small{font-size:.9rem;color:#666;}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@media (max-width: 700px){ .row{grid-template-columns:1fr;} }
+.rsvp-form{margin-top:15px;border-top:1px solid #ccc;padding-top:15px;}
+.rsvp-list{margin-top:15px;padding-top:10px;border-top:1px solid #eee;}
+ul{margin:5px 0 0 20px;}
+@media(max-width:700px){.event-header{flex-direction:column;align-items:flex-start;}}
 </style>
 </head>
-<body>
 
+<body>
 <header class="site-header">
   <div class="header-container">
     <h1 class="site-title">Barford Golf Society</h1>
@@ -60,49 +64,40 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
     <h3>Create a New Event (Admin Only)</h3>
     <div id="adminLogin">
       <input type="password" id="adminPw" placeholder="Enter admin password">
-      <button type="button" id="unlockBtn">Unlock</button>
+      <button type="button" id="unlockBtn" class="primary">Unlock</button>
       <p class="small">Creating events is password protected.</p>
     </div>
 
     <div id="createEventForm" class="hidden">
-      <div class="row">
-        <div>
-          <label>Event Name</label>
-          <input type="text" id="eventName" required>
-        </div>
-        <div>
-          <label>Location</label>
-          <input type="text" id="eventLocation" required>
-        </div>
+      <div>
+        <label>Event Name</label>
+        <input type="text" id="eventName" required>
       </div>
-
-      <div class="row">
-        <div>
-          <label>Date</label>
-          <input type="date" id="eventDate" required>
-        </div>
-        <div>
-          <label>Price (£)</label>
-          <input type="text" id="eventPrice" required>
-        </div>
+      <div>
+        <label>Location</label>
+        <input type="text" id="eventLocation" required>
       </div>
-
-      <div class="row">
-        <div>
-          <label>Round Number</label>
-          <select id="eventRound">
-            <option value="1">Round 1</option>
-            <option value="2">Round 2</option>
-            <option value="3">Round 3</option>
-            <option value="4">Round 4</option>
-            <option value="5">Round 5</option>
-            <option value="6">Round 6</option>
-            <option value="7">Round 7</option>
-          </select>
-        </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="eventDate" required>
       </div>
-
-      <button type="button" id="createEventBtn">Create Event</button>
+      <div>
+        <label>Price (£)</label>
+        <input type="text" id="eventPrice" required>
+      </div>
+      <div>
+        <label>Round Number</label>
+        <select id="eventRound">
+          <option value="1">Round 1</option>
+          <option value="2">Round 2</option>
+          <option value="3">Round 3</option>
+          <option value="4">Round 4</option>
+          <option value="5">Round 5</option>
+          <option value="6">Round 6</option>
+          <option value="7">Round 7</option>
+        </select>
+      </div>
+      <button type="button" id="createEventBtn" class="primary">Create Event</button>
       <button type="button" id="lockBtn" class="danger">Lock</button>
     </div>
   </div>
@@ -115,61 +110,18 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
 
 <script>
 /* =========================
-   CONFIG & DATA SOURCING
+   SUPABASE CONFIG
    ========================= */
-const ADMIN_PASSWORD = "westbrom1997";
-let rsvps  = JSON.parse(localStorage.getItem('bgsRsvps')  || '[]');
-let events = JSON.parse(localStorage.getItem('bgsEvents') || '[]');
-
-const FALLBACK_NAMES = [
-  "Brad Davies","Will Lovell","Richard Jones","David Hardcastle","Tim Oliver","John Hawkes","Mike Cook","Colin Oliver",
-  "Gary Moyce","David Jordan","Nick Benbow","Simon Morgan","Wes Lacey","Chris Oliver","Burt Pickering","Chris Harris",
-  "Derek Lewis","Liz Oliver","Jack Troth","Lucie Byerley","David Pritchard","Robert Pocknell","John Close","Nick Wright",
-  "Matt Oliver","Vince Hall","Elliot Hobbs","Will Hunt","Martc Taylor","Simon Meade","Emma Saywell","Cam Tolley",
-  "John Blackwell","Bekim","Zac Lovell","Clive Irwin"
-];
-
-// Pull the player list from Scores (golfCalcData) if present, else fallback.
-function hydratePlayers() {
-  // If we've cached bgsPlayers (objects {name, handicap}) use that first
-  let cached = JSON.parse(localStorage.getItem('bgsPlayers') || '[]');
-  if (Array.isArray(cached) && cached.length && cached[0]?.name) return cached;
-
-  // Try the calculator blob
-  const calc = JSON.parse(localStorage.getItem('golfCalcData') || '{}');
-  if (calc && Array.isArray(calc.players) && calc.players.length) {
-    const arr = calc.players.map((name, i) => ({
-      name,
-      handicap: (Array.isArray(calc.currentHcp) && calc.currentHcp[i] != null) ? calc.currentHcp[i] : 0
-    }));
-    localStorage.setItem('bgsPlayers', JSON.stringify(arr));
-    return arr;
-  }
-
-  // Fallback static list
-  const arr = FALLBACK_NAMES.map(n => ({ name: n, handicap: 0 }));
-  localStorage.setItem('bgsPlayers', JSON.stringify(arr));
-  return arr;
-}
-
-let players = hydratePlayers();
-
-// Listen for changes from Scores page (if open in another tab)
-window.addEventListener('storage', (e) => {
-  if (e.key === 'bgsPlayers' || e.key === 'golfCalcData') {
-    players = hydratePlayers();
-    renderEvents();
-  }
-});
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =========================
-   ADMIN GATE
+   ADMIN PANEL
    ========================= */
+const ADMIN_PASSWORD = "westbrom1997";
 const adminLogin = document.getElementById("adminLogin");
 const createForm = document.getElementById("createEventForm");
-
-// Always start locked
-localStorage.removeItem("bgsAdminUnlocked");
 
 document.getElementById("unlockBtn").addEventListener("click", () => {
   const pw = document.getElementById("adminPw").value.trim();
@@ -190,9 +142,18 @@ document.getElementById("lockBtn").addEventListener("click", () => {
 });
 
 /* =========================
+   LOAD EVENTS
+   ========================= */
+async function loadEvents() {
+  const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true });
+  if (error) { console.error(error); return; }
+  renderEvents(data);
+}
+
+/* =========================
    CREATE EVENT
    ========================= */
-document.getElementById("createEventBtn").addEventListener("click", () => {
+document.getElementById("createEventBtn").addEventListener("click", async () => {
   const name = document.getElementById("eventName").value.trim();
   const location = document.getElementById("eventLocation").value.trim();
   const date = document.getElementById("eventDate").value;
@@ -204,211 +165,172 @@ document.getElementById("createEventBtn").addEventListener("click", () => {
     return;
   }
 
-  const newEvent = { name, location, date, price, round };
-  events.push(newEvent);
-  localStorage.setItem("bgsEvents", JSON.stringify(events));
-  alert(`🏌️ Event "${name}" created successfully!`);
+  const { error } = await supabase.from("events").insert([{ name, location, date, price, round }]);
+  if (error) {
+    alert("❌ Error saving event: " + error.message);
+    return;
+  }
 
-  // reset form
+  alert(`🏌️ Event "${name}" created successfully!`);
   document.getElementById("eventName").value = "";
   document.getElementById("eventLocation").value = "";
   document.getElementById("eventDate").value = "";
   document.getElementById("eventPrice").value = "";
   document.getElementById("eventRound").value = "1";
-
-  renderEvents();
+  loadEvents();
 });
 
 /* =========================
-   RENDER EVENTS
+   RENDER EVENTS + RSVP FORM
    ========================= */
-function renderEvents() {
-  const list = document.getElementById("eventList");
-  if (!events.length) {
-    list.innerHTML = "<p>No events yet.</p>";
+async function renderEvents(events) {
+  const container = document.getElementById("eventList");
+  container.innerHTML = "";
+
+  if (!events || !events.length) {
+    container.innerHTML = "<p>No events yet.</p>";
     return;
   }
 
-  list.innerHTML = "";
+  for (const ev of events) {
+    const safeId = `event_${ev.id}`;
+    const deadline = new Date(ev.date);
+    deadline.setDate(deadline.getDate() - 7);
+    const formattedDeadline = deadline.toLocaleDateString("en-GB");
 
-  // helpful notice if we have no players
-  if (!players.length) {
-    const n = document.createElement('div');
-    n.className = 'notice';
-    n.innerHTML = '⚠️ No player names found. Please open the <strong>Scores</strong> page first and ensure data is saved.';
-    list.appendChild(n);
-  }
+    const eventDiv = document.createElement("div");
+    eventDiv.className = "event-card";
+    eventDiv.innerHTML = `
+      <div class="event-header">
+        <div>
+          <div class="event-name">${ev.name}</div>
+          <div>${ev.location} — ${ev.date}</div>
+          <div><strong>Round:</strong> ${ev.round}</div>
+        </div>
+        <div><strong>Price:</strong> £${ev.price}</div>
+      </div>
 
-  events
-    .slice()
-    .sort((a,b)=>new Date(a.date) - new Date(b.date))
-    .forEach(ev => {
-      const safeId = ev.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-      const div = document.createElement("div");
-      div.className = "event-card";
+      <div class="rsvp-form">
+        <p class="small">Please complete this form to RSVP for this event.<br>
+        RSVP deadline: <strong>${formattedDeadline}</strong>.<br>
+        If you’d like a buggy, please request it below – pairings will be confirmed a week before the event.</p>
 
-      // Build options once
-      const playerOptions = players.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+        <label>Full Name</label>
+        <input type="text" id="name_${safeId}" placeholder="Your full name" required>
 
-      div.innerHTML = `
-        <div class="event-header">
-          <div>
-            <div class="event-name">${ev.name}</div>
-            <div>${ev.location} — ${ev.date}</div>
-            <div><strong>Round:</strong> ${ev.round}</div>
-          </div>
-          <div><strong>Price:</strong> £${ev.price}</div>
+        <label>Email (optional)</label>
+        <input type="text" id="email_${safeId}" placeholder="your@email.com">
+
+        <label>Phone Number (optional)</label>
+        <input type="text" id="phone_${safeId}" placeholder="Your phone number">
+
+        <label>Will you be attending this event?</label>
+        <select id="attending_${safeId}">
+          <option value="true">Yes, I’ll be playing</option>
+          <option value="false">No, I can’t attend</option>
+        </select>
+
+        <label>Would you like to use a buggy for this event?</label>
+        <select id="buggy_${safeId}" onchange="toggleBuggy('${safeId}')">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+
+        <div id="buggyNote_${safeId}" class="hidden small" style="margin-top:8px;">
+          💬 If you request a buggy, we’ll pair you with another member who also requested one.<br>
+          You’ll find out your pairing about a week before the event.<br>
+          Once you’ve been notified of your pairing, you’ll need to book the buggy directly with the course.<br>
+          The society is not responsible for making these bookings.<br>
+          Please ensure your phone number is provided so your partner can contact you to arrange it.
         </div>
 
-        <form class="rsvp-form" onsubmit="submitRSVP(event,'${ev.name}','${safeId}')">
-          <h4>RSVP for this Event</h4>
+        <label>If there’s an odd number of buggy requests, are you willing to walk instead?</label>
+        <select id="flexibility_${safeId}">
+          <option value="Yes, happy to walk">Yes, I’m happy to walk if needed</option>
+          <option value="No, need buggy">No, I definitely need a buggy</option>
+        </select>
 
-          <label>Your Name</label>
-          <select id="playerSelect_${safeId}" onchange="onPlayerChange('${safeId}')">
-            <option value="">Select member</option>
-            ${playerOptions}
-          </select>
-          <span id="handicapDisplay_${safeId}" style="margin-left:10px;color:#555;"></span>
+        <button class="primary" style="margin-top:12px;" onclick="submitRSVP(${ev.id}, '${safeId}')">Submit RSVP</button>
+      </div>
 
-          <label><input type="checkbox" id="guestCheck_${safeId}" onchange="toggleGuest('${safeId}')"> Guest?</label>
-          <input type="text" id="guestName_${safeId}" class="hidden" placeholder="Enter guest name">
-
-          <label>Buggy?</label>
-          <select id="buggy_${safeId}" onchange="toggleBuggy('${safeId}')">
-            <option>No</option><option>Yes</option>
-          </select>
-
-          <div id="buggyPartnerGroup_${safeId}" class="hidden">
-            <label>Buggy Partner</label>
-            <select id="partner_${safeId}">
-              <option value="">Select partner</option>
-              ${playerOptions}
-            </select>
-            <p class="small">Selecting a partner will automatically RSVP them too.</p>
-          </div>
-
-          <label>Attending?</label>
-          <select id="attend_${safeId}"><option>Yes</option><option>No</option></select>
-
-          <button type="submit">Submit RSVP</button>
-        </form>
-
-        <div class="rsvp-list" id="rsvpList_${safeId}"></div>
-      `;
-      list.appendChild(div);
-
-      // Initial render of list for this event
-      renderRSVPList(ev.name, safeId);
-    });
-}
-
-/* =========================
-   FORM HELPERS
-   ========================= */
-function toggleBuggy(safeId) {
-  const show = document.getElementById(`buggy_${safeId}`).value === "Yes";
-  document.getElementById(`buggyPartnerGroup_${safeId}`).classList.toggle("hidden", !show);
-}
-
-function onPlayerChange(safeId) {
-  // update handicap display
-  const sel = document.getElementById(`playerSelect_${safeId}`);
-  const p = players.find(x => x.name === sel.value);
-  document.getElementById(`handicapDisplay_${safeId}`).textContent = p ? `Handicap: ${p.handicap}` : '';
-
-  // also refresh partner options so you can't pick yourself
-  const partnerSel = document.getElementById(`partner_${safeId}`);
-  if (!partnerSel) return;
-  const current = partnerSel.value;
-  partnerSel.innerHTML = `<option value="">Select partner</option>` +
-    players
-      .filter(x => x.name !== sel.value) // exclude self
-      .map(x => `<option value="${x.name}">${x.name}</option>`).join('');
-  // try to keep previous choice if still valid
-  if ([...partnerSel.options].some(o=>o.value===current)) partnerSel.value = current;
-}
-
-function toggleGuest(safeId) {
-  const chk = document.getElementById(`guestCheck_${safeId}`);
-  document.getElementById(`guestName_${safeId}`).classList.toggle("hidden", !chk.checked);
-}
-
-/* =========================
-   RSVP SUBMIT
-   ========================= */
-function submitRSVP(e, eventName, safeId) {
-  e.preventDefault();
-
-  const playerSel = document.getElementById(`playerSelect_${safeId}`);
-  const guestChk  = document.getElementById(`guestCheck_${safeId}`);
-  const guestName = document.getElementById(`guestName_${safeId}`).value.trim();
-  const buggy     = document.getElementById(`buggy_${safeId}`).value;
-  const partner   = document.getElementById(`partner_${safeId}`)?.value || "";
-  const attend    = document.getElementById(`attend_${safeId}`).value;
-
-  // Determine RSVP name & handicap
-  const chosenName = guestChk.checked ? guestName : playerSel.value;
-  if (!chosenName) return alert("Please select or enter a name");
-
-  const playerObj = players.find(x => x.name === playerSel.value);
-  const handicap  = guestChk.checked ? "Guest" : (playerObj ? playerObj.handicap : 0);
-
-  // MAIN RSVP
-  const mainRSVP = { event: eventName, attend, name: chosenName, handicap, buggy, partner };
-  // Upsert (avoid duplicates)
-  upsertRsvp(mainRSVP);
-
-  // AUTO PARTNER RSVP (only if buggy Yes + partner chosen + partner is a member)
-  if (buggy === "Yes" && partner) {
-    const partnerObj = players.find(x => x.name === partner);
-    const partnerRSVP = {
-      event: eventName,
-      attend: "Yes",
-      name: partner,
-      handicap: partnerObj ? partnerObj.handicap : 0,
-      buggy: "Yes",
-      partner: chosenName
-    };
-    upsertRsvp(partnerRSVP);
-  }
-
-  localStorage.setItem("bgsRsvps", JSON.stringify(rsvps));
-  renderRSVPList(eventName, safeId);
-  alert("✅ RSVP saved");
-}
-
-function upsertRsvp(newOne) {
-  const idx = rsvps.findIndex(r => r.event === newOne.event && r.name === newOne.name);
-  if (idx >= 0) {
-    rsvps[idx] = newOne;
-  } else {
-    rsvps.push(newOne);
+      <div class="rsvp-list" id="rsvpList_${safeId}"></div>
+    `;
+    container.appendChild(eventDiv);
+    loadRSVPs(ev.id, safeId);
   }
 }
 
 /* =========================
-   RSVP LIST RENDER
+   BUGGY TOGGLE
    ========================= */
-function renderRSVPList(eventName, safeId) {
-  const data = rsvps.filter(r => r.event === eventName);
-  const div  = document.getElementById(`rsvpList_${safeId}`);
+function toggleBuggy(id) {
+  const buggy = document.getElementById(`buggy_${id}`).value === "true";
+  document.getElementById(`buggyNote_${id}`).classList.toggle("hidden", !buggy);
+  const phoneField = document.getElementById(`phone_${id}`);
+  phoneField.required = buggy;
+}
+
+/* =========================
+   SUBMIT RSVP
+   ========================= */
+async function submitRSVP(eventId, safeId) {
+  const name = document.getElementById(`name_${safeId}`).value.trim();
+  const email = document.getElementById(`email_${safeId}`).value.trim();
+  const phone = document.getElementById(`phone_${safeId}`).value.trim();
+  const attending = document.getElementById(`attending_${safeId}`).value === "true";
+  const buggy = document.getElementById(`buggy_${safeId}`).value === "true";
+  const flexibility = document.getElementById(`flexibility_${safeId}`).value;
+
+  if (!name) return alert("Please enter your full name.");
+  if (buggy && !phone) return alert("Please provide your phone number for buggy contact purposes.");
+
+  const { error } = await supabase.from("rsvps").upsert(
+    [{ event_id: eventId, name, email, phone, attending, buggy, flexibility }],
+    { onConflict: ["event_id", "name"] }
+  );
+
+  if (error) {
+    alert("❌ Error saving RSVP: " + error.message);
+    return;
+  }
+
+  alert("✅ Thank you for RSVPing. We’ll confirm buggy pairings closer to the event.");
+  loadRSVPs(eventId, safeId);
+}
+
+/* =========================
+   LOAD RSVPS + DISPLAY LIST
+   ========================= */
+async function loadRSVPs(eventId, safeId) {
+  const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId).order("created_at", { ascending: true });
+  if (error) { console.error(error); return; }
+
+  const div = document.getElementById(`rsvpList_${safeId}`);
   if (!data.length) {
     div.innerHTML = "<em>No RSVPs yet.</em>";
     return;
   }
-  div.innerHTML = "<strong>Attendees:</strong><ul>" +
-    data
-      .filter(d => d.attend === "Yes")
-      .map(d => `<li>${d.name} (${d.handicap}) ${d.buggy === "Yes" ? "🛺" : ""} ${d.partner ? `— partner: ${d.partner}` : ""}</li>`)
-      .join('') +
-    "</ul>";
+
+  const attendees = data.filter(d => d.attending);
+  div.innerHTML = "<strong>Who’s Going:</strong><ul>" +
+    attendees.map(d => `<li>${d.name}</li>`).join("") + "</ul>";
 }
+
+/* =========================
+   REALTIME SUBSCRIPTIONS
+   ========================= */
+supabase.channel("realtime:events")
+  .on("postgres_changes", { event: "*", schema: "public", table: "events" }, payload => loadEvents())
+  .subscribe();
+
+supabase.channel("realtime:rsvps")
+  .on("postgres_changes", { event: "*", schema: "public", table: "rsvps" }, payload => loadEvents())
+  .subscribe();
 
 /* =========================
    INIT
    ========================= */
-renderEvents();
+loadEvents();
 </script>
 </body>
 </html>
-
