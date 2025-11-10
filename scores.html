@@ -233,6 +233,7 @@ tbody tr:hover{background:var(--highlight);}
   </div>
 </main>
 <div id="toast"></div>
+<!-- PART 2 CONTINUES BELOW -->
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
@@ -247,8 +248,9 @@ let players = [], currentHcp = [], nextHcp = [], playerScores = [], lastAdj = []
 
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg; t.style.opacity = 1;
-  setTimeout(() => t.style.opacity = 0, 2500);
+  t.textContent = msg;
+  t.style.opacity = 1;
+  setTimeout(() => (t.style.opacity = 0), 2500);
 }
 
 function stablefordAdj(pts) {
@@ -296,26 +298,58 @@ async function loadData() {
 }
 
 function subscribeRealtime() {
-  supabase.channel("realtime:scores")
-    .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, payload => {
-      loadData();
-    }).subscribe();
+  const channel = supabase.channel("public:scores-updates", {
+    config: { broadcast: { ack: true } }
+  });
+
+  channel
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "scores" },
+      payload => {
+        console.log("Realtime update received:", payload);
+        loadData();
+      }
+    )
+    .subscribe(status => console.log("Realtime status:", status));
 }
 
 async function saveData() {
-  for (let i = 0; i < players.length; i++) {
-    const player = players[i];
-    const total = playerScores[i].filter(v => v !== null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-    const pts = playerScores[i][currentRound-1] || 0;
-    const adj = parseInt(lastAdj[i]) || 0;
-    const next = nextHcp[i] ?? currentHcp[i];
-    await supabase.from("scores").insert({
-      player, round: currentRound, handicap: currentHcp[i],
-      points: pts, adj: adj, next_handicap: next, total: total,
-      updated_at: new Date().toISOString()
-    });
+  try {
+    const records = [];
+
+    for (let i = 0; i < players.length; i++) {
+      const player = players[i];
+      const total = playerScores[i].filter(v => v !== null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
+      const pts = playerScores[i][currentRound-1] || 0;
+      const adj = parseInt(lastAdj[i]) || 0;
+      const next = nextHcp[i] ?? currentHcp[i];
+
+      records.push({
+        player,
+        round: currentRound,
+        handicap: currentHcp[i],
+        points: pts,
+        adj: adj,
+        next_handicap: next,
+        total: total,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    const { error } = await supabase.from("scores").upsert(records, { onConflict: ["player", "round"] });
+
+    if (error) {
+      console.error("Supabase save error:", error);
+      showToast("⚠️ Error saving to Supabase");
+    } else {
+      showToast("✅ Data saved & synced to Supabase");
+    }
+
+  } catch (err) {
+    console.error("Unexpected saveData error:", err);
+    showToast("⚠️ Unexpected error saving data");
   }
-  showToast("Data saved to Supabase");
 }
 
 async function calculateHandicaps() {
@@ -336,7 +370,7 @@ async function calculateHandicaps() {
   renderLeaderboard();
   await saveData();
   drawChart();
-  autoBackupCSV(); // 🔄 auto CSV backup
+  autoBackupCSV();
 }
 
 function autoBackupCSV() {
@@ -579,3 +613,5 @@ loadData();
 </script>
 </body>
 </html>
+
+
