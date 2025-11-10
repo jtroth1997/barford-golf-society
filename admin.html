@@ -230,13 +230,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     let buggy = rsvps.filter(r => r.buggy);
     let walkers = rsvps.filter(r => !r.buggy);
 
-    // Handle flexibility
-    if (buggy.length % 2 === 1) {
-      const flexible = buggy.find(r => r.flexibility?.includes("happy to walk"));
-      if (flexible) {
-        buggy = buggy.filter(r => r.id !== flexible.id);
-        walkers.push(flexible);
-      }
+   // Handle flexibility — make buggy list even by moving flexible players to walkers
+let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
+while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
+  const mover = flexiblePlayers.shift(); // take one flexible player
+  buggy = buggy.filter(r => r.id !== mover.id); // remove them from buggy list
+  walkers.push(mover); // move to walkers
+}
     }
 
     const teeTimes = [];
