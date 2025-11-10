@@ -150,7 +150,7 @@ async function submitRSVP(e, eventId){
   alert("✅ RSVP saved successfully!");
 }
 
-// Load tee times for event (with buggy phone numbers and top note)
+// Load tee times for event (with buggy pairs grouped and phone numbers)
 async function loadTeeTimes(eventId){
   const container=document.getElementById(`tee_${eventId}`);
   const { data: tees, error } = await supabase
@@ -179,40 +179,58 @@ async function loadTeeTimes(eventId){
   const findRSVP = (playerName) =>
     rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
 
-  const findPhone = (playerName) => {
-    const match = findRSVP(playerName);
-    if(match && match.buggy && match.phone) return ` <span class='phone'>(${match.phone})</span>`;
-    return "";
-  };
+  const buggyNote = rsvps?.some(r => r.buggy) ? `
+    <p style="background:#fff8e6;padding:10px;border-radius:8px;margin-bottom:10px;">
+      🛺 <strong>Note:</strong> Any buggy pairs should contact each other directly to organise booking of their buggy.
+    </p>` : "";
 
-  // Check if any buggies exist
-  const anyBuggy = rsvps?.some(r => r.buggy);
+  let html = header + buggyNote;
 
-  let html = header;
-  if(anyBuggy){
-    html += `<p style="background:#fff8e6;padding:10px;border-radius:8px;margin-bottom:10px;">
-    🛺 <strong>Note:</strong> Any buggy pairs should contact each other directly to organise booking of their buggy.
-    </p>`;
-  }
+  tees.forEach((g) => {
+    // Sort players in each group so buggy users are first and grouped together
+    const playersWithRSVP = g.players.map(p => ({
+      name: p,
+      ...findRSVP(p)
+    }));
 
-  tees.forEach(g=>{
-    html += `
-      <div class='group'>
-        <strong>Group ${g.group_number} — ${g.tee_time}</strong>
+    const buggyPlayers = playersWithRSVP.filter(p => p.buggy);
+    const walkers = playersWithRSVP.filter(p => !p.buggy);
+
+    html += `<div class='group'>
+      <strong>Group ${g.group_number} — ${g.tee_time}</strong>`;
+
+    // --- Buggy Pairs ---
+    if(buggyPlayers.length > 0){
+      html += `<div style="margin-top:6px;margin-left:10px;">
+        <strong>Buggy Pairs:</strong>
+        <ul>`;
+      for(let i=0;i<buggyPlayers.length;i+=2){
+        const pair = buggyPlayers.slice(i,i+2);
+        if(pair.length===2){
+          html += `<li>🛺 Pair: ${pair[0].name} (${pair[0].phone||'no phone'}) & ${pair[1].name} (${pair[1].phone||'no phone'})</li>`;
+        } else {
+          html += `<li>🛺 Single buggy: ${pair[0].name} (${pair[0].phone||'no phone'}) <em>(pays full cost)</em></li>`;
+        }
+      }
+      html += `</ul></div>`;
+    }
+
+    // --- Walkers ---
+    if(walkers.length > 0){
+      html += `<div style="margin-top:6px;margin-left:10px;">
+        <strong>Walkers:</strong>
         <ul>
-          ${g.players.map(p=>{
-            const rsvp = findRSVP(p);
-            const buggyIcon = rsvp?.buggy ? " <span class='buggy'>🛺</span>" : "";
-            const phoneText = (rsvp?.buggy && rsvp?.phone) ? ` <span class='phone'>(${rsvp.phone})</span>` : "";
-            return `<li class='player'>${p}${buggyIcon}${phoneText}</li>`;
-          }).join("")}
+          ${walkers.map(p=>`<li>${p.name}</li>`).join('')}
         </ul>
-      </div>
-    `;
+      </div>`;
+    }
+
+    html += `</div>`;
   });
 
   container.innerHTML = html;
 }
+
 
 
 // Subscribe for realtime tee time updates
