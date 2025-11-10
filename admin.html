@@ -160,8 +160,8 @@ th {
     <div id="teeTools" class="hidden">
       <h3>Generate Tee Times</h3>
       <p class="small">
-        Select an event to organise tee times. Buggy players will go out first,  
-        but can be grouped with other players into 4-balls.
+        Select an event to organise tee times. Buggy players will go out first and be paired together,
+        but they can still be mixed into 4-balls.
       </p>
       <select id="teeEventSelect">
         <option value="">Select Event</option>
@@ -267,7 +267,7 @@ document.getElementById("teeUnlockBtn").addEventListener("click", () => {
   } else alert("Incorrect tee time password");
 });
 
-// Generate tee times
+// Tee time generation
 document.getElementById("generateBtn").addEventListener("click", async () => {
   const eventId = document.getElementById("teeEventSelect").value;
   if (!eventId) return alert("Select an event first");
@@ -280,60 +280,90 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
   if (error) return alert("Error loading RSVPs");
   if (!rsvps.length) return alert("No attending players.");
 
-  // Separate buggy and walkers
-  const buggyPlayers = rsvps.filter(r => r.buggy);
-  const walkers = rsvps.filter(r => !r.buggy);
-
-  // Combine buggy players into 4-balls if possible
-  const groups = [];
-  let pool = [...buggyPlayers, ...walkers];
-
-  // Sort buggy first for pace of play
-  pool.sort((a, b) => (a.buggy === b.buggy ? 0 : a.buggy ? -1 : 1));
-
-  // Split into groups of 4 (or 3 if leftover)
-  while (pool.length > 0) {
-    const groupSize = pool.length >= 4 ? 4 : pool.length;
-    groups.push(pool.splice(0, groupSize));
+  // Pair buggy players together
+  const buggyPlayers = [...rsvps.filter(r => r.buggy)];
+  const buggyPairs = [];
+  for (let i = 0; i < buggyPlayers.length; i += 2) {
+    buggyPairs.push(buggyPlayers.slice(i, i + 2));
   }
 
-  // Build tee sheet
-  teeSheetCache = [];
+  // Walkers
+  const walkers = rsvps.filter(r => !r.buggy);
+
+  // Mix groups: each buggy pair fills a 4-ball with walkers where possible
+  const groups = [];
   const start = new Date();
   start.setHours(9, 0, 0, 0);
   const interval = 8;
-  groups.forEach((grp, i) => {
+
+  buggyPairs.forEach(pair => {
+    const group = [...pair];
+    while (group.length < 4 && walkers.length > 0) {
+      group.push(walkers.shift());
+    }
+    groups.push(group);
+  });
+
+  // Remaining walkers into 3/4-balls
+  while (walkers.length > 0) {
+    if (walkers.length <= 3) groups.push(walkers.splice(0, 3));
+    else groups.push(walkers.splice(0, 4));
+  }
+
+  // Create tee sheet
+  teeSheetCache = groups.map((grp, i) => {
     const t = new Date(start.getTime() + i * interval * 60000);
     const time = t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    teeSheetCache.push({
-      group: i + 1,
-      time,
-      players: grp
-    });
+    return { group: i + 1, time, players: grp };
   });
 
   renderTeePreview(eventId);
   document.getElementById("saveBtn").classList.remove("hidden");
 });
 
-// Render tee preview
+// Render formatted tee preview
 async function renderTeePreview(eventId) {
   const div = document.getElementById("teePreview");
   if (!teeSheetCache.length) return (div.innerHTML = "<p>No tee times yet.</p>");
 
   let html = "<h4>Proposed Tee Times</h4>";
   teeSheetCache.forEach(g => {
-    const hasBuggy = g.players.some(p => p.buggy);
-    const players = g.players.map(p => {
-      if (hasBuggy && p.buggy && p.phone) return `${p.name} (${p.phone})`;
-      return p.name;
-    }).join(", ");
-    html += `<div class="tt-group"><div class="tt-time">Group ${g.group} — ${g.time}</div>${players}</div>`;
+    let buggyCount = g.players.filter(p => p.buggy).length;
+    let buggyPairs = [];
+    let walkers = [];
+
+    // Build buggy pairs and walkers
+    let pendingBuggy = null;
+    g.players.forEach(p => {
+      if (p.buggy) {
+        if (pendingBuggy) {
+          buggyPairs.push([pendingBuggy, p]);
+          pendingBuggy = null;
+        } else {
+          pendingBuggy = p;
+        }
+      } else walkers.push(p);
+    });
+    if (pendingBuggy) buggyPairs.push([pendingBuggy]);
+
+    html += `<div class="tt-group">
+      <div class="tt-time">Group ${g.group} — ${g.time}</div>`;
+
+    buggyPairs.forEach((pair, i) => {
+      const pairNames = pair.map(p => p.phone ? `${p.name} (${p.phone})` : p.name).join(", ");
+      html += `<div>Buggy Pair ${i + 1}: ${pairNames}</div>`;
+    });
+
+    if (walkers.length) {
+      html += `<div>Walkers: ${walkers.map(p => p.name).join(", ")}</div>`;
+    }
+
+    html += `</div>`;
   });
   div.innerHTML = html;
 }
 
-// Save to Supabase
+// Save tee times
 document.getElementById("saveBtn").addEventListener("click", async () => {
   const eventId = document.getElementById("teeEventSelect").value;
   if (!teeSheetCache.length) return alert("Nothing to save.");
