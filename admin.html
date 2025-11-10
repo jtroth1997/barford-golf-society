@@ -109,187 +109,224 @@
   </main>
 
   <script>
-    const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-    const SUPABASE_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const ADMIN_PW = "westbrom1997";
-    const TEE_PW = "oxford1";
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_PW = "westbrom1997";
+const TEE_PW = "oxford1";
 
-    // LOGIN
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const pass = document.getElementById("adminPassword").value.trim();
-      if (pass === ADMIN_PW) {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("adminContent").classList.remove("hidden");
-        await loadEvents();
-        // Load default data for first event automatically
-        const first = document.getElementById("eventSelectRSVP");
-        if (first.value) loadRSVPsAndGroups();
-      } else {
-        const e = document.getElementById("loginError");
-        e.classList.remove("hidden");
-        setTimeout(() => e.classList.add("hidden"), 2000);
-      }
-    });
+// LOGIN
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const pass = document.getElementById("adminPassword").value.trim();
+  if (pass === ADMIN_PW) {
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("adminContent").classList.remove("hidden");
+    await loadEvents();
+    const first = document.getElementById("eventSelectRSVP");
+    if (first.value) loadRSVPsAndGroups();
+  } else {
+    const e = document.getElementById("loginError");
+    e.classList.remove("hidden");
+    setTimeout(() => e.classList.add("hidden"), 2000);
+  }
+});
 
-    // SWITCH SECTIONS
-    document.getElementById("rsvpManagerBtn").addEventListener("click", () => {
-      document.getElementById("rsvpSection").classList.remove("hidden");
-      document.getElementById("teeSection").classList.add("hidden");
-    });
-    document.getElementById("teeTimeBtn").addEventListener("click", () => {
-      document.getElementById("teeSection").classList.remove("hidden");
-      document.getElementById("rsvpSection").classList.add("hidden");
-    });
+// SECTION SWITCH
+document.getElementById("rsvpManagerBtn").addEventListener("click", () => {
+  document.getElementById("rsvpSection").classList.remove("hidden");
+  document.getElementById("teeSection").classList.add("hidden");
+});
+document.getElementById("teeTimeBtn").addEventListener("click", () => {
+  document.getElementById("teeSection").classList.remove("hidden");
+  document.getElementById("rsvpSection").classList.add("hidden");
+});
 
-    // TEE PASSWORD
-    document.getElementById("teeLoginBtn").addEventListener("click", () => {
-      const pass = document.getElementById("teePassword").value.trim();
-      if (pass === TEE_PW) {
-        document.getElementById("teeError").classList.add("hidden");
-        document.getElementById("teeContent").classList.remove("hidden");
-      } else {
-        const e = document.getElementById("teeError");
-        e.classList.remove("hidden");
-        setTimeout(() => e.classList.add("hidden"), 2000);
-      }
-    });
+// TEE PASSWORD
+document.getElementById("teeLoginBtn").addEventListener("click", () => {
+  const pass = document.getElementById("teePassword").value.trim();
+  if (pass === TEE_PW) {
+    document.getElementById("teeError").classList.add("hidden");
+    document.getElementById("teeContent").classList.remove("hidden");
+  } else {
+    const e = document.getElementById("teeError");
+    e.classList.remove("hidden");
+    setTimeout(() => e.classList.add("hidden"), 2000);
+  }
+});
 
-    // LOAD EVENTS
-    async function loadEvents() {
-      const { data, error } = await supabase.from("events").select("*");
-      if (error) { console.error(error); return; }
+// LOAD EVENTS
+async function loadEvents() {
+  const { data, error } = await supabase.from("events").select("*");
+  if (error) { console.error(error); return; }
+  const eventSelectRSVP = document.getElementById("eventSelectRSVP");
+  const eventSelect = document.getElementById("eventSelect");
+  eventSelectRSVP.innerHTML = "";
+  eventSelect.innerHTML = "";
+  data.forEach(ev => {
+    const opt = document.createElement("option");
+    opt.value = ev.id;
+    opt.textContent = `${ev.name} (${ev.date})`;
+    eventSelectRSVP.appendChild(opt.cloneNode(true));
+    eventSelect.appendChild(opt);
+  });
+  eventSelectRSVP.addEventListener("change", loadRSVPsAndGroups);
+}
 
-      const eventSelectRSVP = document.getElementById("eventSelectRSVP");
-      const eventSelect = document.getElementById("eventSelect");
-      eventSelectRSVP.innerHTML = "";
-      eventSelect.innerHTML = "";
+// LOAD RSVPS + GROUP INFO
+async function loadRSVPsAndGroups() {
+  const eventId = document.getElementById("eventSelectRSVP").value;
+  if (!eventId) return;
+  const { data: rsvps } = await supabase.from("rsvps").select("*").eq("event_id", eventId);
+  const { data: teeTimes } = await supabase.from("tee_times").select("*").eq("event_id", eventId);
+  const table = document.getElementById("rsvpTable");
+  if (!rsvps.length) {
+    table.innerHTML = "<p>No RSVPs found for this event.</p>";
+    return;
+  }
 
-      data.forEach(ev => {
-        const opt = document.createElement("option");
-        opt.value = ev.id;
-        opt.textContent = `${ev.name} (${ev.date})`;
-        eventSelectRSVP.appendChild(opt.cloneNode(true));
-        eventSelect.appendChild(opt);
-      });
+  const rows = rsvps.map(rsvp => {
+    const group = teeTimes.find(t => (t.players || []).join(",").includes(rsvp.name));
+    return {
+      name: rsvp.name,
+      phone: rsvp.phone || "",
+      attending: rsvp.attending ? "✅" : "❌",
+      buggy: rsvp.buggy ? "🛺" : "🚶‍♂️",
+      flexibility: rsvp.flexibility || "",
+      group_number: group ? group.group_number : "-",
+      tee_time: group ? group.tee_time : "-"
+    };
+  });
 
-      // Make sure dropdown change triggers reload
-      eventSelectRSVP.addEventListener("change", loadRSVPsAndGroups);
-    }
+  table.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Phone</th><th>Attending</th>
+          <th>Buggy</th><th>Flexibility</th>
+          <th>Group</th><th>Tee Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${r.name}</td><td>${r.phone}</td>
+            <td>${r.attending}</td><td>${r.buggy}</td>
+            <td>${r.flexibility}</td><td>${r.group_number}</td><td>${r.tee_time}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
 
-    // LOAD RSVP + GROUP INFO
-    async function loadRSVPsAndGroups() {
-      const eventId = document.getElementById("eventSelectRSVP").value;
-      if (!eventId) return;
+// === FIXED TEE TIME GENERATOR ===
+document.getElementById("generateBtn").addEventListener("click", async () => {
+  const eventId = document.getElementById("eventSelect").value;
+  const start = document.getElementById("startTime").value || "09:00";
+  const interval = parseInt(document.getElementById("interval").value) || 8;
 
-      const { data: rsvps, error: err1 } = await supabase
-        .from("rsvps")
-        .select("*")
-        .eq("event_id", eventId);
-      const { data: teeTimes, error: err2 } = await supabase
-        .from("tee_times")
-        .select("*")
-        .eq("event_id", eventId);
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("attending", true);
 
-      if (err1 || err2) { console.error(err1 || err2); return; }
+  if (error || !rsvps?.length) return alert("No RSVPs found for this event.");
 
-      const table = document.getElementById("rsvpTable");
-      if (!rsvps.length) {
-        table.innerHTML = "<p>No RSVPs found for this event.</p>";
-        return;
-      }
+  let buggy = rsvps.filter(r => r.buggy);
+  let walkers = rsvps.filter(r => !r.buggy);
 
-      const rows = rsvps.map(rsvp => {
-        const group = teeTimes.find(t => (t.players || []).join(",").includes(rsvp.name));
-        return {
-          name: rsvp.name,
-          phone: rsvp.phone || "",
-          attending: rsvp.attending ? "✅" : "❌",
-          buggy: rsvp.buggy ? "🛺" : "🚶‍♂️",
-          flexibility: rsvp.flexibility || "",
-          group_number: group ? group.group_number : "-",
-          tee_time: group ? group.tee_time : "-"
-        };
-      });
+  // Split buggy players by flexibility
+  const needsBuggy = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
+  const happyToWalk = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy"));
+  buggy = [...needsBuggy, ...happyToWalk];
 
-      table.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th><th>Phone</th><th>Attending</th>
-              <th>Buggy</th><th>Flexibility</th>
-              <th>Group</th><th>Tee Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(r => `
-              <tr>
-                <td>${r.name}</td><td>${r.phone}</td>
-                <td>${r.attending}</td><td>${r.buggy}</td>
-                <td>${r.flexibility}</td><td>${r.group_number}</td><td>${r.tee_time}</td>
-              </tr>`).join("")}
-          </tbody>
-        </table>`;
-    }
+  // Pair buggy players correctly
+  const buggyPairs = [];
+  const leftover = [];
+  for (let i = 0; i < buggy.length; i += 2) {
+    const pair = buggy.slice(i, i + 2);
+    if (pair.length === 2) buggyPairs.push(pair);
+    else leftover.push(pair[0]);
+  }
 
-    // GENERATE TEE TIMES
-    document.getElementById("generateBtn").addEventListener("click", async () => {
-      const eventId = document.getElementById("eventSelect").value;
-      const start = document.getElementById("startTime").value;
-      const interval = parseInt(document.getElementById("interval").value);
-      const { data: rsvps, error } = await supabase
-        .from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
-      if (error || !rsvps?.length) return alert("No RSVPs found.");
+  // Move solo buggy (happy to walk) to walkers
+  leftover.forEach(p => {
+    if (p.flexibility?.toLowerCase().includes("happy")) walkers.push(p);
+    else buggyPairs.push([p]); // solo buggy
+  });
 
-      const buggy = rsvps.filter(r => r.buggy);
-      const walkers = rsvps.filter(r => !r.buggy);
-      const needs = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
-      const happy = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy"));
-      let buggyFinal = [...needs];
-      let walkerList = [...walkers];
+  // Flatten buggy pairs into groups of up to 4
+  const buggyGroups = [];
+  let flatBuggies = buggyPairs.flat();
+  while (flatBuggies.length > 0) {
+    buggyGroups.push(flatBuggies.splice(0, 4));
+  }
 
-      let pending = [...happy];
-      while (pending.length > 1) buggyFinal.push(pending.splice(0, 2));
-      if (pending.length === 1) walkerList.push(pending[0]);
+  // Walker groups of 3 or 4
+  const walkerGroups = [];
+  while (walkers.length > 0) {
+    const groupSize = walkers.length % 4 === 3 ? 3 : 4;
+    walkerGroups.push(walkers.splice(0, groupSize));
+  }
 
-      buggyFinal = buggyFinal.flatMap(p => Array.isArray(p) ? [p] : [[p]]);
-      const buggyGroups = [];
-      let pool = buggyFinal.flat();
-      while (pool.length > 0) buggyGroups.push(pool.splice(0, 4));
+  const allGroups = [...buggyGroups, ...walkerGroups];
 
-      const walkerGroups = [];
-      let w = [...walkerList];
-      while (w.length > 0) {
-        const size = w.length % 4 === 3 ? 3 : 4;
-        walkerGroups.push(w.splice(0, size));
-      }
+  // Time logic
+  const addMinutes = (time, mins) => {
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m + mins);
+    return d.toTimeString().slice(0, 5);
+  };
 
-      const allGroups = [...buggyGroups, ...walkerGroups];
-      let current = start;
-      const addMins = (t, m) => {
-        const [h, mi] = t.split(":").map(Number);
-        const d = new Date();
-        d.setHours(h, mi + m);
-        return d.toTimeString().slice(0, 5);
-      };
+  let current = start;
+  const teeTimes = allGroups.map((group, i) => {
+    const players = group.map(p => `${p.name}${p.buggy ? ` (${p.phone || ""})` : ""}`);
+    const result = {
+      event_id: eventId,
+      group_number: i + 1,
+      tee_time: current,
+      players
+    };
+    current = addMinutes(current, interval);
+    return result;
+  });
 
-      const teeTimes = allGroups.map((g, i) => {
-        const res = {
-          event_id: eventId,
-          group_number: i + 1,
-          tee_time: current,
-          players: g.map(p => `${p.name}${p.buggy ? ` (${p.phone || ""})` : ""}`)
-        };
-        current = addMins(current, interval);
-        return res;
-      });
+  // Save to Supabase
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
+  const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
+  if (insertErr) return alert("Error saving tee times: " + insertErr.message);
 
-      await supabase.from("tee_times").delete().eq("event_id", eventId);
-      await supabase.from("tee_times").insert(teeTimes);
-      alert("✅ Tee times generated successfully!");
-      loadRSVPsAndGroups();
-    });
-  </script>
+  alert("✅ Tee times generated successfully!");
+  await displayTeeTimes(eventId);
+  await loadRSVPsAndGroups();
+});
+
+// === Display Tee Times Live ===
+async function displayTeeTimes(eventId) {
+  const { data, error } = await supabase
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("group_number", { ascending: true });
+  const container = document.getElementById("teeTimesDisplay");
+  if (error) return console.error(error);
+  if (!data.length) {
+    container.innerHTML = "<p>No tee times generated yet.</p>";
+    return;
+  }
+  container.innerHTML = `
+    <h3>Generated Tee Times</h3>
+    ${data
+      .map(
+        t => `
+      <div style="margin-bottom:.5rem;">
+        <strong>Group ${t.group_number} — ${t.tee_time}</strong><br>
+        ${t.players.join(", ")}
+      </div>`
+      )
+      .join("")}`;
+}
+</script>
 </body>
 </html>
