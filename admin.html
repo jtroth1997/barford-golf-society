@@ -22,10 +22,11 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .hidden{display:none;}
 button{background:var(--green);color:#fff;font-weight:600;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;}
 button:hover{background:#0a6b34;}
-input[type="password"],select{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
+input[type="password"],input[type="time"],input[type="number"],select{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
 h2{color:var(--green);}
 .notice{background:#fffbe0;border:1px solid #d4af37;padding:10px;border-radius:6px;margin-bottom:10px;}
+ul{padding-left:20px;}
 </style>
 </head>
 <body>
@@ -58,7 +59,7 @@ h2{color:var(--green);}
   <!-- RSVP Manager Section -->
   <div id="adminSection" class="card hidden">
     <h3>RSVP Manager</h3>
-    <p>Welcome to the RSVP Management area. From here you’ll be able to view event RSVPs, see who’s attending, and manage entries.</p>
+    <p>Welcome to the RSVP Management area. From here you can view event RSVPs and manage attendance lists.</p>
     <button id="openTeeSectionBtn">Go to Tee Time Organiser</button>
   </div>
 
@@ -72,10 +73,21 @@ h2{color:var(--green);}
   <!-- Tee Time Section -->
   <div id="teeSection" class="card hidden">
     <h3>Tee Time Organiser</h3>
-    <p>This area allows you to generate and manage tee times for each event.</p>
-    <div id="teeContent">
-      <!-- Your tee time generator code will go here -->
-    </div>
+    <div class="notice">⛳ Note: Any buggy pairs should contact each other directly to organise booking of the buggy.</div>
+    <p>Select the event and generate tee times. Buggies will be paired automatically and walkers placed afterwards.</p>
+
+    <label>Select Event:</label>
+    <select id="eventSelect"></select>
+
+    <label>First Tee Time:</label>
+    <input type="time" id="startTime" value="09:00">
+
+    <label>Interval (mins):</label>
+    <input type="number" id="interval" value="8" min="5" max="20">
+
+    <button id="generateBtn">Generate Tee Times</button>
+
+    <div id="teeTimesDisplay" style="margin-top:20px;"></div>
   </div>
 </div>
 
@@ -90,46 +102,151 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_PW = "westbrom1997";
 const TEE_PW = "oxford1";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const adminLogin = document.getElementById("adminLogin");
   const adminSection = document.getElementById("adminSection");
   const teeLogin = document.getElementById("teeLogin");
   const teeSection = document.getElementById("teeSection");
+  const eventSelect = document.getElementById("eventSelect");
 
-  // Always start locked
+  // Hide all sections by default
   adminSection.classList.add("hidden");
   teeLogin.classList.add("hidden");
   teeSection.classList.add("hidden");
 
-  // --- Admin Unlock ---
+  // Admin unlock
   document.getElementById("adminUnlockBtn").addEventListener("click", () => {
     const pw = document.getElementById("adminPw").value.trim();
     if (pw === ADMIN_PW) {
       adminLogin.classList.add("hidden");
       adminSection.classList.remove("hidden");
       alert("✅ Admin access granted!");
-    } else {
-      alert("❌ Incorrect admin password");
-    }
+    } else alert("❌ Incorrect admin password");
   });
 
-  // --- Navigate to Tee Login ---
+  // Go to Tee Organiser
   document.getElementById("openTeeSectionBtn").addEventListener("click", () => {
     adminSection.classList.add("hidden");
     teeLogin.classList.remove("hidden");
   });
 
-  // --- Tee Time Unlock ---
+  // Tee unlock
   document.getElementById("teeUnlockBtn").addEventListener("click", () => {
     const pw = document.getElementById("teePw").value.trim();
     if (pw === TEE_PW) {
       teeLogin.classList.add("hidden");
       teeSection.classList.remove("hidden");
       alert("✅ Tee Time Organiser access granted!");
+    } else alert("❌ Incorrect organiser password");
+  });
+
+  // Load events into dropdown
+  const { data: events } = await supabase.from("events").select("*").order("date");
+  if (events?.length) {
+    eventSelect.innerHTML = events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join("");
+  }
+
+  // Generate tee times
+  document.getElementById("generateBtn").addEventListener("click", async () => {
+    const eventId = eventSelect.value;
+    if (!eventId) return alert("Select an event first.");
+
+    const startTime = document.getElementById("startTime").value || "09:00";
+    const interval = parseInt(document.getElementById("interval").value || "8");
+
+    const { data: rsvps, error } = await supabase
+      .from("rsvps")
+      .select("*")
+      .eq("event_id", eventId)
+      .eq("attending", true);
+
+    if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
+
+    let buggy = rsvps.filter(r => r.buggy);
+    let walkers = rsvps.filter(r => !r.buggy);
+
+    // Handle flexibility (move one to walkers if odd buggy)
+    if (buggy.length % 2 === 1) {
+      const flexible = buggy.find(r => r.flexibility?.includes("happy to walk"));
+      if (flexible) {
+        buggy = buggy.filter(r => r.id !== flexible.id);
+        walkers.push(flexible);
+      }
+    }
+
+    const teeTimes = [];
+    let currentTime = startTime;
+    let groupNum = 1;
+
+    function addMinutes(time, mins) {
+      const [h, m] = time.split(":").map(Number);
+      const d = new Date();
+      d.setHours(h, m + mins);
+      return d.toTimeString().slice(0,5);
+    }
+
+    // Group buggy pairs first
+    for (let i = 0; i < buggy.length; i += 4) {
+      const group = buggy.slice(i, i + 4);
+      teeTimes.push({
+        event_id: eventId,
+        group_number: groupNum++,
+        tee_time: currentTime,
+        players: group.map(p => p.name)
+      });
+      currentTime = addMinutes(currentTime, interval);
+    }
+
+    // Add walkers (3 balls first then 4 balls)
+    while (walkers.length > 0) {
+      const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
+      const group = walkers.splice(0, groupSize);
+      teeTimes.push({
+        event_id: eventId,
+        group_number: groupNum++,
+        tee_time: currentTime,
+        players: group.map(p => p.name)
+      });
+      currentTime = addMinutes(currentTime, interval);
+    }
+
+    // Save to Supabase
+    await supabase.from("tee_times").delete().eq("event_id", eventId);
+    const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
+    if (insertErr) {
+      console.error(insertErr);
+      alert("Error saving tee times.");
     } else {
-      alert("❌ Incorrect tee organiser password");
+      alert("✅ Tee times generated successfully!");
+      displayTeeTimes(eventId);
     }
   });
+
+  async function displayTeeTimes(eventId) {
+    const { data } = await supabase
+      .from("tee_times")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("group_number");
+    const { data: rsvps } = await supabase.from("rsvps").select("*").eq("event_id", eventId);
+    const div = document.getElementById("teeTimesDisplay");
+    div.innerHTML = "";
+    data.forEach(group => {
+      const players = group.players.map(name => {
+        const r = rsvps.find(p => p.name === name);
+        const phone = r?.phone ? ` (${r.phone})` : "";
+        return `${r?.buggy ? "🛺" : ""} ${name}${phone}`;
+      });
+      const buggyPairs = players.filter(p => p.includes("🛺"));
+      const walkers = players.filter(p => !p.includes("🛺"));
+      div.innerHTML += `
+        <div class="card">
+          <h4>Group ${group.group_number} — ${group.tee_time}</h4>
+          ${buggyPairs.length ? `<strong>Buggy Pairs:</strong><ul>${buggyPairs.map(b=>`<li>${b}</li>`).join("")}</ul>` : ""}
+          ${walkers.length ? `<strong>Walkers:</strong><ul>${walkers.map(w=>`<li>${w}</li>`).join("")}</ul>` : ""}
+        </div>`;
+    });
+  }
 });
 </script>
 </body>
