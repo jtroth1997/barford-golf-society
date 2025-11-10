@@ -5,167 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin | Barford Golf Society</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js"></script>
 <style>
-:root {
-  --green: #083d0b;
-  --gold: #d4af37;
-  --cream: #f7f7f5;
-  --dark: #1b1b1b;
-  --white: #ffffff;
+:root{
+  --green:#005a2b;--gold:#d4af37;--light-bg:#f7f7f5;--card:#fff;
 }
-body {
-  font-family: "Inter", sans-serif;
-  margin: 0;
-  background: var(--cream);
-  color: var(--dark);
-}
-header {
-  background: linear-gradient(to right, var(--green), #145214);
-  color: var(--gold);
-  text-align: center;
-  padding: 20px;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-.navbar {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-  background: var(--white);
-  padding: 12px 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.navbar a {
-  color: var(--green);
-  text-decoration: none;
-  font-weight: 600;
-}
-.navbar a:hover { color: var(--gold); }
-main {
-  max-width: 1100px;
-  margin: 40px auto;
-  background: var(--white);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-h2 {
-  text-align: center;
-  color: var(--green);
-}
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.tab-btn {
-  background: #ddd;
-  border: none;
-  padding: 10px 15px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.tab-btn.active {
-  background: var(--gold);
-  color: var(--dark);
-}
-.hidden { display: none; }
-button {
-  background: var(--green);
-  color: var(--white);
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  margin-top: 10px;
-}
-button:hover { background: #0a5a0a; }
-select, input {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-family: inherit;
-}
-.group {
-  background: #f9f9f9;
-  padding: 10px;
-  border-radius: 6px;
-  margin: 10px 0;
-}
-.phone {
-  color: #555;
-  font-size: 0.9rem;
-}
-.notice {
-  background: #fff8dc;
-  padding: 10px;
-  border-radius: 6px;
-  color: #555;
-  margin-bottom: 10px;
-}
-footer {
-  background: var(--green);
-  color: var(--gold);
-  text-align: center;
-  padding: 20px;
-  margin-top: 40px;
-}
+body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
+header,footer{background:var(--green);color:#fff;padding:15px 0;}
+.header-container{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 20px;}
+.site-title{color:var(--gold);}
+.site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+.site-nav a{color:#fff;text-decoration:none;font-weight:600;}
+.site-nav a:hover,.active{color:var(--gold);}
+.container{max-width:1100px;margin:40px auto;padding:0 20px;}
+.card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+.hidden{display:none;}
+button{background:var(--green);color:#fff;font-weight:600;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;}
+button:hover{background:#0a6b34;}
+input[type="password"],select{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
+footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
+h2{color:var(--green);}
+.notice{background:#fffbe0;border:1px solid #d4af37;padding:10px;border-radius:6px;margin-bottom:10px;}
 </style>
 </head>
 <body>
-<header>Admin Panel - Barford Golf Society</header>
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="events.html">Events</a>
-  <a href="scores.html">Scores</a>
-  <a href="admin.html" class="active">Admin</a>
+
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">Barford Golf Society</h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html">Scores</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="admin.html" class="active">Admin</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <h2>Admin Dashboard</h2>
+
+  <!-- Admin Login -->
+  <div id="adminLogin" class="card">
+    <h3>RSVP Manager Login</h3>
+    <input type="password" id="adminPw" placeholder="Enter admin password">
+    <button id="adminUnlockBtn">Unlock</button>
+  </div>
+
+  <!-- RSVP Manager Section -->
+  <div id="adminSection" class="card hidden">
+    <h3>RSVP Manager</h3>
+    <p>Welcome to the RSVP Management area. From here you’ll be able to view event RSVPs, see who’s attending, and manage entries.</p>
+    <button id="openTeeSectionBtn">Go to Tee Time Organiser</button>
+  </div>
+
+  <!-- Tee Time Login -->
+  <div id="teeLogin" class="card hidden">
+    <h3>Tee Time Organiser Login</h3>
+    <input type="password" id="teePw" placeholder="Enter organiser password">
+    <button id="teeUnlockBtn">Unlock</button>
+  </div>
+
+  <!-- Tee Time Section -->
+  <div id="teeSection" class="card hidden">
+    <h3>Tee Time Organiser</h3>
+    <p>This area allows you to generate and manage tee times for each event.</p>
+    <div id="teeContent">
+      <!-- Your tee time generator code will go here -->
+    </div>
+  </div>
 </div>
 
-<main>
-  <div class="tabs">
-    <button class="tab-btn active" id="rsvpTab">RSVP Manager</button>
-    <button class="tab-btn" id="teeTab">Tee Time Organiser</button>
-  </div>
-
-  <div id="loginSection">
-    <h3>Admin Login</h3>
-    <input type="password" id="adminPassword" placeholder="Enter password">
-    <button id="loginBtn">Login</button>
-  </div>
-
-  <div id="rsvpSection" class="hidden">
-    <h2>RSVP Manager</h2>
-    <label>Select Event:</label>
-    <select id="eventSelect"></select>
-    <div id="rsvpList"></div>
-  </div>
-
-  <div id="teeSection" class="hidden">
-    <h2>Tee Time Organiser</h2>
-    <div id="teeLogin">
-      <input type="password" id="teePassword" placeholder="Enter Tee Password">
-      <button id="teeLoginBtn">Unlock</button>
-    </div>
-
-    <div id="teeControls" class="hidden">
-      <label>Select Event:</label>
-      <select id="teeEventSelect"></select>
-      <br><br>
-      <label>First Tee Time:</label>
-      <input type="time" id="firstTeeTime" value="09:00">
-      <label>Interval (mins):</label>
-      <input type="number" id="intervalMins" value="8" min="4" max="15">
-      <br><br>
-      <button id="generateTeeTimes">Generate Tee Times</button>
-      <div id="teeOutput"></div>
-    </div>
-  </div>
-</main>
-<footer>© 2025 Barford Golf Society</footer>
+<footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
@@ -176,15 +90,15 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const ADMIN_PW = "westbrom1997";
 const TEE_PW = "oxford1";
 
-// ========== LOGIN HANDLERS ==========
 document.addEventListener("DOMContentLoaded", () => {
   const adminLogin = document.getElementById("adminLogin");
   const adminSection = document.getElementById("adminSection");
   const teeLogin = document.getElementById("teeLogin");
   const teeSection = document.getElementById("teeSection");
 
-  // Hide both sections by default
+  // Always start locked
   adminSection.classList.add("hidden");
+  teeLogin.classList.add("hidden");
   teeSection.classList.add("hidden");
 
   // --- Admin Unlock ---
@@ -199,6 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // --- Navigate to Tee Login ---
+  document.getElementById("openTeeSectionBtn").addEventListener("click", () => {
+    adminSection.classList.add("hidden");
+    teeLogin.classList.remove("hidden");
+  });
+
   // --- Tee Time Unlock ---
   document.getElementById("teeUnlockBtn").addEventListener("click", () => {
     const pw = document.getElementById("teePw").value.trim();
@@ -210,161 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("❌ Incorrect tee organiser password");
     }
   });
-
-  // Optional lock buttons (if you’ve added them)
-  document.querySelectorAll(".lockBtn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      adminSection.classList.add("hidden");
-      adminLogin.classList.remove("hidden");
-      document.getElementById("adminPw").value = "";
-      alert("🔒 Locked admin access.");
-    });
-  });
-});
-
-
-// Generate Tee Times (fixed pairing logic)
-document.getElementById("generateBtn").addEventListener("click", async () => {
-  const eventId = document.getElementById("eventSelect").value;
-  if (!eventId) return alert("Select an event first.");
-
-  const startTime = document.getElementById("startTime").value || "09:00";
-  const interval = parseInt(document.getElementById("interval").value || "8");
-
-  const { data: rsvps, error } = await supabase
-    .from("rsvps")
-    .select("*")
-    .eq("event_id", eventId)
-    .eq("attending", true);
-
-  if (error || !rsvps?.length) {
-    alert("No RSVPs found for this event.");
-    return;
-  }
-
-  // Separate buggy and walkers
-  let buggy = rsvps.filter(r => r.buggy);
-  let walkers = rsvps.filter(r => !r.buggy);
-
-  // Handle flexibility (move flexible buggy people to walkers if odd)
-  if (buggy.length % 2 === 1) {
-    const flexible = buggy.find(r => r.flexibility?.includes("happy to walk"));
-    if (flexible) {
-      buggy = buggy.filter(r => r.id !== flexible.id);
-      walkers.push(flexible);
-    }
-  }
-
-  const teeTimes = [];
-  let currentTime = startTime;
-  let groupNum = 1;
-
-  function addMinutes(time, mins) {
-    const [h, m] = time.split(":").map(Number);
-    const d = new Date();
-    d.setHours(h, m + mins);
-    return d.toTimeString().slice(0,5);
-  }
-
-  // Group buggy pairs first
-  for (let i = 0; i < buggy.length; i += 2) {
-    const pair = buggy.slice(i, i + 2);
-    if (pair.length === 2) {
-      teeTimes.push({
-        event_id: eventId,
-        group_number: groupNum++,
-        tee_time: currentTime,
-        players: pair.map(p => p.name),
-      });
-    } else {
-      // Single buggy (will add walkers later)
-      teeTimes.push({
-        event_id: eventId,
-        group_number: groupNum++,
-        tee_time: currentTime,
-        players: [pair[0].name],
-      });
-    }
-    currentTime = addMinutes(currentTime, interval);
-  }
-
-  // Fill single buggy groups with walkers
-  for (let g of teeTimes.filter(g => g.players.length === 1)) {
-    const needed = 3;
-    const addWalkers = walkers.splice(0, needed);
-    g.players = g.players.concat(addWalkers.map(w => w.name));
-  }
-
-  // Add remaining walkers (3 or 4 balls)
-  while (walkers.length > 0) {
-    const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
-    const group = walkers.splice(0, groupSize);
-    teeTimes.push({
-      event_id: eventId,
-      group_number: groupNum++,
-      tee_time: currentTime,
-      players: group.map(p => p.name),
-    });
-    currentTime = addMinutes(currentTime, interval);
-  }
-
-  // Save to Supabase
-  await supabase.from("tee_times").delete().eq("event_id", eventId);
-  const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
-
-  if (insertErr) {
-    console.error(insertErr);
-    alert("Error saving tee times.");
-  } else {
-    alert("✅ Tee times generated successfully!");
-    loadTeeTimes(eventId);
-  }
-});
-
-
-  // Assign tee times
-  const firstTee=document.getElementById("firstTeeTime").value;
-  const interval=parseInt(document.getElementById("intervalMins").value)||8;
-  const [h,m]=firstTee.split(":").map(Number);
-  let teeDate=new Date(0,0,0,h,m);
-  groups.forEach((g,i)=>{
-    const timeStr=teeDate.toTimeString().slice(0,5);
-    g.teeTime=timeStr;
-    teeDate.setMinutes(teeDate.getMinutes()+interval);
-  });
-
-  // Output display
-  const out=document.getElementById("teeOutput");
-  out.innerHTML=groups.map((g,i)=>{
-    return `
-      <div class='group'>
-        <strong>Group ${i+1} — ${g.teeTime}</strong><br>
-        <em>${g.type}</em><ul>
-        ${g.players.map(p=>{
-          const phoneText=p.buggy && p.phone ? ` <span class='phone'>(${p.phone})</span>` : "";
-          return `<li>${p.name}${phoneText}</li>`;
-        }).join("")}
-        </ul>
-      </div>
-    `;
-  }).join("");
-
-  // Save to Supabase
-  await supabase.from("tee_times").delete().eq("event_id", eventId);
-  for(let i=0;i<groups.length;i++){
-    const g=groups[i];
-    await supabase.from("tee_times").insert({
-      event_id: eventId,
-      group_number: i+1,
-      tee_time: g.teeTime,
-      players: g.players.map(p=>p.name)
-    });
-  }
-
-  alert("✅ Tee times generated and saved!");
 });
 </script>
 </body>
 </html>
-
-
