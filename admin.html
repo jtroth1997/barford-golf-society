@@ -36,10 +36,7 @@
       padding: 30px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
-    h2 {
-      color: var(--green);
-      margin-top: 0;
-    }
+    h2 { color: var(--green); margin-top: 0; }
     button {
       background: var(--green);
       color: #fff;
@@ -117,14 +114,18 @@
 <footer>© 2025 Barford Golf Society</footer>
 
 <script>
-/* ========== CONFIG ========== */
+/* ===========================
+   CONFIGURATION
+=========================== */
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const ADMIN_PASSWORD = "westbrom1997";
 const TEE_PASSWORD = "oxford1";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ========== ELEMENTS ========== */
+/* ===========================
+   ELEMENTS
+=========================== */
 const loginSection = document.getElementById("loginSection");
 const mainSection = document.getElementById("mainSection");
 const adminPw = document.getElementById("adminPw");
@@ -136,14 +137,12 @@ const teePreview = document.getElementById("teePreview");
 
 let teeSheetCache = [];
 
-/* ========== LOGIN ========== */
+/* ===========================
+   LOGIN
+=========================== */
 unlockAdmin.addEventListener("click", () => {
   const pw = adminPw.value.trim();
-  if (pw === ADMIN_PASSWORD) {
-    loginSection.classList.add("hidden");
-    mainSection.classList.remove("hidden");
-    loadEvents();
-  } else if (pw === TEE_PASSWORD) {
+  if (pw === ADMIN_PASSWORD || pw === TEE_PASSWORD) {
     loginSection.classList.add("hidden");
     mainSection.classList.remove("hidden");
     loadEvents();
@@ -152,7 +151,9 @@ unlockAdmin.addEventListener("click", () => {
   }
 });
 
-/* ========== LOAD EVENTS ========== */
+/* ===========================
+   LOAD EVENTS
+=========================== */
 async function loadEvents() {
   const { data, error } = await supabase.from("events").select("id, name, date").order("date");
   if (error) {
@@ -160,28 +161,30 @@ async function loadEvents() {
     alert("Error loading events.");
     return;
   }
-
   teeEventSelect.innerHTML = data.map(e => `<option value="${e.id}">${e.name} — ${e.date}</option>`).join("");
 }
 
-/* ========== GENERATE TEE TIMES ========== */
+/* ===========================
+   GENERATE TEE TIMES
+=========================== */
 generateBtn.addEventListener("click", async () => {
   const eventId = parseInt(teeEventSelect.value, 10);
   if (!eventId) return alert("Select an event first.");
 
+  // ✅ Updated field names
   const { data: rsvps, error } = await supabase
     .from("rsvps")
-    .select("name, buggy, flexible, phone")
+    .select("name, buggy, phone, attending, flexibility")
     .eq("event_id", eventId)
-    .eq("attend", true);
+    .eq("attending", true);
 
   if (error) {
     console.error(error);
-    alert("Error fetching RSVPs.");
+    alert("Error fetching RSVPs: " + error.message);
     return;
   }
 
-  // Group by buggy status
+  // Split into buggy and non-buggy
   const buggyPlayers = rsvps.filter(r => r.buggy === true);
   const walkers = rsvps.filter(r => !r.buggy);
 
@@ -192,7 +195,7 @@ generateBtn.addEventListener("click", async () => {
   }
   if (buggyPlayers.length === 1) {
     const lone = buggyPlayers.pop();
-    const flexibleWalker = walkers.find(w => w.flexible === true);
+    const flexibleWalker = walkers.find(w => w.flexibility && w.flexibility.toLowerCase().includes("happy"));
     if (flexibleWalker) {
       buggyPairs.push([lone, flexibleWalker]);
       walkers.splice(walkers.indexOf(flexibleWalker), 1);
@@ -219,25 +222,27 @@ generateBtn.addEventListener("click", async () => {
   });
 
   teeSheetCache = teeSheet;
-  renderTeePreview();
+  renderTeePreview(eventId);
   saveBtn.classList.remove("hidden");
 });
 
-/* ========== HELPER ========== */
+/* ===========================
+   HELPERS
+=========================== */
 function chunkArray(arr, size) {
   const res = [];
   for (let i = 0; i < arr.length; i += size) res.push(arr.slice(i, i + size));
   return res;
 }
 
-/* ========== RENDER PREVIEW (Buggy = Show Phones) ========== */
-async function renderTeePreview() {
+/* ===========================
+   RENDER PREVIEW
+=========================== */
+async function renderTeePreview(eventId) {
   if (!teeSheetCache.length) {
     teePreview.innerHTML = "<p class='small'>No tee times generated yet.</p>";
     return;
   }
-
-  const eventId = parseInt(teeEventSelect.value, 10);
 
   const { data: rsvpData, error } = await supabase
     .from("rsvps")
@@ -246,7 +251,7 @@ async function renderTeePreview() {
 
   if (error) {
     console.error(error);
-    teePreview.innerHTML = "<p class='small'>Error loading player contact info.</p>";
+    teePreview.innerHTML = "<p class='small'>Error loading player info.</p>";
     return;
   }
 
@@ -272,7 +277,9 @@ async function renderTeePreview() {
   teePreview.innerHTML = html;
 }
 
-/* ========== SAVE TO SUPABASE ========== */
+/* ===========================
+   SAVE TO SUPABASE
+=========================== */
 saveBtn.addEventListener("click", async () => {
   const eventId = parseInt(teeEventSelect.value, 10);
   if (!teeSheetCache.length) return alert("No tee times generated.");
