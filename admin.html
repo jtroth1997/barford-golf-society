@@ -242,13 +242,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       let buggy = rsvps.filter(r => r.buggy);
       let walkers = rsvps.filter(r => !r.buggy);
 
-      // ✅ FIXED FLEXIBILITY: make buggy count even
-      let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
-      while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
-        const mover = flexiblePlayers.shift();
-        buggy = buggy.filter(r => r.id !== mover.id);
-        walkers.push(mover);
-      }
+      // ✅ FIXED FLEXIBILITY: make buggy list even and remove solo flexible players
+let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
+
+// Step 1: Keep moving flexible players to walkers until buggy count is even
+while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
+  const mover = flexiblePlayers.shift();
+  buggy = buggy.filter(r => r.id !== mover.id);
+  walkers.push(mover);
+}
+
+// Step 2: If after pairing there's still a single flexible buggy person left, move them too
+if (buggy.length === 1 && buggy[0].flexibility?.toLowerCase().includes("happy to walk")) {
+  walkers.push(buggy[0]);
+  buggy = [];
+}
+
 
       const teeTimes = [];
       let currentTime = startTime;
