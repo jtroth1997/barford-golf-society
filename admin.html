@@ -291,6 +291,8 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
     .select("*")
     .eq("event_id", eventId)
     .eq("attending", true);
+  console.log("RSVP data:", data);
+
 
   if (error || !data.length) {
     console.error(error);
