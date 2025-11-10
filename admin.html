@@ -115,36 +115,45 @@ document.addEventListener("DOMContentLoaded", async () => {
   teeSection.classList.add("hidden");
 
   // --- ADMIN LOGIN ---
-  document.getElementById("adminUnlockBtn").addEventListener("click", async () => {
-    const pw = document.getElementById("adminPw").value.trim();
-    if (pw === ADMIN_PW) {
-      adminLogin.classList.add("hidden");
-      adminSection.classList.remove("hidden");
-      alert("✅ Admin access granted!");
-      await loadRSVPEvents();
-    } else {
-      alert("❌ Incorrect admin password");
-    }
-  });
+  const adminUnlockBtn = document.getElementById("adminUnlockBtn");
+  if (adminUnlockBtn) {
+    adminUnlockBtn.addEventListener("click", async () => {
+      const pw = document.getElementById("adminPw").value.trim();
+      if (pw === ADMIN_PW) {
+        adminLogin.classList.add("hidden");
+        adminSection.classList.remove("hidden");
+        alert("✅ Admin access granted!");
+        await loadRSVPEvents();
+      } else {
+        alert("❌ Incorrect admin password");
+      }
+    });
+  }
 
   // --- GO TO TEE ORGANISER LOGIN ---
-  document.getElementById("openTeeSectionBtn").addEventListener("click", () => {
-    adminSection.classList.add("hidden");
-    teeLogin.classList.remove("hidden");
-  });
+  const openTeeSectionBtn = document.getElementById("openTeeSectionBtn");
+  if (openTeeSectionBtn) {
+    openTeeSectionBtn.addEventListener("click", () => {
+      adminSection.classList.add("hidden");
+      teeLogin.classList.remove("hidden");
+    });
+  }
 
   // --- TEE TIME ORGANISER LOGIN ---
-  document.getElementById("teeUnlockBtn").addEventListener("click", () => {
-    const pw = document.getElementById("teePw").value.trim();
-    if (pw === TEE_PW) {
-      teeLogin.classList.add("hidden");
-      teeSection.classList.remove("hidden");
-      alert("✅ Tee Time Organiser access granted!");
-      loadTeeEvents();
-    } else {
-      alert("❌ Incorrect organiser password");
-    }
-  });
+  const teeUnlockBtn = document.getElementById("teeUnlockBtn");
+  if (teeUnlockBtn) {
+    teeUnlockBtn.addEventListener("click", () => {
+      const pw = document.getElementById("teePw").value.trim();
+      if (pw === TEE_PW) {
+        teeLogin.classList.add("hidden");
+        teeSection.classList.remove("hidden");
+        alert("✅ Tee Time Organiser access granted!");
+        loadTeeEvents();
+      } else {
+        alert("❌ Incorrect organiser password");
+      }
+    });
+  }
 
   /* =========================
      RSVP MANAGER FUNCTIONS
@@ -212,80 +221,83 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  document.getElementById("generateBtn").addEventListener("click", async () => {
-    const eventId = eventSelect.value;
-    if (!eventId) return alert("Select an event first.");
+  // Tee Time Generator
+  const generateBtn = document.getElementById("generateBtn");
+  if (generateBtn) {
+    generateBtn.addEventListener("click", async () => {
+      const eventId = eventSelect.value;
+      if (!eventId) return alert("Select an event first.");
 
-    const startTime = document.getElementById("startTime").value || "09:00";
-    const interval = parseInt(document.getElementById("interval").value || "8");
+      const startTime = document.getElementById("startTime").value || "09:00";
+      const interval = parseInt(document.getElementById("interval").value || "8");
 
-    const { data: rsvps, error } = await supabase
-      .from("rsvps")
-      .select("*")
-      .eq("event_id", eventId)
-      .eq("attending", true);
+      const { data: rsvps, error } = await supabase
+        .from("rsvps")
+        .select("*")
+        .eq("event_id", eventId)
+        .eq("attending", true);
 
-    if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
+      if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
 
-    let buggy = rsvps.filter(r => r.buggy);
-    let walkers = rsvps.filter(r => !r.buggy);
+      let buggy = rsvps.filter(r => r.buggy);
+      let walkers = rsvps.filter(r => !r.buggy);
 
-   // Handle flexibility — make buggy list even by moving flexible players to walkers
-let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
-while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
-  const mover = flexiblePlayers.shift(); // take one flexible player
-  buggy = buggy.filter(r => r.id !== mover.id); // remove them from buggy list
-  walkers.push(mover); // move to walkers
-}
-    }
+      // ✅ FIXED FLEXIBILITY: make buggy count even
+      let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
+      while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
+        const mover = flexiblePlayers.shift();
+        buggy = buggy.filter(r => r.id !== mover.id);
+        walkers.push(mover);
+      }
 
-    const teeTimes = [];
-    let currentTime = startTime;
-    let groupNum = 1;
+      const teeTimes = [];
+      let currentTime = startTime;
+      let groupNum = 1;
 
-    function addMinutes(time, mins) {
-      const [h, m] = time.split(":").map(Number);
-      const d = new Date();
-      d.setHours(h, m + mins);
-      return d.toTimeString().slice(0,5);
-    }
+      function addMinutes(time, mins) {
+        const [h, m] = time.split(":").map(Number);
+        const d = new Date();
+        d.setHours(h, m + mins);
+        return d.toTimeString().slice(0,5);
+      }
 
-    // Group buggy pairs first (4 buggy players per group max)
-    for (let i = 0; i < buggy.length; i += 4) {
-      const group = buggy.slice(i, i + 4);
-      teeTimes.push({
-        event_id: eventId,
-        group_number: groupNum++,
-        tee_time: currentTime,
-        players: group.map(p => p.name)
-      });
-      currentTime = addMinutes(currentTime, interval);
-    }
+      // Group buggy pairs first (4 buggy players per group max)
+      for (let i = 0; i < buggy.length; i += 4) {
+        const group = buggy.slice(i, i + 4);
+        teeTimes.push({
+          event_id: eventId,
+          group_number: groupNum++,
+          tee_time: currentTime,
+          players: group.map(p => p.name)
+        });
+        currentTime = addMinutes(currentTime, interval);
+      }
 
-    // Add walkers (3 balls first then 4 balls)
-    while (walkers.length > 0) {
-      const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
-      const group = walkers.splice(0, groupSize);
-      teeTimes.push({
-        event_id: eventId,
-        group_number: groupNum++,
-        tee_time: currentTime,
-        players: group.map(p => p.name)
-      });
-      currentTime = addMinutes(currentTime, interval);
-    }
+      // Add walkers (3 balls first then 4 balls)
+      while (walkers.length > 0) {
+        const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
+        const group = walkers.splice(0, groupSize);
+        teeTimes.push({
+          event_id: eventId,
+          group_number: groupNum++,
+          tee_time: currentTime,
+          players: group.map(p => p.name)
+        });
+        currentTime = addMinutes(currentTime, interval);
+      }
 
-    // Save to Supabase
-    await supabase.from("tee_times").delete().eq("event_id", eventId);
-    const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
-    if (insertErr) {
-      console.error(insertErr);
-      alert("Error saving tee times.");
-    } else {
-      alert("✅ Tee times generated successfully!");
-      displayTeeTimes(eventId);
-    }
-  });
+      // Save to Supabase
+      await supabase.from("tee_times").delete().eq("event_id", eventId);
+      const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
+      if (insertErr) {
+        console.error(insertErr);
+        alert("Error saving tee times.");
+      } else {
+        alert("✅ Tee times generated successfully!");
+        displayTeeTimes(eventId);
+      }
+    });
+  }
 
   async function displayTeeTimes(eventId) {
     const { data } = await supabase
