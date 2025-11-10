@@ -6,72 +6,111 @@
   <title>Admin | Barford Golf Society</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      background-color: #f9fafb;
+      font-family: "Segoe UI", sans-serif;
+    }
+    header {
+      background: linear-gradient(90deg, #115e34, #1f7a47);
+      color: #f2c94c;
+      padding: 1rem 2rem;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      transition: background 0.2s;
+    }
+    .btn-green {
+      background-color: #1f7a47;
+      color: white;
+    }
+    .btn-green:hover { background-color: #166338; }
+    .btn-blue {
+      background-color: #2264d1;
+      color: white;
+    }
+    .btn-blue:hover { background-color: #174da2; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background-color: #f3f3f3; }
+    select, input { border: 1px solid #ccc; border-radius: 6px; padding: 0.4rem; width: 100%; }
+    .hidden { display: none; }
+    .note {
+      background-color: #fff8e1;
+      border: 1px solid #f2c94c;
+      color: #775f00;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-50 font-sans">
-  <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold text-green-800 mb-6">Admin Login</h1>
+<body>
+  <header>
+    <h1>Barford Golf Society — Admin</h1>
+  </header>
 
-    <!-- LOGIN SECTION -->
-    <div id="loginSection" class="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
-      <label class="block mb-2 font-semibold">Enter Admin Password</label>
-      <input id="adminPassword" type="password" placeholder="Enter password..." 
-             class="border rounded w-full p-2 mb-4 focus:outline-green-700" />
-      <button id="loginBtn" 
-              class="bg-green-700 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded w-full">
-        Login
-      </button>
-      <p id="loginError" class="text-red-600 mt-3 hidden">Incorrect password. Please try again.</p>
+  <div class="container">
+    <!-- LOGIN -->
+    <div id="loginSection">
+      <h2 class="text-xl font-bold mb-2 text-green-800">Admin Login</h2>
+      <input id="adminPassword" type="password" placeholder="Enter admin password..." />
+      <button id="loginBtn" class="btn-green w-full mt-3 p-2 rounded">Login</button>
+      <p id="loginError" class="text-red-600 mt-3 hidden">Incorrect password. Try again.</p>
     </div>
 
-    <!-- ADMIN DASHBOARD -->
-    <div id="adminContent" class="hidden mt-6">
-      <h2 class="text-2xl font-bold text-green-800 mb-4">Admin Dashboard</h2>
-      <p class="text-gray-700 mb-4">Welcome to the Admin area. Choose a section below.</p>
+    <!-- DASHBOARD -->
+    <div id="adminContent" class="hidden">
+      <h2 class="text-2xl text-green-800 font-bold mb-2">Admin Dashboard</h2>
+      <p class="text-gray-700 mb-3">Select a section below.</p>
 
-      <div class="flex gap-4 mb-6">
-        <button id="rsvpManagerBtn" 
-                class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
-          RSVP Manager
-        </button>
-        <button id="teeTimeBtn" 
-                class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
-          Tee Time Organiser
-        </button>
+      <div class="flex gap-4 mb-4">
+        <button id="rsvpManagerBtn" class="btn-green py-2 px-4 rounded">RSVP Manager</button>
+        <button id="teeTimeBtn" class="btn-blue py-2 px-4 rounded">Tee Time Organiser</button>
       </div>
 
-      <!-- RSVP SECTION -->
+      <!-- RSVP MANAGER -->
       <div id="rsvpSection" class="hidden">
-        <h3 class="text-xl font-bold mb-3">RSVP Manager</h3>
-        <select id="eventSelectRSVP" class="border p-2 rounded mb-3"></select>
-        <div id="rsvpTable" class="bg-white rounded-lg shadow p-4"></div>
+        <h3 class="text-xl font-bold mb-3 text-green-800">RSVP Manager</h3>
+        <select id="eventSelectRSVP" class="mb-3"></select>
+        <div id="rsvpTable"></div>
       </div>
 
-      <!-- TEE TIME SECTION -->
+      <!-- TEE TIME ORGANISER -->
       <div id="teeSection" class="hidden">
-        <h3 class="text-xl font-bold mb-3">Tee Time Organiser (Password Protected)</h3>
-        <label class="block mb-2 font-semibold">Enter Tee Time Password:</label>
-        <input id="teePassword" type="password" placeholder="Enter password..." 
-               class="border rounded w-full p-2 mb-3 focus:outline-green-700" />
-        <button id="teeLoginBtn" 
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-          Access Tee Time Organiser
-        </button>
-        <p id="teeError" class="text-red-600 mt-3 hidden">Incorrect password. Please try again.</p>
+        <h3 class="text-xl font-bold mb-3 text-green-800">Tee Time Organiser</h3>
+        <input id="teePassword" type="password" placeholder="Enter tee organiser password..." />
+        <button id="teeLoginBtn" class="btn-blue w-full mt-3 p-2 rounded">Access Tee Time Organiser</button>
+        <p id="teeError" class="text-red-600 mt-3 hidden">Incorrect password. Try again.</p>
 
         <div id="teeContent" class="hidden mt-6">
-          <h4 class="text-lg font-semibold text-green-700 mb-2">Tee Time Generator</h4>
+          <div class="note">Any buggy pairs should contact each other to organise their buggy directly.</div>
+
           <label>Event:</label>
-          <select id="eventSelect" class="border p-2 rounded mb-2"></select><br />
+          <select id="eventSelect" class="mb-2"></select>
+
           <label>First Tee Time:</label>
-          <input type="time" id="startTime" class="border p-2 rounded mb-2" value="09:00" /><br />
+          <input type="time" id="startTime" value="09:00" class="mb-2" />
+
           <label>Interval (minutes):</label>
-          <input type="number" id="interval" class="border p-2 rounded mb-2 w-20" value="8" /><br />
-          <button id="generateBtn" 
-                  class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
-            Generate Tee Times
-          </button>
-          <div id="teeTimesDisplay" class="mt-6 bg-white p-4 rounded shadow"></div>
+          <input type="number" id="interval" value="8" class="mb-2 w-24" />
+
+          <button id="generateBtn" class="btn-green py-2 px-4 rounded mt-2">Generate Tee Times</button>
+          <div id="teeTimesDisplay" class="mt-6"></div>
         </div>
       </div>
     </div>
@@ -84,58 +123,52 @@
     const ADMIN_PW = "westbrom1997";
     const TEE_PW = "oxford1";
 
-    // === LOGIN ===
+    // --- LOGIN ---
     const loginBtn = document.getElementById("loginBtn");
-    const adminPassword = document.getElementById("adminPassword");
-    const loginError = document.getElementById("loginError");
-    const loginSection = document.getElementById("loginSection");
-    const adminContent = document.getElementById("adminContent");
-
     loginBtn.addEventListener("click", () => {
-      if (adminPassword.value.trim() === ADMIN_PW) {
-        loginSection.classList.add("hidden");
-        adminContent.classList.remove("hidden");
+      const val = document.getElementById("adminPassword").value.trim();
+      if (val === ADMIN_PW) {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("adminContent").classList.remove("hidden");
         loadEvents();
       } else {
-        loginError.classList.remove("hidden");
-        setTimeout(() => loginError.classList.add("hidden"), 2000);
+        const e = document.getElementById("loginError");
+        e.classList.remove("hidden");
+        setTimeout(() => e.classList.add("hidden"), 2000);
       }
     });
 
-    // === SECTION SWITCHING ===
+    // --- SECTION SWITCH ---
     document.getElementById("rsvpManagerBtn").addEventListener("click", () => {
       document.getElementById("rsvpSection").classList.remove("hidden");
       document.getElementById("teeSection").classList.add("hidden");
     });
-
     document.getElementById("teeTimeBtn").addEventListener("click", () => {
       document.getElementById("teeSection").classList.remove("hidden");
       document.getElementById("rsvpSection").classList.add("hidden");
     });
 
-    // === TEE TIME LOGIN ===
-    const teeLoginBtn = document.getElementById("teeLoginBtn");
-    const teePassword = document.getElementById("teePassword");
-    const teeError = document.getElementById("teeError");
-    const teeContent = document.getElementById("teeContent");
-
-    teeLoginBtn.addEventListener("click", () => {
-      if (teePassword.value.trim() === TEE_PW) {
-        teeError.classList.add("hidden");
-        teeContent.classList.remove("hidden");
+    // --- TEE PASSWORD ---
+    document.getElementById("teeLoginBtn").addEventListener("click", () => {
+      const val = document.getElementById("teePassword").value.trim();
+      if (val === TEE_PW) {
+        document.getElementById("teeError").classList.add("hidden");
+        document.getElementById("teeContent").classList.remove("hidden");
       } else {
-        teeError.classList.remove("hidden");
-        setTimeout(() => teeError.classList.add("hidden"), 2000);
+        const e = document.getElementById("teeError");
+        e.classList.remove("hidden");
+        setTimeout(() => e.classList.add("hidden"), 2000);
       }
     });
 
-    // === LOAD EVENTS ===
+    // --- LOAD EVENTS ---
     async function loadEvents() {
       const { data, error } = await supabase.from("events").select("*");
       if (error) return console.error(error);
-
       const eventSelect = document.getElementById("eventSelect");
       const eventSelectRSVP = document.getElementById("eventSelectRSVP");
+      eventSelect.innerHTML = "";
+      eventSelectRSVP.innerHTML = "";
 
       data.forEach(ev => {
         const opt = document.createElement("option");
@@ -144,34 +177,31 @@
         eventSelect.appendChild(opt.cloneNode(true));
         eventSelectRSVP.appendChild(opt);
       });
-
       eventSelectRSVP.addEventListener("change", loadRSVPs);
     }
 
-    // === LOAD RSVPS ===
+    // --- LOAD RSVPS ---
     async function loadRSVPs() {
       const eventId = document.getElementById("eventSelectRSVP").value;
       const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId);
       if (error) return console.error(error);
 
-      const table = document.getElementById("rsvpTable");
-      table.innerHTML = `
-        <table class="w-full text-left border">
-          <thead><tr class="bg-gray-100">
-            <th class="p-2 border">Name</th>
-            <th class="p-2 border">Phone</th>
-            <th class="p-2 border">Attending</th>
-            <th class="p-2 border">Buggy</th>
-            <th class="p-2 border">Flexibility</th>
-          </tr></thead>
+      const tableDiv = document.getElementById("rsvpTable");
+      tableDiv.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Phone</th><th>Attending</th><th>Buggy</th><th>Flexibility</th>
+            </tr>
+          </thead>
           <tbody>
             ${data.map(r => `
               <tr>
-                <td class="border p-2">${r.name}</td>
-                <td class="border p-2">${r.phone || ""}</td>
-                <td class="border p-2">${r.attending ? "✅ Yes" : "❌ No"}</td>
-                <td class="border p-2">${r.buggy ? "🛺 Yes" : "🚶‍♂️ No"}</td>
-                <td class="border p-2">${r.flexibility || ""}</td>
+                <td>${r.name}</td>
+                <td>${r.phone || ""}</td>
+                <td>${r.attending ? "✅" : "❌"}</td>
+                <td>${r.buggy ? "🛺" : "🚶‍♂️"}</td>
+                <td>${r.flexibility || ""}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -179,9 +209,8 @@
       `;
     }
 
-    // === TEE TIME GENERATOR ===
-    const generateBtn = document.getElementById("generateBtn");
-    generateBtn.addEventListener("click", async () => {
+    // --- GENERATE TEE TIMES ---
+    document.getElementById("generateBtn").addEventListener("click", async () => {
       const eventId = document.getElementById("eventSelect").value;
       const startTime = document.getElementById("startTime").value || "09:00";
       const interval = parseInt(document.getElementById("interval").value || "8");
@@ -191,12 +220,10 @@
         .select("*")
         .eq("event_id", eventId)
         .eq("attending", true);
-
-      if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
+      if (error || !rsvps?.length) return alert("No RSVPs found.");
 
       let buggy = rsvps.filter(r => r.buggy);
       let walkers = rsvps.filter(r => !r.buggy);
-
       const needsBuggy = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
       const happyToWalk = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy"));
       buggy = [...needsBuggy, ...happyToWalk];
@@ -215,49 +242,58 @@
         }
       }
 
-      const teeTimes = [];
-      let currentTime = startTime;
-      let groupNum = 1;
-
       const addMinutes = (time, mins) => {
         const [h, m] = time.split(":").map(Number);
         const d = new Date();
         d.setHours(h, m + mins);
-        return d.toTimeString().slice(0, 5);
+        return d.toTimeString().slice(0,5);
       };
 
-      // Buggy groups
-      let flatBuggyPlayers = buggyPairs.flat();
-      for (let i = 0; i < flatBuggyPlayers.length; i += 4) {
-        const group = flatBuggyPlayers.slice(i, i + 4);
-        teeTimes.push({ event_id: eventId, group_number: groupNum++, tee_time: currentTime, players: group.map(p => p.name) });
-        currentTime = addMinutes(currentTime, interval);
+      const teeTimes = [];
+      let time = startTime;
+      let groupNum = 1;
+
+      // Combine buggy pairs into 4-balls where possible
+      let flatBuggy = buggyPairs.flat();
+      for (let i = 0; i < flatBuggy.length; i += 4) {
+        const group = flatBuggy.slice(i, i + 4);
+        teeTimes.push({
+          event_id: eventId,
+          group_number: groupNum++,
+          tee_time: time,
+          players: group.map(p => `${p.name} (${p.phone || "no phone"})`)
+        });
+        time = addMinutes(time, interval);
       }
 
-      // Walkers
+      // Walkers (3- then 4-balls)
       while (walkers.length > 0) {
         const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
         const group = walkers.splice(0, groupSize);
-        teeTimes.push({ event_id: eventId, group_number: groupNum++, tee_time: currentTime, players: group.map(p => p.name) });
-        currentTime = addMinutes(currentTime, interval);
+        teeTimes.push({
+          event_id: eventId,
+          group_number: groupNum++,
+          tee_time: time,
+          players: group.map(p => p.name)
+        });
+        time = addMinutes(time, interval);
       }
 
       await supabase.from("tee_times").delete().eq("event_id", eventId);
       await supabase.from("tee_times").insert(teeTimes);
-      alert("✅ Tee times generated successfully!");
+      alert("Tee times generated successfully!");
       displayTeeTimes(eventId);
     });
 
     async function displayTeeTimes(eventId) {
       const { data, error } = await supabase.from("tee_times").select("*").eq("event_id", eventId).order("group_number");
       if (error) return console.error(error);
-
-      const display = document.getElementById("teeTimesDisplay");
-      display.innerHTML = "<h3 class='font-bold text-green-800 mb-3'>Generated Tee Times</h3>" +
+      const div = document.getElementById("teeTimesDisplay");
+      div.innerHTML = "<h3 class='text-green-800 font-bold mb-2'>Generated Tee Times</h3>" +
         data.map(g => `
           <div class='border-b py-2'>
             <strong>Group ${g.group_number} — ${g.tee_time}</strong><br>
-            ${g.players.join(", ")}
+            ${g.players.join("<br>")}
           </div>
         `).join("");
     }
