@@ -279,73 +279,96 @@ document.getElementById("teeUnlockBtn").addEventListener("click", async () => {
   } else alert("Incorrect Tee Time password");
 });
 
-/* =========================
-   TEE TIME GENERATION
-   ========================= */
-document.getElementById("generateBtn").addEventListener("click", async () => {
-  const eventId = document.getElementById("teeEventSelect").value;
-  if (!eventId) return alert("Select an event first");
+<script>
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const { data, error } = await supabase
-    .from("rsvps")
-    .select("*")
-    .eq("event_id", eventId)
-    .eq("attending", true);
-  console.log("RSVP data:", data);
+const TEE_PASSWORD = "oxford1";
 
-
-  if (error || !data.length) {
-    console.error(error);
-    return alert("Error fetching RSVPs for tee time generation");
-  }
-
-  const buggy = data.filter(p => p.buggy === "Yes");
-  const walkers = data.filter(p => p.buggy !== "Yes");
-  const pairs = [];
-  const unpaired = [];
-
-  for (let i = 0; i < buggy.length; i += 2) {
-    if (buggy[i + 1]) pairs.push([buggy[i], buggy[i + 1]]);
-    else unpaired.push(buggy[i]);
-  }
-
-  let allPlayers = [...pairs, ...unpaired.map(u => [u]), ...chunkArray(walkers, 4)];
-
-  const output = document.getElementById("teeOutput");
-  let html = "<h4>Proposed Tee Times</h4>";
-  let teeTime = 9 * 60;
-  const groupList = [];
-
-  allPlayers.forEach((group, idx) => {
-    const hh = Math.floor(teeTime / 60);
-    const mm = teeTime % 60;
-    const tStr = `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
-    html += `<h5>Group ${idx + 1} — ${tStr}</h5><ul>`;
-    group.forEach(p => {
-  let phoneDisplay = "";
-  if (p.buggy === "Yes" && p.phone && p.phone.trim() !== "") {
-    phoneDisplay = ` (${p.phone})`;
-  } else if (p.buggy === "Yes") {
-    phoneDisplay = " (No phone)";
-  }
-  html += `<li>${p.name}${phoneDisplay}</li>`;
+document.getElementById("teeUnlockBtn").addEventListener("click", async () => {
+  const pw = document.getElementById("teePw").value.trim();
+  if (pw !== TEE_PASSWORD) return alert("Incorrect password");
+  document.getElementById("teePw").value = "";
+  document.getElementById("teeLogin").classList.add("hidden");
+  document.getElementById("teeGenerator").classList.remove("hidden");
+  loadEvents();
 });
 
-    html += "</ul>";
-    groupList.push({ event_id: eventId, group_number: idx + 1, tee_time: tStr, players: group.map(p => p.name) });
-    teeTime += 8;
-  });
-
-  output.innerHTML = html;
-  document.getElementById("saveBtn").classList.remove("hidden");
-  document.getElementById("saveBtn").onclick = () => saveTeeTimes(groupList);
-});
-
-function chunkArray(arr, size) {
-  const res = [];
-  for (let i = 0; i < arr.length; i += size) res.push(arr.slice(i, i + size));
-  return res;
+async function loadEvents() {
+  const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true });
+  if (error) return console.error(error);
+  const sel = document.getElementById("eventSelect");
+  sel.innerHTML = data.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join('');
 }
+
+document.getElementById("generateBtn").addEventListener("click", async () => {
+  const eventId = document.getElementById("eventSelect").value;
+  if (!eventId) return alert("Select an event first.");
+  generateTeeTimes(eventId);
+});
+
+async function generateTeeTimes(eventId) {
+  const { data: rsvps, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
+  if (error) return console.error(error);
+  if (!rsvps.length) return alert("No RSVPs found.");
+
+  // Separate buggy and walking players
+  const buggyPlayers = rsvps.filter(r => r.buggy);
+  const walkers = rsvps.filter(r => !r.buggy);
+
+  // Sort: buggies first
+  const sortedPlayers = [...buggyPlayers, ...walkers];
+  const teeGroups = [];
+  let groupNumber = 1;
+  let teeTime = new Date("2025-11-28T09:00:00"); // example start time
+
+  while (sortedPlayers.length > 0) {
+    let group = sortedPlayers.splice(0, 4);
+    teeGroups.push({
+      group_number: groupNumber++,
+      tee_time: teeTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+      players: group.map(p => {
+        // Show phone number if buggy
+        if (p.buggy && p.phone) {
+          return `${p.name} (${p.phone})`;
+        }
+        return p.name;
+      })
+    });
+    teeTime.setMinutes(teeTime.getMinutes() + 8);
+  }
+
+  // Save tee times to Supabase
+  const insertData = teeGroups.map(g => ({
+    event_id: eventId,
+    group_number: g.group_number,
+    tee_time: g.tee_time,
+    players: g.players
+  }));
+
+  const { error: insertError } = await supabase.from("tee_times").insert(insertData);
+  if (insertError) console.error(insertError);
+  else alert("✅ Tee times generated and saved!");
+
+  renderTeeTimes(teeGroups);
+}
+
+function renderTeeTimes(groups) {
+  const container = document.getElementById("teeTimesList");
+  container.innerHTML = "";
+  groups.forEach(g => {
+    const div = document.createElement("div");
+    div.className = "event-card";
+    div.innerHTML = `
+      <strong>Group ${g.group_number}</strong> — Tee Time: ${g.tee_time}
+      <ul>${g.players.map(p => `<li>${p}</li>`).join("")}</ul>
+    `;
+    container.appendChild(div);
+  });
+}
+</script>
+
 
 /* =========================
    SAVE TEE TIMES
