@@ -172,84 +172,56 @@ const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const ADMIN_PW = "westbrom1997";
 const TEE_PW = "oxford1";
 
-const loginSection = document.getElementById("loginSection");
-const rsvpSection = document.getElementById("rsvpSection");
-const teeSection = document.getElementById("teeSection");
-const teeControls = document.getElementById("teeControls");
-const teeLogin = document.getElementById("teeLogin");
+// ========== LOGIN HANDLERS ==========
+document.addEventListener("DOMContentLoaded", () => {
+  const adminLogin = document.getElementById("adminLogin");
+  const adminSection = document.getElementById("adminSection");
+  const teeLogin = document.getElementById("teeLogin");
+  const teeSection = document.getElementById("teeSection");
 
-document.getElementById("rsvpTab").addEventListener("click",()=>{
-  switchTab("rsvp");
-});
-document.getElementById("teeTab").addEventListener("click",()=>{
-  switchTab("tee");
-});
-function switchTab(tab){
-  document.getElementById("rsvpTab").classList.toggle("active",tab==="rsvp");
-  document.getElementById("teeTab").classList.toggle("active",tab==="tee");
-  rsvpSection.classList.toggle("hidden",tab!=="rsvp");
-  teeSection.classList.toggle("hidden",tab!=="tee");
-}
+  // Hide both sections by default
+  adminSection.classList.add("hidden");
+  teeSection.classList.add("hidden");
 
-// ===== ADMIN LOGIN =====
-document.getElementById("loginBtn").addEventListener("click",()=>{
-  const pw=document.getElementById("adminPassword").value.trim();
-  if(pw===ADMIN_PW){
-    loginSection.classList.add("hidden");
-    rsvpSection.classList.remove("hidden");
-    loadEvents();
-  }else{
-    alert("Incorrect password");
-  }
-});
-// ===== LOAD EVENTS =====
-async function loadEvents(){
-  const { data, error } = await supabase.from("events").select("id, name, date").order("date", {ascending:true});
-  if(error){ console.error(error); return alert("Error loading events"); }
-
-  const sel1 = document.getElementById("eventSelect");
-  const sel2 = document.getElementById("teeEventSelect");
-  sel1.innerHTML = ""; sel2.innerHTML = "";
-  data.forEach(ev=>{
-    const opt1=document.createElement("option"); opt1.value=ev.id; opt1.textContent=`${ev.name} (${ev.date})`;
-    const opt2=opt1.cloneNode(true);
-    sel1.appendChild(opt1); sel2.appendChild(opt2);
+  // --- Admin Unlock ---
+  document.getElementById("adminUnlockBtn").addEventListener("click", () => {
+    const pw = document.getElementById("adminPw").value.trim();
+    if (pw === ADMIN_PW) {
+      adminLogin.classList.add("hidden");
+      adminSection.classList.remove("hidden");
+      alert("✅ Admin access granted!");
+    } else {
+      alert("❌ Incorrect admin password");
+    }
   });
 
-  sel1.addEventListener("change", ()=> loadRSVPs(sel1.value));
-  sel2.addEventListener("change", ()=> loadRSVPs(sel2.value));
-  if(data.length){ loadRSVPs(data[0].id); }
-}
+  // --- Tee Time Unlock ---
+  document.getElementById("teeUnlockBtn").addEventListener("click", () => {
+    const pw = document.getElementById("teePw").value.trim();
+    if (pw === TEE_PW) {
+      teeLogin.classList.add("hidden");
+      teeSection.classList.remove("hidden");
+      alert("✅ Tee Time Organiser access granted!");
+    } else {
+      alert("❌ Incorrect tee organiser password");
+    }
+  });
 
-// ===== LOAD RSVPs =====
-async function loadRSVPs(eventId){
-  const list=document.getElementById("rsvpList");
-  list.innerHTML="<em>Loading...</em>";
-  const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
-  if(error){ console.error(error); list.innerHTML="Error fetching RSVPs."; return; }
-
-  if(!data.length){ list.innerHTML="<p>No RSVPs yet.</p>"; return; }
-
-  list.innerHTML = "<h3>Attending Members</h3>" +
-    data.map(r=>{
-      return `<div class='group'><strong>${r.name}</strong><br>${r.buggy ? "🛺 Buggy" : "🚶 Walker"}${r.buggy && r.phone ? `<div class='phone'>${r.phone}</div>` : ""}</div>`;
-    }).join("");
-}
-
-// ===== TEE TIME LOGIN =====
-document.getElementById("teeLoginBtn").addEventListener("click",()=>{
-  const pw=document.getElementById("teePassword").value.trim();
-  if(pw===TEE_PW){
-    teeLogin.classList.add("hidden");
-    teeControls.classList.remove("hidden");
-    loadEvents();
-  }else{
-    alert("Incorrect Tee Time password");
-  }
+  // Optional lock buttons (if you’ve added them)
+  document.querySelectorAll(".lockBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      adminSection.classList.add("hidden");
+      adminLogin.classList.remove("hidden");
+      document.getElementById("adminPw").value = "";
+      alert("🔒 Locked admin access.");
+    });
+  });
 });
+
 
 // Generate Tee Times (fixed pairing logic)
 document.getElementById("generateBtn").addEventListener("click", async () => {
