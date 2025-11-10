@@ -139,18 +139,32 @@ tbody tr:hover{background:var(--highlight);}
 #chartContainer{display:none;margin-top:40px;padding:20px;background:var(--white);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.1);}
 .dark-mode #chartContainer{background:#1f1f1f;}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);padding:10px 20px;border-radius:8px;opacity:0;transition:opacity 0.4s;}
+/* secret/blur styles */
 .table-secret {
   position: relative;
+}
+.table-secret .secret-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
 }
 .table-secret tbody {
   filter: blur(6px);
   pointer-events: none;
   user-select: none;
 }
+.table-secret tbody input { color: transparent; text-shadow: 0 0 8px rgba(0,0,0,0.2); }
+/* when unlocked, remove blur */
 .table-secret.unlocked tbody {
   filter: none;
   pointer-events: auto;
 }
+.table-secret.unlocked tbody input { color: initial; text-shadow: none; }
+
 #secretNotice {
   text-align: center;
   padding: 8px;
@@ -188,8 +202,6 @@ tbody tr:hover{background:var(--highlight);}
   <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
   <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
   <button class="btn btn-reset" id="clearLeagueBtn" style="display:none" onclick="confirmReset()">Clear League</button>
-  <input type="file" id="restoreFile" accept=".csv" style="display:none" onchange="restoreFromCSV(event)">
-  <button class="btn btn-add" id="restoreBtn" style="display:none" onclick="document.getElementById('restoreFile').click()">Restore from CSV</button>
   <button class="btn btn-export" id="exportLeaderboardBtn" style="display:none" onclick="exportLeaderboardCSV()">Export Leaderboard (CSV)</button>
   <button class="btn btn-export" id="exportAllBtn" style="display:none" onclick="exportAllCSV()">Export All (CSV)</button>
 </div>
@@ -221,18 +233,18 @@ tbody tr:hover{background:var(--highlight);}
 <div id="toast"></div>
 
 <script>
-/* JS BEGINS — identical to the working version with silent backup and realtime fixed */
-<script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const PASSWORD_DEFAULT = "westbrom1997";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let PASSWORD = PASSWORD_DEFAULT;
 let unlocked = false;
 let currentRound = 1;
 const maxRounds = 7;
 let players = [], currentHcp = [], nextHcp = [], playerScores = [], lastAdj = [];
+let realtimeChannel = null;
 
 function showToast(msg) {
   const t = document.getElementById("toast");
@@ -252,7 +264,9 @@ function stablefordAdj(pts) {
 }
 
 async function loadData() {
+  document.body.style.cursor = "wait";
   const { data, error } = await supabase.from("scores").select("*").order("player", { ascending: true });
+  document.body.style.cursor = "default";
   if (error) { console.error(error); return; }
 
   if (!data.length) {
@@ -286,64 +300,63 @@ async function loadData() {
 }
 
 function subscribeRealtime() {
-  const channel = supabase.channel("public:scores-updates", {
-    config: { broadcast: { ack: true } }
-  });
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
 
-  channel
+  realtimeChannel = supabase
+    .channel("public:scores")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "scores" },
       payload => {
-        console.log("Realtime update received:", payload);
+        console.log("Realtime update:", payload);
         loadData();
       }
     )
-    .subscribe(status => console.log("Realtime status:", status));
+    .subscribe(status => {
+      if (status === "SUBSCRIBED") console.log("✅ Realtime connected");
+    });
 }
 
 async function saveData() {
-  try {
-    const records = [];
+  const updates = [];
 
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
-      const total = playerScores[i].filter(v => v !== null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-      const pts = playerScores[i][currentRound-1] || 0;
-      const adj = parseInt(lastAdj[i]) || 0;
-      const next = nextHcp[i] ?? currentHcp[i];
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
+    const total = playerScores[i]
+      .filter(v => v !== null)
+      .sort((a,b)=>b-a)
+      .slice(0,5)
+      .reduce((a,b)=>a+b,0);
+    const pts = playerScores[i][currentRound-1] || 0;
+    const adj = parseInt(lastAdj[i]) || 0;
+    const next = nextHcp[i] ?? currentHcp[i];
 
-      records.push({
-        player,
-        round: currentRound,
-        handicap: currentHcp[i],
-        points: pts,
-        adj: adj,
-        next_handicap: next,
-        total: total,
-        updated_at: new Date().toISOString()
-      });
-    }
+    updates.push({
+      player,
+      round: currentRound,
+      handicap: currentHcp[i],
+      points: pts,
+      adj,
+      next_handicap: next,
+      total,
+      updated_at: new Date().toISOString()
+    });
+  }
 
-    const { error } = await supabase.from("scores").upsert(records, { onConflict: ["player", "round"] });
+  const { error } = await supabase
+    .from("scores")
+    .upsert(updates, { onConflict: ["player", "round"] });
 
-    if (error) {
-      console.error("Supabase save error:", error);
-      showToast("⚠️ Error saving to Supabase");
-    } else {
-      showToast("✅ Data saved & synced to Supabase");
-      silentBackupCSV(); // background backup
-    }
-
-  } catch (err) {
-    console.error("Unexpected saveData error:", err);
-    showToast("⚠️ Unexpected error saving data");
+  if (error) {
+    console.error(error);
+    showToast("⚠️ Error saving data");
+  } else {
+    showToast("✅ Data saved to Supabase");
   }
 }
 
-async function calculateHandicaps() {
+function calculateHandicaps() {
   if (!unlocked) return alert("Unlock first");
-
   for (let i = 0; i < players.length; i++) {
     const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
     const pts = parseInt(document.getElementById(`points_${i}`).value);
@@ -352,101 +365,12 @@ async function calculateHandicaps() {
     const next = Math.max(0, hcp + adj);
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
-    currentHcp[i] = hcp;
+    currentHcp[i] = hcp; 
     nextHcp[i] = next;
   }
-
   renderLeaderboard();
-  await saveData();
+  saveData();
   drawChart();
-}
-
-function silentBackupCSV() {
-  try {
-    const totals = calculateTotals();
-    const backupRows = [];
-
-    for (let i = 0; i < players.length; i++) {
-      backupRows.push({
-        Player: players[i],
-        CurrentHandicap: currentHcp[i],
-        NextHandicap: nextHcp[i] ?? "",
-        Adjust: lastAdj[i],
-        Scores: playerScores[i].join(" | "),
-        Total: totals.find(t => t.name === players[i])?.total ?? ""
-      });
-    }
-
-    const csv = toCSV(backupRows);
-    const blob = new Blob([csv], { type: "text/csv" });
-    const d = new Date();
-    const timestamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}_${String(d.getHours()).padStart(2,"0")}-${String(d.getMinutes()).padStart(2,"0")}`;
-    const backupName = `barford_backup_${timestamp}.csv`;
-
-    // Log silently, no download popup
-    console.log(`Silent backup created: ${backupName}`);
-  } catch (err) {
-    console.error("Backup CSV error:", err);
-  }
-}
-
-async function restoreFromCSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const pw = prompt("Enter password to restore league:");
-  if (pw !== PASSWORD) return alert("Incorrect password");
-
-  try {
-    const text = await file.text();
-    const rows = text.trim().split("\n").slice(1);
-    const dataToInsert = [];
-
-    for (const row of rows) {
-      const cols = row.replace(/(^"|"$)/g, "").split(/","/);
-      if (cols.length < 6) continue;
-
-      const [player, currentHcp, nextHcp, adj, scoresStr, total] = cols;
-      const scores = scoresStr.split("|").map(s => {
-        const val = s.trim();
-        return val === "" ? null : parseInt(val);
-      });
-
-      for (let r = 0; r < scores.length; r++) {
-        if (scores[r] === null || isNaN(scores[r])) continue;
-
-        dataToInsert.push({
-          player: player.trim(),
-          round: r + 1,
-          handicap: parseFloat(currentHcp) || 0,
-          points: parseInt(scores[r]),
-          adj: parseInt(adj) || 0,
-          next_handicap: parseFloat(nextHcp) || 0,
-          total: parseInt(total) || 0,
-          updated_at: new Date().toISOString()
-        });
-      }
-    }
-
-    if (!dataToInsert.length) {
-      alert("No valid data found in CSV file.");
-      return;
-    }
-
-    const { error } = await supabase.from("scores").upsert(dataToInsert, { onConflict: ["player", "round"] });
-    if (error) {
-      console.error(error);
-      alert("❌ Error restoring data. Check console for details.");
-    } else {
-      alert("✅ League restored successfully!");
-      loadData();
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to process CSV file.");
-  } finally {
-    event.target.value = "";
-  }
 }
 
 function calculateTotals() {
@@ -475,18 +399,6 @@ function renderLeaderboard() {
       <td><input type="checkbox" disabled ${playerScores[i][currentRound-1] == null ? "checked" : ""}></td>`;
     tbody.appendChild(tr);
   });
-
-  const tableWrap = document.getElementById("playersTableWrap");
-  const secretNotice = document.getElementById("secretNotice");
-
-  if (currentRound >= 6 && !unlocked) {
-    tableWrap.classList.add("table-secret");
-    secretNotice.style.display = "block";
-  } else {
-    tableWrap.classList.remove("table-secret");
-    secretNotice.style.display = "none";
-  }
-
   document.getElementById("hcpHeader").textContent = `Round ${currentRound} HCP`;
   document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
   document.getElementById("progressFill").style.width = (currentRound / maxRounds * 100) + "%";
@@ -494,7 +406,20 @@ function renderLeaderboard() {
   document.getElementById("exportLeaderboardBtn").style.display = unlocked ? "inline-block" : "none";
   document.getElementById("exportAllBtn").style.display = unlocked ? "inline-block" : "none";
   document.getElementById("clearLeagueBtn").style.display = unlocked ? "inline-block" : "none";
-  document.getElementById("restoreBtn").style.display = unlocked ? "inline-block" : "none";
+
+  // --- secret round blur logic ---
+  const wrap = document.getElementById("playersTableWrap");
+  const secretNotice = document.getElementById("secretNotice");
+  // if round is 6 or 7 and not unlocked -> blur and show notice
+  if ((currentRound === 6 || currentRound === 7) && !unlocked) {
+    wrap.classList.add("table-secret");
+    wrap.classList.remove("unlocked");
+    secretNotice.style.display = "block";
+  } else {
+    wrap.classList.remove("table-secret");
+    wrap.classList.add("unlocked");
+    secretNotice.style.display = "none";
+  }
 }
 
 function nextRound() {
@@ -534,12 +459,25 @@ function changePassword() {
   const newPw = prompt("Enter new password:");
   if (newPw) { PASSWORD = newPw; alert("Password changed!"); }
 }
-function confirmReset() {
-  const pw = prompt("Enter password to reset league:");
+async function confirmReset() {
+  const pw = prompt("Enter password to clear the league:");
   if (pw !== PASSWORD) return alert("Incorrect password");
-  supabase.from("scores").delete().neq("id", 0).then(() => {
-    alert("League reset!"); loadData();
-  });
+  const { error } = await supabase.from("scores").delete().neq("id", 0);
+  if (error) {
+    console.error(error);
+    alert("❌ Error clearing league. Please try again.");
+  } else {
+    alert("✅ League cleared successfully!");
+    players = ["Brad Davies", "Will Lovell", "Richard Jones", "David Hardcastle", "Tim Oliver"];
+    currentHcp = new Array(players.length).fill(0);
+    nextHcp = new Array(players.length).fill(null);
+    playerScores = players.map(() => Array(maxRounds).fill(null));
+    lastAdj = new Array(players.length).fill("");
+    currentRound = 1;
+    renderLeaderboard();
+    showToast("League reset");
+    saveData();
+  }
 }
 
 /* CSV Exports */
