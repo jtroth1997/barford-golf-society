@@ -1,206 +1,506 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Barford Golf Society – Handicap Calculator</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { text-align: center; }
-    #controls {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    button, input[type=password] {
-      padding: 8px 12px;
-      margin: 5px;
-      font-size: 14px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background: #eee;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin | Barford Golf Society</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --green:#005a2b;--gold:#d4af37;--light-bg:#f7f7f5;--card:#fff;
+}
+body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
+header,footer{background:var(--green);color:#fff;padding:15px 0;}
+.header-container{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 20px;}
+.site-title{color:var(--gold);}
+.site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+.site-nav a{color:#fff;text-decoration:none;font-weight:600;}
+.site-nav a:hover,.active{color:var(--gold);}
+.container{max-width:1100px;margin:40px auto;padding:0 20px;}
+.card{background:var(--card);padding:20px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.1);margin-bottom:20px;}
+button{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-family:inherit;}
+button.primary{background:var(--green);color:#fff;}
+button.secondary{background:#ddd;color:#000;}
+button.danger{background:#b22222;color:#fff;}
+button:hover{opacity:0.9;}
+input,select{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
+.hidden{display:none;}
+.small{font-size:.9rem;color:#666;}
+.tabs{display:flex;gap:10px;margin-bottom:15px;}
+.tab-btn{padding:8px 14px;border-radius:6px;border:none;cursor:pointer;font-weight:600;}
+.tab-btn.active{background:var(--green);color:#fff;}
+.section{margin-top:10px;}
+.event-row{border-bottom:1px solid #eee;padding:8px 0;}
+.event-header-line{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.rsvp-table{width:100%;border-collapse:collapse;margin-top:10px;}
+.rsvp-table th,.rsvp-table td{border:1px solid #ddd;padding:6px;font-size:0.85rem;text-align:left;}
+.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.75rem;}
+.badge-yes{background:#e0f7e9;color:#05600e;}
+.badge-no{background:#ffe5e5;color:#a30000;}
+.tt-group{margin:6px 0;padding:6px;border-radius:6px;background:#f5f5f5;}
+.tt-time{font-weight:600;color:var(--green);}
+footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
+@media(max-width:700px){
+  .event-header-line{flex-direction:column;align-items:flex-start;}
+}
+</style>
 </head>
 <body>
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">Barford Golf Society</h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html">Scores</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="admin.html" class="active">Admin</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
-<h1>Barford Golf Society – Handicap Calculator</h1>
+<div class="container">
+  <h2>Admin Panel</h2>
 
-<div id="controls">
-  Password: <input type="password" id="pw">
-  <button onclick="unlock()">Unlock</button>
-  <button onclick="lock()">Lock</button>
-  <button onclick="calculate()">Calculate</button>
-  <button onclick="nextRound()">Next Round</button>
-  <button onclick="prevRound()">Prev Round</button>
-  <button onclick="addPlayer()">Add Player</button>
-  <button onclick="resetLeague()">Reset</button>
+  <!-- PAGE LOCK -->
+  <div id="pageLock" class="card">
+    <p>Enter admin password to access this page.</p>
+    <input type="password" id="pagePw" placeholder="Admin password">
+    <button class="primary" id="pageUnlockBtn">Unlock Admin</button>
+  </div>
+
+  <div id="adminContent" class="hidden">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabRSVPBtn">RSVP Overview</button>
+        <button class="tab-btn" id="tabTeeBtn">Tee Time Organiser</button>
+      </div>
+
+      <!-- RSVP OVERVIEW -->
+      <div id="tabRSVP" class="section">
+        <h3>RSVP Overview</h3>
+        <p class="small">View RSVPs for all events. This is read-only and updates in realtime.</p>
+        <div id="rsvpEvents"></div>
+      </div>
+
+      <!-- TEE TIME ORGANISER -->
+      <div id="tabTee" class="section hidden">
+        <h3>Tee Time Organiser</h3>
+        <div id="teeLock" class="card" style="padding:10px;margin-bottom:10px;">
+          <p class="small">This section has a separate organiser password.</p>
+          <input type="password" id="teePw" placeholder="Tee organiser password">
+          <button class="primary" id="teeUnlockBtn">Unlock Tee Time Organiser</button>
+        </div>
+
+        <div id="teeContent" class="hidden">
+          <p class="small">
+            Select an event, then generate tee times based on RSVPs.<br>
+            Buggies go first. Buggy requests are paired together. If there's an odd buggy and someone is willing to walk,
+            they may be moved into a walking group.
+          </p>
+
+          <label>Select Event</label>
+          <select id="teeEventSelect">
+            <option value="">-- Choose event --</option>
+          </select>
+
+          <div style="margin-top:10px;">
+            <label>Start Time (HH:MM)</label>
+            <input type="time" id="teeStart" value="09:00">
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>Interval between groups (minutes)</label>
+            <input type="number" id="teeInterval" value="8" min="5" max="15">
+          </div>
+
+          <div style="margin-top:10px;">
+            <button class="primary" id="generateTeeBtn">Generate Tee Times</button>
+            <button class="secondary hidden" id="saveTeeBtn">Save Tee Times to Supabase</button>
+          </div>
+
+          <div id="teePreview" style="margin-top:15px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<h3 id="roundHeader">Round 1 of 7</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>Player</th>
-      <th>Handicap</th>
-      <th>Points</th>
-      <th>Adjustment</th>
-      <th>Next Handicap</th>
-      <th>Total (Best 5)</th>
-    </tr>
-  </thead>
-  <tbody id="playersTable"></tbody>
-</table>
+<footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co
-";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ
-";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* =========================
+   SUPABASE CONFIG
+   ========================= */
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const PASSWORD = "westbrom1997";
-let unlocked = false;
-let currentRound = 1;
-const maxRounds = 7;
-let players = [];
+/* =========================
+   PASSWORD GATES
+   ========================= */
+const ADMIN_PASSWORD = "westbrom1997";
+const TEE_PASSWORD   = "oxford1";
 
-// Load players
-async function loadPlayers() {
-  const { data, error } = await supabase.from("scores").select("*").order("id",{ascending:true});
-  if (error) return console.error(error);
-  players = data || [];
-  renderTable();
+const pageLock      = document.getElementById("pageLock");
+const adminContent  = document.getElementById("adminContent");
+const pageUnlockBtn = document.getElementById("pageUnlockBtn");
+
+pageUnlockBtn.addEventListener("click", () => {
+  const pw = document.getElementById("pagePw").value.trim();
+  if (pw === ADMIN_PASSWORD) {
+    pageLock.classList.add("hidden");
+    adminContent.classList.remove("hidden");
+    loadAll();
+  } else {
+    alert("❌ Incorrect admin password");
+  }
+});
+
+let teeUnlocked = false;
+document.getElementById("teeUnlockBtn").addEventListener("click", () => {
+  const pw = document.getElementById("teePw").value.trim();
+  if (pw === TEE_PASSWORD) {
+    teeUnlocked = true;
+    document.getElementById("teeLock").classList.add("hidden");
+    document.getElementById("teeContent").classList.remove("hidden");
+  } else {
+    alert("❌ Incorrect tee organiser password");
+  }
+});
+
+/* =========================
+   TABS
+   ========================= */
+const tabRSVPBtn = document.getElementById("tabRSVPBtn");
+const tabTeeBtn  = document.getElementById("tabTeeBtn");
+const tabRSVP    = document.getElementById("tabRSVP");
+const tabTee     = document.getElementById("tabTee");
+
+tabRSVPBtn.addEventListener("click", () => {
+  tabRSVPBtn.classList.add("active");
+  tabTeeBtn.classList.remove("active");
+  tabRSVP.classList.remove("hidden");
+  tabTee.classList.add("hidden");
+});
+
+tabTeeBtn.addEventListener("click", () => {
+  tabTeeBtn.classList.add("active");
+  tabRSVPBtn.classList.remove("active");
+  tabTee.classList.remove("hidden");
+  tabRSVP.classList.add("hidden");
+});
+
+/* =========================
+   LOAD EVENTS + RSVPS
+   ========================= */
+let eventsCache = [];
+let teeSheetCache = []; // for current generated tee sheet (not saved yet)
+
+async function loadEventsForAdmin() {
+  const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true });
+  if (error) { console.error(error); return; }
+  eventsCache = data || [];
+  renderRSVPEvents();
+  populateTeeEventSelect();
 }
 
-// Realtime updates
-supabase.channel("scores")
-  .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, loadPlayers)
-  .subscribe();
+async function loadAll() {
+  await loadEventsForAdmin();
+  subscribeRealtime();
+}
 
-// Render table
-function renderTable() {
-  const tbody = document.getElementById("playersTable");
-  tbody.innerHTML = "";
-  players.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.player}</td>
-      <td><input type="number" id="hcp_${p.id}" value="${p.handicap||0}" ${unlocked?"":"disabled"}></td>
-      <td><input type="number" id="pts_${p.id}" value="${p.points??""}" ${unlocked?"":"disabled"}></td>
-      <td>${p.adj ?? ""}</td>
-      <td>${p.next_handicap ?? ""}</td>
-      <td>${p.total ?? 0}</td>
+/* =========================
+   RSVP OVERVIEW RENDER
+   ========================= */
+async function renderRSVPEvents() {
+  const container = document.getElementById("rsvpEvents");
+  container.innerHTML = "";
+
+  if (!eventsCache.length) {
+    container.innerHTML = "<p>No events found.</p>";
+    return;
+  }
+
+  for (const ev of eventsCache) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "event-row";
+
+    wrapper.innerHTML = `
+      <div class="event-header-line">
+        <div>
+          <strong>${ev.name}</strong> — ${ev.location} — ${ev.date} (Round ${ev.round})
+        </div>
+        <div>
+          <button class="secondary" onclick="toggleRSVPDetails(${ev.id})">View RSVPs</button>
+          <button class="secondary" onclick="exportRSVPsCSV(${ev.id})">Export CSV</button>
+        </div>
+      </div>
+      <div id="rsvpDetails_${ev.id}" class="hidden"></div>
     `;
-    tbody.appendChild(tr);
+    container.appendChild(wrapper);
+  }
+}
+
+async function toggleRSVPDetails(eventId) {
+  const div = document.getElementById(`rsvpDetails_${eventId}`);
+  if (!div.classList.contains("hidden")) {
+    div.classList.add("hidden");
+    div.innerHTML = "";
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
+
+  if (error) { console.error(error); return; }
+
+  if (!data.length) {
+    div.innerHTML = "<p class='small'>No RSVPs yet.</p>";
+    div.classList.remove("hidden");
+    return;
+  }
+
+  let html = `
+    <table class="rsvp-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Attending</th>
+          <th>Buggy</th>
+          <th>Flexibility</th>
+          <th>Phone</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  data.forEach(r => {
+    html += `
+      <tr>
+        <td>${r.name}</td>
+        <td>${r.attending ? "<span class='badge badge-yes'>Yes</span>" : "<span class='badge badge-no'>No</span>"}</td>
+        <td>${r.buggy ? "Yes" : "No"}</td>
+        <td>${r.flexibility || ""}</td>
+        <td>${r.phone || ""}</td>
+        <td>${r.email || ""}</td>
+      </tr>
+    `;
   });
-  document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
+  html += "</tbody></table>";
+  div.innerHTML = html;
+  div.classList.remove("hidden");
 }
 
-// Handicap adjustment logic
-function getAdj(points) {
-  if (points >= 43) return -3;
-  if (points >= 38) return -2;
-  if (points >= 31) return -1;
-  if (points >= 26) return 0;
-  if (points >= 21) return 1;
-  if (points >= 16) return 2;
-  return 3;
+/* =========================
+   EXPORT RSVPs CSV
+   ========================= */
+async function exportRSVPsCSV(eventId) {
+  const ev = eventsCache.find(e => e.id === eventId);
+  const { data, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
+
+  if (error) { console.error(error); alert("Error fetching RSVPs"); return; }
+  if (!data.length) { alert("No RSVPs to export for this event."); return; }
+
+  const rows = [
+    ["Name","Attending","Buggy","Flexibility","Phone","Email"]
+  ];
+  data.forEach(r => {
+    rows.push([
+      r.name,
+      r.attending ? "Yes" : "No",
+      r.buggy ? "Yes" : "No",
+      r.flexibility || "",
+      r.phone || "",
+      r.email || ""
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  const dateStr = new Date().toISOString().split("T")[0];
+  link.href = URL.createObjectURL(blob);
+  link.download = `rsvps_event_${eventId}_${dateStr}.csv`;
+  link.click();
 }
 
-// Calculate
-async function calculate() {
-  if (!unlocked) return alert("Unlock first.");
-  const scores = players.map(p => ({
-    id: p.id,
-    player: p.player,
-    handicap: parseFloat(document.getElementById(`hcp_${p.id}`).value) || 0,
-    points: parseInt(document.getElementById(`pts_${p.id}`).value) || null
+/* =========================
+   TEE TIME ORGANISER
+   ========================= */
+const teeEventSelect = document.getElementById("teeEventSelect");
+const teeStart       = document.getElementById("teeStart");
+const teeInterval    = document.getElementById("teeInterval");
+const teePreview     = document.getElementById("teePreview");
+const generateTeeBtn = document.getElementById("generateTeeBtn");
+const saveTeeBtn     = document.getElementById("saveTeeBtn");
+
+function populateTeeEventSelect() {
+  teeEventSelect.innerHTML = '<option value="">-- Choose event --</option>';
+  eventsCache.forEach(e => {
+    const opt = document.createElement("option");
+    opt.value = e.id;
+    opt.textContent = `${e.name} (${e.date})`;
+    teeEventSelect.appendChild(opt);
+  });
+}
+
+generateTeeBtn.addEventListener("click", async () => {
+  if (!teeUnlocked) {
+    alert("Unlock the Tee Time Organiser first.");
+    return;
+  }
+  const eventId = parseInt(teeEventSelect.value, 10);
+  if (!eventId) {
+    alert("Select an event first.");
+    return;
+  }
+
+  const start = teeStart.value || "09:00";
+  const interval = parseInt(teeInterval.value, 10) || 8;
+
+  const { data, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("attending", true);
+
+  if (error) { console.error(error); alert("Error loading RSVPs"); return; }
+  if (!data.length) { alert("No attending RSVPs for this event."); return; }
+
+  teeSheetCache = generateTeeSheet(data, start, interval);
+  renderTeePreview();
+  saveTeeBtn.classList.remove("hidden");
+});
+
+saveTeeBtn.addEventListener("click", async () => {
+  const eventId = parseInt(teeEventSelect.value, 10);
+  if (!eventId || !teeSheetCache.length) {
+    alert("Nothing to save.");
+    return;
+  }
+
+  // Delete existing tee times for this event, then insert new
+  const { error: delError } = await supabase.from("tee_times").delete().eq("event_id", eventId);
+  if (delError) { console.error(delError); alert("Error clearing old tee times"); return; }
+
+  const rows = teeSheetCache.map(g => ({
+    event_id: eventId,
+    group_number: g.groupNumber,
+    tee_time: g.time,
+    players: g.players
   }));
 
-  const topScore = Math.max(...scores.filter(s=>s.points!==null).map(s=>s.points));
+  const { error: insError } = await supabase.from("tee_times").insert(rows);
+  if (insError) { console.error(insError); alert("Error saving tee times"); return; }
 
-  for (const s of scores) {
-    const adj = s.points===null ? null : getAdj(s.points) - (s.points===topScore ? 1 : 0);
-    const next = s.points===null ? s.handicap : Math.max(0, Math.round(s.handicap + adj));
-    await supabase.from("scores").update({
-      points: s.points,
-      adj: adj,
-      next_handicap: next,
-      updated_at: new Date().toISOString(),
-      round: currentRound
-    }).eq("id", s.id);
+  alert("✅ Tee times saved to Supabase.");
+});
+
+/* Smart grouping logic */
+function generateTeeSheet(attendees, startTimeStr, intervalMins) {
+  const buggyPlayers = attendees.filter(a => a.buggy);
+  const walkers = attendees.filter(a => !a.buggy);
+
+  // If odd number of buggy players, try move a flexible one to walkers
+  if (buggyPlayers.length % 2 === 1) {
+    const idx = buggyPlayers.findIndex(a => (a.flexibility || "").toLowerCase().startsWith("yes"));
+    if (idx !== -1) {
+      walkers.push(buggyPlayers.splice(idx, 1)[0]);
+    }
   }
 
-  alert("Round calculated and saved.");
-  loadPlayers();
-}
+  const groups = [];
 
-// Next Round
-async function nextRound() {
-  if (currentRound >= maxRounds) return alert("League finished!");
-  currentRound++;
-  for (const p of players) {
-    await supabase.from("scores").update({
-      handicap: p.next_handicap ?? p.handicap,
-      points: null,
-      adj: null,
-      round: currentRound
-    }).eq("id", p.id);
+  // Buggies first, in pairs
+  for (let i = 0; i < buggyPlayers.length; i += 2) {
+    const grp = buggyPlayers.slice(i, i + 2);
+    if (grp.length) groups.push(grp);
   }
-  unlocked = false;
-  loadPlayers();
+
+  // Remaining walkers into 3-balls & 4-balls, preferring sensible shapes
+  let remaining = walkers.slice();
+  while (remaining.length > 0) {
+    if (remaining.length === 3 || remaining.length === 5 || remaining.length === 7) {
+      groups.push(remaining.splice(0, 3));
+    } else {
+      groups.push(remaining.splice(0, 4));
+    }
+  }
+
+  // Assign tee times
+  const teeSheet = [];
+  const [h, m] = startTimeStr.split(":").map(Number);
+  let d = new Date();
+  d.setHours(h || 9, m || 0, 0, 0);
+
+  groups.forEach((grp, idx) => {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    const timeStr = `${hh}:${mm}`;
+    teeSheet.push({
+      groupNumber: idx + 1,
+      time: timeStr,
+      players: grp.map(p => p.name)
+    });
+    d = new Date(d.getTime() + intervalMins * 60000);
+  });
+
+  return teeSheet;
 }
 
-// Previous Round
-function prevRound() {
-  if (currentRound > 1) currentRound--;
-  renderTable();
+function renderTeePreview() {
+  if (!teeSheetCache.length) {
+    teePreview.innerHTML = "<p class='small'>No tee times generated yet.</p>";
+    return;
+  }
+  let html = "<h4>Proposed Tee Times</h4>";
+  teeSheetCache.forEach(g => {
+    html += `
+      <div class="tt-group">
+        <div class="tt-time">Group ${g.groupNumber} — ${g.time}</div>
+        <div>${g.players.join(", ")}</div>
+      </div>
+    `;
+  });
+  teePreview.innerHTML = html;
 }
 
-// Password Locking
-function unlock() {
-  const val = document.getElementById("pw").value;
-  if (val === PASSWORD) { unlocked = true; alert("Unlocked"); renderTable(); }
-  else alert("Wrong password");
-}
-function lock() { unlocked = false; alert("Locked"); renderTable(); }
+/* =========================
+   REALTIME SUBSCRIPTIONS
+   ========================= */
+function subscribeRealtime() {
+  supabase
+    .channel("admin:events")
+    .on("postgres_changes", { event: "*", schema: "public", table: "events" }, payload => {
+      loadEventsForAdmin();
+    })
+    .subscribe();
 
-// Add Player
-async function addPlayer() {
-  const name = prompt("Enter player name:");
-  if (!name) return;
-  await supabase.from("scores").insert([{player:name,handicap:0,points:null,adj:null,next_handicap:0,total:0,round:currentRound}]);
-  loadPlayers();
-}
+  supabase
+    .channel("admin:rsvps")
+    .on("postgres_changes", { event: "*", schema: "public", table: "rsvps" }, payload => {
+      loadEventsForAdmin();
+    })
+    .subscribe();
 
-// Reset League
-async function resetLeague() {
-  const pw = prompt("Enter password:");
-  if (pw !== PASSWORD) return alert("Wrong password");
-  await supabase.from("scores").delete().neq("id", 0);
-  currentRound = 1;
-  loadPlayers();
+  supabase
+    .channel("admin:tee_times")
+    .on("postgres_changes", { event: "*", schema: "public", table: "tee_times" }, payload => {
+      // no specific UI here yet, but could refresh tee preview if desired
+    })
+    .subscribe();
 }
-
-// Start
-loadPlayers();
 </script>
-
 </body>
 </html>
