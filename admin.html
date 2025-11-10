@@ -11,19 +11,14 @@
       --gold: #f2c94c;
       --light: #f9fafb;
     }
-    body {
-      margin: 0;
-      font-family: "Inter", "Segoe UI", sans-serif;
-      background: var(--light);
-      color: #333;
-    }
+    body { margin: 0; font-family: "Inter", "Segoe UI", sans-serif; background: var(--light); color: #333; }
     header {
       background: linear-gradient(90deg, var(--green), #145c30);
       color: var(--gold);
       padding: 1.2rem 1.5rem;
-      font-size: 1.6rem;
-      font-weight: 700;
       text-align: center;
+      font-weight: 700;
+      font-size: 1.6rem;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     main {
@@ -34,66 +29,32 @@
       padding: 2rem;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
-    h2 {
-      color: var(--green);
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-    h3 { color: var(--green); font-weight: 600; }
+    h2 { color: var(--green); margin-bottom: 1rem; }
+    h3 { color: var(--green); margin-bottom: .8rem; }
     input, select {
-      width: 100%;
-      padding: 0.6rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
+      width: 100%; padding: .6rem; margin-bottom: 1rem;
+      border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;
     }
     button {
-      cursor: pointer;
-      border: none;
-      padding: 0.7rem 1.4rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: 0.2s;
+      cursor: pointer; border: none; padding: .7rem 1.4rem;
+      border-radius: 8px; font-size: 1rem; font-weight: 600; transition: .2s;
     }
     .btn-green { background: var(--green); color: #fff; }
     .btn-green:hover { background: #166338; }
     .btn-blue { background: #2d70d5; color: #fff; }
     .btn-blue:hover { background: #1b56a8; }
     .hidden { display: none; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th, td {
-      border-bottom: 1px solid #eee;
-      padding: 0.75rem;
-      text-align: left;
-    }
-    th {
-      background: var(--green);
-      color: white;
-      font-weight: 600;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; border-radius: 10px; overflow: hidden; }
+    th, td { border-bottom: 1px solid #eee; padding: .75rem; text-align: left; }
+    th { background: var(--green); color: #fff; font-weight: 600; }
     tr:hover td { background: #f9f9f9; }
     .section {
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-top: 1.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      background: #fafafa; border-radius: 12px; padding: 1.5rem;
+      margin-top: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
     .note {
-      background: #fff8e1;
-      border-left: 4px solid var(--gold);
-      padding: 10px 14px;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+      background: #fff8e1; border-left: 4px solid var(--gold);
+      padding: 10px 14px; border-radius: 8px; margin-bottom: 1rem;
       color: #7a6500;
     }
   </style>
@@ -113,12 +74,12 @@
     <!-- DASHBOARD -->
     <div id="adminContent" class="hidden">
       <h2>Admin Dashboard</h2>
-      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
         <button id="rsvpManagerBtn" class="btn-green">RSVP Manager</button>
         <button id="teeTimeBtn" class="btn-blue">Tee Time Organiser</button>
       </div>
 
-      <!-- RSVP MANAGER (Combined View) -->
+      <!-- RSVP MANAGER -->
       <div id="rsvpSection" class="hidden section">
         <h3>RSVPs & Tee Times</h3>
         <select id="eventSelectRSVP"></select>
@@ -156,12 +117,15 @@
     const TEE_PW = "oxford1";
 
     // LOGIN
-    document.getElementById("loginBtn").addEventListener("click", () => {
+    document.getElementById("loginBtn").addEventListener("click", async () => {
       const pass = document.getElementById("adminPassword").value.trim();
       if (pass === ADMIN_PW) {
         document.getElementById("loginSection").classList.add("hidden");
         document.getElementById("adminContent").classList.remove("hidden");
-        loadEvents();
+        await loadEvents();
+        // Load default data for first event automatically
+        const first = document.getElementById("eventSelectRSVP");
+        if (first.value) loadRSVPsAndGroups();
       } else {
         const e = document.getElementById("loginError");
         e.classList.remove("hidden");
@@ -169,7 +133,7 @@
       }
     });
 
-    // SECTION SWITCH
+    // SWITCH SECTIONS
     document.getElementById("rsvpManagerBtn").addEventListener("click", () => {
       document.getElementById("rsvpSection").classList.remove("hidden");
       document.getElementById("teeSection").classList.add("hidden");
@@ -195,93 +159,89 @@
     // LOAD EVENTS
     async function loadEvents() {
       const { data, error } = await supabase.from("events").select("*");
-      if (error) return console.error(error);
-      const e1 = document.getElementById("eventSelect");
-      const e2 = document.getElementById("eventSelectRSVP");
-      e1.innerHTML = "";
-      e2.innerHTML = "";
+      if (error) { console.error(error); return; }
+
+      const eventSelectRSVP = document.getElementById("eventSelectRSVP");
+      const eventSelect = document.getElementById("eventSelect");
+      eventSelectRSVP.innerHTML = "";
+      eventSelect.innerHTML = "";
+
       data.forEach(ev => {
         const opt = document.createElement("option");
         opt.value = ev.id;
         opt.textContent = `${ev.name} (${ev.date})`;
-        e1.appendChild(opt.cloneNode(true));
-        e2.appendChild(opt);
+        eventSelectRSVP.appendChild(opt.cloneNode(true));
+        eventSelect.appendChild(opt);
       });
-      e2.addEventListener("change", loadRSVPsAndGroups);
+
+      // Make sure dropdown change triggers reload
+      eventSelectRSVP.addEventListener("change", loadRSVPsAndGroups);
     }
 
-    // LOAD RSVPS + GROUP INFO
+    // LOAD RSVP + GROUP INFO
     async function loadRSVPsAndGroups() {
       const eventId = document.getElementById("eventSelectRSVP").value;
+      if (!eventId) return;
 
-      const { data: rsvps, error: e1 } = await supabase
+      const { data: rsvps, error: err1 } = await supabase
         .from("rsvps")
         .select("*")
         .eq("event_id", eventId);
-
-      const { data: teeTimes, error: e2 } = await supabase
+      const { data: teeTimes, error: err2 } = await supabase
         .from("tee_times")
         .select("*")
         .eq("event_id", eventId);
 
-      if (e1 || e2) return console.error(e1 || e2);
+      if (err1 || err2) { console.error(err1 || err2); return; }
+
+      const table = document.getElementById("rsvpTable");
+      if (!rsvps.length) {
+        table.innerHTML = "<p>No RSVPs found for this event.</p>";
+        return;
+      }
 
       const rows = rsvps.map(rsvp => {
-        let group = teeTimes.find(t => (t.players || []).join(",").includes(rsvp.name));
+        const group = teeTimes.find(t => (t.players || []).join(",").includes(rsvp.name));
         return {
           name: rsvp.name,
-          phone: rsvp.phone,
-          attending: rsvp.attending,
-          buggy: rsvp.buggy,
-          flexibility: rsvp.flexibility,
+          phone: rsvp.phone || "",
+          attending: rsvp.attending ? "✅" : "❌",
+          buggy: rsvp.buggy ? "🛺" : "🚶‍♂️",
+          flexibility: rsvp.flexibility || "",
           group_number: group ? group.group_number : "-",
           tee_time: group ? group.tee_time : "-"
         };
       });
 
-      document.getElementById("rsvpTable").innerHTML = `
+      table.innerHTML = `
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Attending</th>
-              <th>Buggy</th>
-              <th>Flexibility</th>
-              <th>Group</th>
-              <th>Tee Time</th>
+              <th>Name</th><th>Phone</th><th>Attending</th>
+              <th>Buggy</th><th>Flexibility</th>
+              <th>Group</th><th>Tee Time</th>
             </tr>
           </thead>
           <tbody>
             ${rows.map(r => `
               <tr>
-                <td>${r.name}</td>
-                <td>${r.phone || ""}</td>
-                <td>${r.attending ? "✅" : "❌"}</td>
-                <td>${r.buggy ? "🛺" : "🚶‍♂️"}</td>
-                <td>${r.flexibility || ""}</td>
-                <td>${r.group_number}</td>
-                <td>${r.tee_time}</td>
+                <td>${r.name}</td><td>${r.phone}</td>
+                <td>${r.attending}</td><td>${r.buggy}</td>
+                <td>${r.flexibility}</td><td>${r.group_number}</td><td>${r.tee_time}</td>
               </tr>`).join("")}
           </tbody>
         </table>`;
     }
 
-    // GENERATE TEE TIMES (unchanged logic)
+    // GENERATE TEE TIMES
     document.getElementById("generateBtn").addEventListener("click", async () => {
       const eventId = document.getElementById("eventSelect").value;
       const start = document.getElementById("startTime").value;
       const interval = parseInt(document.getElementById("interval").value);
-
       const { data: rsvps, error } = await supabase
-        .from("rsvps")
-        .select("*")
-        .eq("event_id", eventId)
-        .eq("attending", true);
-
+        .from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
       if (error || !rsvps?.length) return alert("No RSVPs found.");
 
-      // CLASSIFY & GROUP
       const buggy = rsvps.filter(r => r.buggy);
       const walkers = rsvps.filter(r => !r.buggy);
       const needs = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
