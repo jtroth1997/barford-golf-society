@@ -251,73 +251,104 @@ document.getElementById("teeLoginBtn").addEventListener("click",()=>{
   }
 });
 
-// ===== TEE TIME GENERATION (Barford Logic v2) =====
-document.getElementById("generateTeeTimes").addEventListener("click", async ()=>{
-  const eventId=document.getElementById("teeEventSelect").value;
-  if(!eventId) return alert("Select an event first");
+// Generate Tee Times (fixed pairing logic)
+document.getElementById("generateBtn").addEventListener("click", async () => {
+  const eventId = document.getElementById("eventSelect").value;
+  if (!eventId) return alert("Select an event first.");
 
-  const { data: rsvps, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
-  if(error){ console.error(error); return alert("Error loading RSVPs"); }
+  const startTime = document.getElementById("startTime").value || "09:00";
+  const interval = parseInt(document.getElementById("interval").value || "8");
 
-  if(!rsvps.length) return alert("No RSVPs found for this event.");
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("attending", true);
 
-  // Separate groups
-  const buggyYes=rsvps.filter(r=>r.buggy);
-  const walkers=rsvps.filter(r=>!r.buggy);
+  if (error || !rsvps?.length) {
+    alert("No RSVPs found for this event.");
+    return;
+  }
 
-  // Handle flexible walkers
-  const flexWalkers = rsvps.filter(r=>r.flexibility && r.flexibility.toLowerCase().includes("walk"));
-  buggyYes.forEach(b=>{
-    if(!b.partner && b.flexibility && b.flexibility.toLowerCase().includes("walk")){
-      b.buggy=false; walkers.push(b);
-    }
-  });
+  // Separate buggy and walkers
+  let buggy = rsvps.filter(r => r.buggy);
+  let walkers = rsvps.filter(r => !r.buggy);
 
-  const groups=[];
-  const buggyPairs=[];
-
-  // Group buggy players in pairs
-  for(let i=0;i<buggyYes.length;i+=2){
-    const pair=buggyYes.slice(i,i+2);
-    if(pair.length===2) buggyPairs.push(pair);
-    else { // single buggy left
-      pair[0].singleBuggy=true;
-      buggyPairs.push(pair);
+  // Handle flexibility (move flexible buggy people to walkers if odd)
+  if (buggy.length % 2 === 1) {
+    const flexible = buggy.find(r => r.flexibility?.includes("happy to walk"));
+    if (flexible) {
+      buggy = buggy.filter(r => r.id !== flexible.id);
+      walkers.push(flexible);
     }
   }
 
-  // Build groups from buggy pairs
-  for(let i=0;i<buggyPairs.length;i+=2){
-    const groupPairs=buggyPairs.slice(i,i+2);
-    const group=[].concat(...groupPairs);
-    if(group.length<4){
-      while(group.length<4 && walkers.length) group.push(walkers.shift());
-    }
-    groups.push({type:"Buggy Group", players:group});
+  const teeTimes = [];
+  let currentTime = startTime;
+  let groupNum = 1;
+
+  function addMinutes(time, mins) {
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m + mins);
+    return d.toTimeString().slice(0,5);
   }
 
-  // Remaining walkers after buggies
-  if(walkers.length){
-    // 3-ball first
-    if(walkers.length % 4 === 3){
-      groups.push({type:"Walker Group (3-ball)", players:walkers.splice(0,3)});
+  // Group buggy pairs first
+  for (let i = 0; i < buggy.length; i += 2) {
+    const pair = buggy.slice(i, i + 2);
+    if (pair.length === 2) {
+      teeTimes.push({
+        event_id: eventId,
+        group_number: groupNum++,
+        tee_time: currentTime,
+        players: pair.map(p => p.name),
+      });
+    } else {
+      // Single buggy (will add walkers later)
+      teeTimes.push({
+        event_id: eventId,
+        group_number: groupNum++,
+        tee_time: currentTime,
+        players: [pair[0].name],
+      });
     }
-    // Then fill with 4-balls
-    while(walkers.length>0){
-      groups.push({type:"Walker Group", players:walkers.splice(0,4)});
-    }
+    currentTime = addMinutes(currentTime, interval);
   }
 
-  // Lone buggy handling: single buggy with 3 walkers if available
-  groups.forEach(g=>{
-    g.players.forEach(p=>{
-      if(p.singleBuggy){
-        while(g.players.length<4 && walkers.length){
-          g.players.push(walkers.shift());
-        }
-      }
+  // Fill single buggy groups with walkers
+  for (let g of teeTimes.filter(g => g.players.length === 1)) {
+    const needed = 3;
+    const addWalkers = walkers.splice(0, needed);
+    g.players = g.players.concat(addWalkers.map(w => w.name));
+  }
+
+  // Add remaining walkers (3 or 4 balls)
+  while (walkers.length > 0) {
+    const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
+    const group = walkers.splice(0, groupSize);
+    teeTimes.push({
+      event_id: eventId,
+      group_number: groupNum++,
+      tee_time: currentTime,
+      players: group.map(p => p.name),
     });
-  });
+    currentTime = addMinutes(currentTime, interval);
+  }
+
+  // Save to Supabase
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
+  const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
+
+  if (insertErr) {
+    console.error(insertErr);
+    alert("Error saving tee times.");
+  } else {
+    alert("✅ Tee times generated successfully!");
+    loadTeeTimes(eventId);
+  }
+});
+
 
   // Assign tee times
   const firstTee=document.getElementById("firstTeeTime").value;
