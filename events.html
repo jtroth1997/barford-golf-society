@@ -150,10 +150,15 @@ async function submitRSVP(e, eventId){
   alert("✅ RSVP saved successfully!");
 }
 
-// Load tee times for event
+// Load tee times for event (with buggy phone numbers and top note)
 async function loadTeeTimes(eventId){
   const container=document.getElementById(`tee_${eventId}`);
-  const { data: tees, error } = await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
+  const { data: tees, error } = await supabase
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("group_number", { ascending:true });
+
   if(error){ console.error(error); container.innerHTML="Error loading tee times."; return; }
 
   if(!tees.length){
@@ -161,26 +166,54 @@ async function loadTeeTimes(eventId){
     return;
   }
 
-  // Fetch event details for header
+  // Fetch event details
   const { data: evData } = await supabase.from("events").select("name, date").eq("id", eventId).single();
   const header = `<h3>⛳ Tee Times – ${evData.name} (${evData.date})</h3>`;
 
-  let html=header;
+  // Fetch RSVPs for buggy info
+  const { data: rsvps } = await supabase
+    .from("rsvps")
+    .select("name, buggy, phone")
+    .eq("event_id", eventId);
+
+  const findRSVP = (playerName) =>
+    rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
+
+  const findPhone = (playerName) => {
+    const match = findRSVP(playerName);
+    if(match && match.buggy && match.phone) return ` <span class='phone'>(${match.phone})</span>`;
+    return "";
+  };
+
+  // Check if any buggies exist
+  const anyBuggy = rsvps?.some(r => r.buggy);
+
+  let html = header;
+  if(anyBuggy){
+    html += `<p style="background:#fff8e6;padding:10px;border-radius:8px;margin-bottom:10px;">
+    🛺 <strong>Note:</strong> Any buggy pairs should contact each other directly to organise booking of their buggy.
+    </p>`;
+  }
+
   tees.forEach(g=>{
-    html+=`
+    html += `
       <div class='group'>
         <strong>Group ${g.group_number} — ${g.tee_time}</strong>
         <ul>
           ${g.players.map(p=>{
-            const buggyIcon = p.includes("🛺") ? " <span class='buggy'>🛺</span>" : "";
-            return `<li class='player'>${p}${buggyIcon}</li>`;
+            const rsvp = findRSVP(p);
+            const buggyIcon = rsvp?.buggy ? " <span class='buggy'>🛺</span>" : "";
+            const phoneText = (rsvp?.buggy && rsvp?.phone) ? ` <span class='phone'>(${rsvp.phone})</span>` : "";
+            return `<li class='player'>${p}${buggyIcon}${phoneText}</li>`;
           }).join("")}
         </ul>
       </div>
     `;
   });
-  container.innerHTML=html;
+
+  container.innerHTML = html;
 }
+
 
 // Subscribe for realtime tee time updates
 supabase.channel('tee_times_changes')
