@@ -225,88 +225,113 @@ document.addEventListener("DOMContentLoaded", async () => {
   const generateBtn = document.getElementById("generateBtn");
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
-      const eventId = eventSelect.value;
-      if (!eventId) return alert("Select an event first.");
+  const eventId = eventSelect.value;
+  if (!eventId) return alert("Select an event first.");
 
-      const startTime = document.getElementById("startTime").value || "09:00";
-      const interval = parseInt(document.getElementById("interval").value || "8");
+  const startTime = document.getElementById("startTime").value || "09:00";
+  const interval = parseInt(document.getElementById("interval").value || "8");
 
-      const { data: rsvps, error } = await supabase
-        .from("rsvps")
-        .select("*")
-        .eq("event_id", eventId)
-        .eq("attending", true);
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("attending", true);
 
-      if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
+  if (error || !rsvps?.length) return alert("⚠️ No RSVPs found for this event.");
 
-      let buggy = rsvps.filter(r => r.buggy);
-      let walkers = rsvps.filter(r => !r.buggy);
+  // Separate buggies and walkers
+  let buggy = rsvps.filter(r => r.buggy);
+  let walkers = rsvps.filter(r => !r.buggy);
 
-      // ✅ FIXED FLEXIBILITY: make buggy list even and remove solo flexible players
-let flexiblePlayers = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy to walk"));
-
-// Step 1: Keep moving flexible players to walkers until buggy count is even
-while (buggy.length % 2 !== 0 && flexiblePlayers.length > 0) {
-  const mover = flexiblePlayers.shift();
-  buggy = buggy.filter(r => r.id !== mover.id);
-  walkers.push(mover);
-}
-
-// Step 2: If after pairing there's still a single flexible buggy person left, move them too
-if (buggy.length === 1 && buggy[0].flexibility?.toLowerCase().includes("happy to walk")) {
-  walkers.push(buggy[0]);
-  buggy = [];
-}
-
-      
-      const teeTimes = [];
-      let currentTime = startTime;
-      let groupNum = 1;
-
-      function addMinutes(time, mins) {
-        const [h, m] = time.split(":").map(Number);
-        const d = new Date();
-        d.setHours(h, m + mins);
-        return d.toTimeString().slice(0,5);
-      }
-
-      // Group buggy pairs first (4 buggy players per group max)
-      for (let i = 0; i < buggy.length; i += 4) {
-        const group = buggy.slice(i, i + 4);
-        teeTimes.push({
-          event_id: eventId,
-          group_number: groupNum++,
-          tee_time: currentTime,
-          players: group.map(p => p.name)
-        });
-        currentTime = addMinutes(currentTime, interval);
-      }
-
-      // Add walkers (3 balls first then 4 balls)
-      while (walkers.length > 0) {
-        const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
-        const group = walkers.splice(0, groupSize);
-        teeTimes.push({
-          event_id: eventId,
-          group_number: groupNum++,
-          tee_time: currentTime,
-          players: group.map(p => p.name)
-        });
-        currentTime = addMinutes(currentTime, interval);
-      }
-
-      // Save to Supabase
-      await supabase.from("tee_times").delete().eq("event_id", eventId);
-      const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
-      if (insertErr) {
-        console.error(insertErr);
-        alert("Error saving tee times.");
-      } else {
-        alert("✅ Tee times generated successfully!");
-        displayTeeTimes(eventId);
-      }
-    });
+  // ✅ Handle flexibility: move "happy to walk" players if buggy count is odd
+  const flexible = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy"));
+  if (buggy.length % 2 !== 0 && flexible.length > 0) {
+    // Move one flexible player to walkers
+    const toWalk = flexible[flexible.length - 1];
+    buggy = buggy.filter(r => r.id !== toWalk.id);
+    walkers.push(toWalk);
   }
+
+  // ✅ Pair buggy players in groups of 2 (2 pairs = 4 players per group)
+  const buggyGroups = [];
+  for (let i = 0; i < buggy.length; i += 2) {
+    const pair = buggy.slice(i, i + 2);
+    buggyGroups.push(pair);
+  }
+
+  // ✅ Handle any single buggy left who truly needs it (no flexible players remaining)
+  let singleBuggy = null;
+  if (buggy.length % 2 !== 0) {
+    const last = buggy[buggy.length - 1];
+    if (!last.flexibility?.toLowerCase().includes("happy")) {
+      singleBuggy = last; // they need a buggy alone
+    } else {
+      walkers.push(last); // they're happy to walk, so move them to walkers
+      buggy = buggy.filter(r => r.id !== last.id);
+    }
+  }
+
+  const teeTimes = [];
+  let currentTime = startTime;
+  let groupNum = 1;
+
+  function addMinutes(time, mins) {
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m + mins);
+    return d.toTimeString().slice(0, 5);
+  }
+
+  // ✅ Add buggy groups first (up to 4 players per group)
+  const allBuggyPlayers = buggyGroups.flat();
+  for (let i = 0; i < allBuggyPlayers.length; i += 4) {
+    const group = allBuggyPlayers.slice(i, i + 4);
+    teeTimes.push({
+      event_id: eventId,
+      group_number: groupNum++,
+      tee_time: currentTime,
+      players: group.map(p => p.name)
+    });
+    currentTime = addMinutes(currentTime, interval);
+  }
+
+  // ✅ Add solo buggy if exists (with up to 3 walkers)
+  if (singleBuggy) {
+    const extraWalkers = walkers.splice(0, 3);
+    teeTimes.push({
+      event_id: eventId,
+      group_number: groupNum++,
+      tee_time: currentTime,
+      players: [singleBuggy.name, ...extraWalkers.map(p => p.name)]
+    });
+    currentTime = addMinutes(currentTime, interval);
+  }
+
+  // ✅ Add walkers (3 balls first then 4 balls)
+  while (walkers.length > 0) {
+    const groupSize = walkers.length === 3 || walkers.length % 4 === 3 ? 3 : 4;
+    const group = walkers.splice(0, groupSize);
+    teeTimes.push({
+      event_id: eventId,
+      group_number: groupNum++,
+      tee_time: currentTime,
+      players: group.map(p => p.name)
+    });
+    currentTime = addMinutes(currentTime, interval);
+  }
+
+  // Save to Supabase
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
+  const { error: insertErr } = await supabase.from("tee_times").insert(teeTimes);
+  if (insertErr) {
+    console.error(insertErr);
+    alert("Error saving tee times.");
+  } else {
+    alert("✅ Tee times generated successfully!");
+    displayTeeTimes(eventId);
+  }
+});
+
 
   async function displayTeeTimes(eventId) {
     const { data } = await supabase
