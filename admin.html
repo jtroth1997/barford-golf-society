@@ -320,9 +320,15 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
     const tStr = `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
     html += `<h5>Group ${idx + 1} — ${tStr}</h5><ul>`;
     group.forEach(p => {
-      const phone = p.buggy === "Yes" ? ` (${p.phone || "No phone"})` : "";
-      html += `<li>${p.name}${phone}</li>`;
-    });
+  let phoneDisplay = "";
+  if (p.buggy === "Yes" && p.phone && p.phone.trim() !== "") {
+    phoneDisplay = ` (${p.phone})`;
+  } else if (p.buggy === "Yes") {
+    phoneDisplay = " (No phone)";
+  }
+  html += `<li>${p.name}${phoneDisplay}</li>`;
+});
+
     html += "</ul>";
     groupList.push({ event_id: eventId, group_number: idx + 1, tee_time: tStr, players: group.map(p => p.name) });
     teeTime += 8;
