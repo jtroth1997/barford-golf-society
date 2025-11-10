@@ -14,52 +14,53 @@
     body {
       margin: 0;
       font-family: "Inter", "Segoe UI", sans-serif;
-      background-color: var(--light);
+      background: var(--light);
       color: #333;
     }
     header {
       background: linear-gradient(90deg, var(--green), #145c30);
       color: var(--gold);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 1.8rem;
+      padding: 1.2rem 1.5rem;
+      font-size: 1.6rem;
       font-weight: 700;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     main {
-      max-width: 950px;
+      max-width: 960px;
       margin: 2rem auto;
-      background: white;
-      border-radius: 16px;
+      background: #fff;
+      border-radius: 14px;
       padding: 2rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
     h2 {
       color: var(--green);
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 700;
       margin-bottom: 1rem;
     }
+    h3 { color: var(--green); font-weight: 600; }
     input, select {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 0.5rem;
       width: 100%;
+      padding: 0.6rem;
       margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 1rem;
     }
     button {
       cursor: pointer;
-      padding: 0.6rem 1.2rem;
       border: none;
+      padding: 0.7rem 1.4rem;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: 600;
       transition: 0.2s;
     }
-    .btn-green { background: var(--green); color: white; }
+    .btn-green { background: var(--green); color: #fff; }
     .btn-green:hover { background: #166338; }
-    .btn-blue { background: #2d70d5; color: white; }
+    .btn-blue { background: #2d70d5; color: #fff; }
     .btn-blue:hover { background: #1b56a8; }
     .hidden { display: none; }
     table {
@@ -75,11 +76,18 @@
       text-align: left;
     }
     th {
-      background-color: var(--green);
+      background: var(--green);
       color: white;
       font-weight: 600;
     }
-    tr:hover td { background-color: #f9f9f9; }
+    tr:hover td { background: #f9f9f9; }
+    .section {
+      background: #fafafa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
     .note {
       background: #fff8e1;
       border-left: 4px solid var(--gold);
@@ -87,13 +95,6 @@
       border-radius: 8px;
       margin-bottom: 1rem;
       color: #7a6500;
-    }
-    .section-card {
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      margin-top: 1.5rem;
     }
   </style>
 </head>
@@ -105,8 +106,8 @@
     <div id="loginSection">
       <h2>Admin Login</h2>
       <input id="adminPassword" type="password" placeholder="Enter admin password..." />
-      <button id="loginBtn" class="btn-green w-full">Login</button>
-      <p id="loginError" class="text-red-600 hidden">Incorrect password. Please try again.</p>
+      <button id="loginBtn" class="btn-green">Login</button>
+      <p id="loginError" class="text-red-600 hidden">Incorrect password. Try again.</p>
     </div>
 
     <!-- DASHBOARD -->
@@ -117,16 +118,16 @@
         <button id="teeTimeBtn" class="btn-blue">Tee Time Organiser</button>
       </div>
 
-      <!-- RSVP MANAGER -->
-      <div id="rsvpSection" class="hidden section-card">
-        <h3 style="color:var(--green); font-size:1.3rem;">RSVP Manager</h3>
+      <!-- RSVP MANAGER (Combined View) -->
+      <div id="rsvpSection" class="hidden section">
+        <h3>RSVPs & Tee Times</h3>
         <select id="eventSelectRSVP"></select>
         <div id="rsvpTable"></div>
       </div>
 
       <!-- TEE TIME ORGANISER -->
-      <div id="teeSection" class="hidden section-card">
-        <h3 style="color:var(--green); font-size:1.3rem;">Tee Time Organiser</h3>
+      <div id="teeSection" class="hidden section">
+        <h3>Tee Time Organiser</h3>
         <input id="teePassword" type="password" placeholder="Enter organiser password..." />
         <button id="teeLoginBtn" class="btn-blue">Access Tee Time Organiser</button>
         <p id="teeError" class="text-red-600 hidden">Incorrect password. Try again.</p>
@@ -206,41 +207,67 @@
         e1.appendChild(opt.cloneNode(true));
         e2.appendChild(opt);
       });
-      e2.addEventListener("change", loadRSVPs);
+      e2.addEventListener("change", loadRSVPsAndGroups);
     }
 
-    // LOAD RSVPS
-    async function loadRSVPs() {
-      const id = document.getElementById("eventSelectRSVP").value;
-      const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", id);
-      if (error) return console.error(error);
+    // LOAD RSVPS + GROUP INFO
+    async function loadRSVPsAndGroups() {
+      const eventId = document.getElementById("eventSelectRSVP").value;
+
+      const { data: rsvps, error: e1 } = await supabase
+        .from("rsvps")
+        .select("*")
+        .eq("event_id", eventId);
+
+      const { data: teeTimes, error: e2 } = await supabase
+        .from("tee_times")
+        .select("*")
+        .eq("event_id", eventId);
+
+      if (e1 || e2) return console.error(e1 || e2);
+
+      const rows = rsvps.map(rsvp => {
+        let group = teeTimes.find(t => (t.players || []).join(",").includes(rsvp.name));
+        return {
+          name: rsvp.name,
+          phone: rsvp.phone,
+          attending: rsvp.attending,
+          buggy: rsvp.buggy,
+          flexibility: rsvp.flexibility,
+          group_number: group ? group.group_number : "-",
+          tee_time: group ? group.tee_time : "-"
+        };
+      });
+
       document.getElementById("rsvpTable").innerHTML = `
         <table>
           <thead>
-            <tr><th>Name</th><th>Phone</th><th>Attending</th><th>Buggy</th><th>Flexibility</th></tr>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Attending</th>
+              <th>Buggy</th>
+              <th>Flexibility</th>
+              <th>Group</th>
+              <th>Tee Time</th>
+            </tr>
           </thead>
           <tbody>
-          ${data.map(r => `
-            <tr>
-              <td>${r.name}</td>
-              <td>${r.phone || ""}</td>
-              <td>${r.attending ? "✅ Yes" : "❌ No"}</td>
-              <td>${r.buggy ? "🛺" : "🚶‍♂️"}</td>
-              <td>${r.flexibility || ""}</td>
-            </tr>`).join("")}
+            ${rows.map(r => `
+              <tr>
+                <td>${r.name}</td>
+                <td>${r.phone || ""}</td>
+                <td>${r.attending ? "✅" : "❌"}</td>
+                <td>${r.buggy ? "🛺" : "🚶‍♂️"}</td>
+                <td>${r.flexibility || ""}</td>
+                <td>${r.group_number}</td>
+                <td>${r.tee_time}</td>
+              </tr>`).join("")}
           </tbody>
         </table>`;
     }
 
-    // TIME HELPERS
-    const addMinutes = (time, mins) => {
-      const [h, m] = time.split(":").map(Number);
-      const d = new Date();
-      d.setHours(h, m + mins);
-      return d.toTimeString().slice(0, 5);
-    };
-
-    // GENERATE TEE TIMES
+    // GENERATE TEE TIMES (unchanged logic)
     document.getElementById("generateBtn").addEventListener("click", async () => {
       const eventId = document.getElementById("eventSelect").value;
       const start = document.getElementById("startTime").value;
@@ -251,30 +278,26 @@
         .select("*")
         .eq("event_id", eventId)
         .eq("attending", true);
+
       if (error || !rsvps?.length) return alert("No RSVPs found.");
 
-      // Separate and classify
+      // CLASSIFY & GROUP
       const buggy = rsvps.filter(r => r.buggy);
       const walkers = rsvps.filter(r => !r.buggy);
-      const needsBuggy = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
+      const needs = buggy.filter(r => r.flexibility?.toLowerCase().includes("need"));
       const happy = buggy.filter(r => r.flexibility?.toLowerCase().includes("happy"));
-      let buggyFinal = [...needsBuggy];
+      let buggyFinal = [...needs];
       let walkerList = [...walkers];
 
-      // Pair buggy players
       let pending = [...happy];
       while (pending.length > 1) buggyFinal.push(pending.splice(0, 2));
-      if (pending.length === 1) walkerList.push(pending[0]); // odd happy moves to walkers
+      if (pending.length === 1) walkerList.push(pending[0]);
 
-      // Turn single buggies into individual groups
       buggyFinal = buggyFinal.flatMap(p => Array.isArray(p) ? [p] : [[p]]);
-
-      // Combine two buggy pairs into a 4-ball
       const buggyGroups = [];
       let pool = buggyFinal.flat();
       while (pool.length > 0) buggyGroups.push(pool.splice(0, 4));
 
-      // Prepare walker groups (3s first)
       const walkerGroups = [];
       let w = [...walkerList];
       while (w.length > 0) {
@@ -282,39 +305,31 @@
         walkerGroups.push(w.splice(0, size));
       }
 
-      // Merge all groups
       const allGroups = [...buggyGroups, ...walkerGroups];
+      let current = start;
+      const addMins = (t, m) => {
+        const [h, mi] = t.split(":").map(Number);
+        const d = new Date();
+        d.setHours(h, mi + m);
+        return d.toTimeString().slice(0, 5);
+      };
 
-      // Save and display
-      let currentTime = start;
       const teeTimes = allGroups.map((g, i) => {
-        const entry = {
+        const res = {
           event_id: eventId,
           group_number: i + 1,
-          tee_time: currentTime,
+          tee_time: current,
           players: g.map(p => `${p.name}${p.buggy ? ` (${p.phone || ""})` : ""}`)
         };
-        currentTime = addMinutes(currentTime, interval);
-        return entry;
+        current = addMins(current, interval);
+        return res;
       });
 
       await supabase.from("tee_times").delete().eq("event_id", eventId);
       await supabase.from("tee_times").insert(teeTimes);
       alert("✅ Tee times generated successfully!");
-      displayTeeTimes(eventId);
+      loadRSVPsAndGroups();
     });
-
-    async function displayTeeTimes(eventId) {
-      const { data, error } = await supabase.from("tee_times").select("*").eq("event_id", eventId).order("group_number");
-      if (error) return console.error(error);
-      const div = document.getElementById("teeTimesDisplay");
-      div.innerHTML = "<h3 style='color:var(--green); font-weight:700;'>Generated Tee Times</h3>" +
-        data.map(g => `
-          <div style="border-bottom:1px solid #eee; padding:0.5rem 0;">
-            <strong>Group ${g.group_number} — ${g.tee_time}</strong><br>
-            ${g.players.join(", ")}
-          </div>`).join("");
-    }
   </script>
 </body>
 </html>
