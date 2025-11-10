@@ -109,44 +109,109 @@ document.addEventListener("DOMContentLoaded", async () => {
   const teeSection = document.getElementById("teeSection");
   const eventSelect = document.getElementById("eventSelect");
 
-  // Hide all sections by default
+  // Hide all sections initially
   adminSection.classList.add("hidden");
   teeLogin.classList.add("hidden");
   teeSection.classList.add("hidden");
 
-  // Admin unlock
-  document.getElementById("adminUnlockBtn").addEventListener("click", () => {
+  // --- ADMIN LOGIN ---
+  document.getElementById("adminUnlockBtn").addEventListener("click", async () => {
     const pw = document.getElementById("adminPw").value.trim();
     if (pw === ADMIN_PW) {
       adminLogin.classList.add("hidden");
       adminSection.classList.remove("hidden");
       alert("✅ Admin access granted!");
-    } else alert("❌ Incorrect admin password");
+      await loadRSVPEvents();
+    } else {
+      alert("❌ Incorrect admin password");
+    }
   });
 
-  // Go to Tee Organiser
+  // --- GO TO TEE ORGANISER LOGIN ---
   document.getElementById("openTeeSectionBtn").addEventListener("click", () => {
     adminSection.classList.add("hidden");
     teeLogin.classList.remove("hidden");
   });
 
-  // Tee unlock
+  // --- TEE TIME ORGANISER LOGIN ---
   document.getElementById("teeUnlockBtn").addEventListener("click", () => {
     const pw = document.getElementById("teePw").value.trim();
     if (pw === TEE_PW) {
       teeLogin.classList.add("hidden");
       teeSection.classList.remove("hidden");
       alert("✅ Tee Time Organiser access granted!");
-    } else alert("❌ Incorrect organiser password");
+      loadTeeEvents();
+    } else {
+      alert("❌ Incorrect organiser password");
+    }
   });
 
-  // Load events into dropdown
-  const { data: events } = await supabase.from("events").select("*").order("date");
-  if (events?.length) {
-    eventSelect.innerHTML = events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join("");
+  /* =========================
+     RSVP MANAGER FUNCTIONS
+     ========================= */
+  async function loadRSVPEvents() {
+    const { data: events } = await supabase.from("events").select("*").order("date");
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <label>Select Event:</label>
+      <select id="rsvpEventSelect">
+        ${events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join("")}
+      </select>
+      <div id="rsvpList" style="margin-top:20px;"></div>
+    `;
+    adminSection.appendChild(container);
+
+    document.getElementById("rsvpEventSelect").addEventListener("change", e => {
+      loadRSVPList(e.target.value);
+    });
+
+    if (events.length) loadRSVPList(events[0].id);
   }
 
-  // Generate tee times
+  async function loadRSVPList(eventId) {
+    const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId);
+    const div = document.getElementById("rsvpList");
+    if (error || !data?.length) {
+      div.innerHTML = "<p>No RSVPs found for this event.</p>";
+      return;
+    }
+
+    let html = `
+      <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">
+        <thead style="background:#eee;">
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Attending</th>
+            <th>Buggy</th>
+            <th>Flexibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(r => `
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.phone || ""}</td>
+              <td>${r.attending ? "✅ Yes" : "❌ No"}</td>
+              <td>${r.buggy ? "🛺 Yes" : "🚶 No"}</td>
+              <td>${r.flexibility || ""}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+    div.innerHTML = html;
+  }
+
+  /* =========================
+     TEE ORGANISER FUNCTIONS
+     ========================= */
+  async function loadTeeEvents() {
+    const { data: events } = await supabase.from("events").select("*").order("date");
+    if (events?.length) {
+      eventSelect.innerHTML = events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join("");
+    }
+  }
+
   document.getElementById("generateBtn").addEventListener("click", async () => {
     const eventId = eventSelect.value;
     if (!eventId) return alert("Select an event first.");
@@ -165,7 +230,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let buggy = rsvps.filter(r => r.buggy);
     let walkers = rsvps.filter(r => !r.buggy);
 
-    // Handle flexibility (move one to walkers if odd buggy)
+    // Handle flexibility
     if (buggy.length % 2 === 1) {
       const flexible = buggy.find(r => r.flexibility?.includes("happy to walk"));
       if (flexible) {
@@ -185,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return d.toTimeString().slice(0,5);
     }
 
-    // Group buggy pairs first
+    // Group buggy pairs first (4 buggy players per group max)
     for (let i = 0; i < buggy.length; i += 4) {
       const group = buggy.slice(i, i + 4);
       teeTimes.push({
