@@ -160,8 +160,8 @@ th {
     <div id="teeTools" class="hidden">
       <h3>Generate Tee Times</h3>
       <p class="small">
-        Select an event to organise tee times. Buggies go first.  
-        Buggy groups will show phone numbers so partners can contact each other.
+        Select an event to organise tee times. Buggy players will go out first,  
+        but can be grouped with other players into 4-balls.
       </p>
       <select id="teeEventSelect">
         <option value="">Select Event</option>
@@ -176,21 +176,14 @@ th {
 <div id="toast"></div>
 
 <script>
-/* =========================
-   SUPABASE SETUP
-   ========================= */
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ADMIN_PASSWORD = "westbrom1997";
 const TEE_PASSWORD   = "oxford1";
-
 let teeSheetCache = [];
 
-/* =========================
-   TOAST POPUP
-   ========================= */
 function showToast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg;
@@ -198,9 +191,7 @@ function showToast(msg) {
   setTimeout(() => t.style.opacity = 0, 2500);
 }
 
-/* =========================
-   LOGIN
-   ========================= */
+// Admin login
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const pw = document.getElementById("adminPassword").value.trim();
   if (pw === ADMIN_PASSWORD) {
@@ -211,12 +202,9 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   } else alert("Incorrect password");
 });
 
-/* =========================
-   TABS
-   ========================= */
+// Tab switching
 document.getElementById("rsvpTabBtn").addEventListener("click", () => setActiveTab("rsvp"));
 document.getElementById("teeTimeTabBtn").addEventListener("click", () => setActiveTab("tee"));
-
 function setActiveTab(tab) {
   document.getElementById("rsvpSection").classList.toggle("active", tab === "rsvp");
   document.getElementById("teeTimeSection").classList.toggle("active", tab === "tee");
@@ -224,20 +212,10 @@ function setActiveTab(tab) {
   document.getElementById("teeTimeTabBtn").classList.toggle("active", tab === "tee");
 }
 
-/* =========================
-   LOAD EVENTS (for both tabs)
-   ========================= */
+// Load events
 async function loadEvents() {
-  const { data, error } = await supabase
-    .from("events")
-    .select("id, name, date")
-    .order("date", { ascending: true });
-
-  if (error) {
-    console.error(error);
-    alert("Error loading events");
-    return;
-  }
+  const { data, error } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
+  if (error) return console.error(error);
 
   const rsvpSelect = document.getElementById("rsvpEventSelect");
   const teeSelect  = document.getElementById("teeEventSelect");
@@ -250,231 +228,126 @@ async function loadEvents() {
   rsvpSelect.onchange = () => loadRSVPs(rsvpSelect.value);
 }
 
-/* =========================
-   RSVP MANAGER
-   ========================= */
+// RSVP table
 async function loadRSVPs(eventId) {
   if (!eventId) return;
   const container = document.getElementById("rsvpTableContainer");
   container.innerHTML = "<p>Loading RSVPs...</p>";
 
-  const { data, error } = await supabase
-    .from("rsvps")
-    .select("*")
-    .eq("event_id", eventId)
-    .order("name", { ascending: true });
+  const { data, error } = await supabase.from("rsvps").select("*").eq("event_id", eventId).order("name");
+  if (error) return (container.innerHTML = "<p>Error loading RSVPs.</p>");
 
-  if (error) {
-    console.error(error);
-    container.innerHTML = "<p style='color:red'>Error fetching RSVPs.</p>";
-    return;
-  }
-  if (!data.length) {
-    container.innerHTML = "<p>No RSVPs yet for this event.</p>";
-    return;
-  }
+  if (!data.length) return (container.innerHTML = "<p>No RSVPs yet for this event.</p>");
 
-  let html = `<table><thead><tr>
-    <th>Name</th><th>Phone</th><th>Buggy</th><th>Flexibility</th><th>Attending</th>
-  </tr></thead><tbody>`;
+  let html = `<table><thead><tr><th>Name</th><th>Phone</th><th>Buggy</th><th>Flexibility</th><th>Attending</th></tr></thead><tbody>`;
   data.forEach(r => {
     html += `<tr>
       <td>${r.name}</td>
       <td>${r.phone || ""}</td>
       <td>${r.buggy ? "Yes" : "No"}</td>
       <td>${r.flexibility || ""}</td>
-      <td>
-        <input type="checkbox" ${r.attending ? "checked" : ""} onchange="toggleAttend(${r.id}, this.checked)">
-      </td>
+      <td><input type="checkbox" ${r.attending ? "checked" : ""} onchange="toggleAttend(${r.id}, this.checked)"></td>
     </tr>`;
   });
   html += "</tbody></table>";
   container.innerHTML = html;
 }
-
-// Called from inline onchange
 async function toggleAttend(id, attending) {
-  const { error } = await supabase
-    .from("rsvps")
-    .update({ attending })
-    .eq("id", id);
-  if (error) {
-    console.error(error);
-    showToast("⚠️ Error updating attendance");
-  } else showToast("✅ RSVP updated");
+  await supabase.from("rsvps").update({ attending }).eq("id", id);
+  showToast("RSVP updated");
 }
 
-/* =========================
-   TEE TIME PASSWORD GATE
-   ========================= */
+// Tee time unlock
 document.getElementById("teeUnlockBtn").addEventListener("click", () => {
   const pw = document.getElementById("teePw").value.trim();
   if (pw === TEE_PASSWORD) {
     document.getElementById("teeTimeLogin").classList.add("hidden");
     document.getElementById("teeTools").classList.remove("hidden");
-    showToast("✅ Tee Time tools unlocked");
-  } else {
-    alert("Incorrect Tee Time password");
-  }
+    showToast("✅ Tee tools unlocked");
+  } else alert("Incorrect tee time password");
 });
 
-/* =========================
-   TEE TIME GENERATION
-   ========================= */
+// Generate tee times
 document.getElementById("generateBtn").addEventListener("click", async () => {
   const eventId = document.getElementById("teeEventSelect").value;
   if (!eventId) return alert("Select an event first");
 
-  const { data: rsvps, error } = await supabase
-    .from("rsvps")
-    .select("name, phone, buggy, attending, flexibility, event_id")
+  const { data: rsvps, error } = await supabase.from("rsvps")
+    .select("name, phone, buggy, attending, flexibility")
     .eq("event_id", eventId)
     .eq("attending", true);
 
-  if (error) {
-    console.error(error);
-    return alert("Error fetching RSVPs for tee time generation");
-  }
-  if (!rsvps.length) {
-    return alert("No attending RSVPs for this event.");
-  }
+  if (error) return alert("Error loading RSVPs");
+  if (!rsvps.length) return alert("No attending players.");
 
-  // Separate buggy and walkers (buggy is boolean)
-  let buggyPlayers = rsvps.filter(p => p.buggy === true);
-  let walkers      = rsvps.filter(p => !p.buggy);
+  // Separate buggy and walkers
+  const buggyPlayers = rsvps.filter(r => r.buggy);
+  const walkers = rsvps.filter(r => !r.buggy);
 
-  // If odd number of buggy players, try move a flexible one to walkers
-  if (buggyPlayers.length % 2 === 1) {
-    const idx = buggyPlayers.findIndex(p =>
-      (p.flexibility || "").toLowerCase().includes("happy")
-    );
-    if (idx !== -1) {
-      walkers.push(buggyPlayers[idx]);
-      buggyPlayers.splice(idx, 1);
-    }
-  }
-
+  // Combine buggy players into 4-balls if possible
   const groups = [];
+  let pool = [...buggyPlayers, ...walkers];
 
-  // Buggy pairs first
-  for (let i = 0; i < buggyPlayers.length; i += 2) {
-    const grp = buggyPlayers.slice(i, i + 2);
-    if (grp.length) groups.push(grp);
+  // Sort buggy first for pace of play
+  pool.sort((a, b) => (a.buggy === b.buggy ? 0 : a.buggy ? -1 : 1));
+
+  // Split into groups of 4 (or 3 if leftover)
+  while (pool.length > 0) {
+    const groupSize = pool.length >= 4 ? 4 : pool.length;
+    groups.push(pool.splice(0, groupSize));
   }
 
-  // Remaining walkers into 3- or 4-balls
-  let remaining = walkers.slice();
-  while (remaining.length > 0) {
-    if (remaining.length === 3 || remaining.length === 5 || remaining.length === 7) {
-      groups.push(remaining.splice(0, 3));
-    } else {
-      groups.push(remaining.splice(0, 4));
-    }
-  }
-
-  // Build tee sheet with times
+  // Build tee sheet
   teeSheetCache = [];
   const start = new Date();
-  start.setHours(9, 0, 0, 0); // 09:00 start
-  const intervalMins = 8;
-
-  groups.forEach((grp, idx) => {
-    const d = new Date(start.getTime() + idx * intervalMins * 60000);
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    const timeStr = `${hh}:${mm}`;
+  start.setHours(9, 0, 0, 0);
+  const interval = 8;
+  groups.forEach((grp, i) => {
+    const t = new Date(start.getTime() + i * interval * 60000);
+    const time = t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     teeSheetCache.push({
-      groupNumber: idx + 1,
-      time: timeStr,
-      players: grp.map(p => p.name)
+      group: i + 1,
+      time,
+      players: grp
     });
   });
 
-  await renderTeePreview(eventId);
+  renderTeePreview(eventId);
   document.getElementById("saveBtn").classList.remove("hidden");
 });
 
-/* =========================
-   RENDER PREVIEW (with phones for buggy groups)
-   ========================= */
+// Render tee preview
 async function renderTeePreview(eventId) {
-  const preview = document.getElementById("teePreview");
-  if (!teeSheetCache.length) {
-    preview.innerHTML = "<p class='small'>No tee times generated yet.</p>";
-    return;
-  }
-
-  // Fetch RSVP data again to map name -> buggy/phone
-  const { data: rsvpData, error } = await supabase
-    .from("rsvps")
-    .select("name, buggy, phone")
-    .eq("event_id", eventId);
-
-  if (error) {
-    console.error(error);
-    preview.innerHTML = "<p class='small'>Error loading player info.</p>";
-    return;
-  }
+  const div = document.getElementById("teePreview");
+  if (!teeSheetCache.length) return (div.innerHTML = "<p>No tee times yet.</p>");
 
   let html = "<h4>Proposed Tee Times</h4>";
   teeSheetCache.forEach(g => {
-    const playerData = g.players.map(name => rsvpData.find(r => r.name === name) || {});
-    const isBuggyGroup = playerData.length > 0 && playerData.every(p => p.buggy === true);
-
-    const line = playerData.map(p => {
-      if (isBuggyGroup && p.phone) {
-        return `${p.name} (${p.phone})`;
-      }
+    const hasBuggy = g.players.some(p => p.buggy);
+    const players = g.players.map(p => {
+      if (hasBuggy && p.buggy && p.phone) return `${p.name} (${p.phone})`;
       return p.name;
     }).join(", ");
-
-    html += `
-      <div class="tt-group">
-        <div class="tt-time">Group ${g.groupNumber} — ${g.time}</div>
-        <div>${line}</div>
-      </div>
-    `;
+    html += `<div class="tt-group"><div class="tt-time">Group ${g.group} — ${g.time}</div>${players}</div>`;
   });
-
-  preview.innerHTML = html;
+  div.innerHTML = html;
 }
 
-/* =========================
-   SAVE TEE TIMES
-   ========================= */
+// Save to Supabase
 document.getElementById("saveBtn").addEventListener("click", async () => {
   const eventId = document.getElementById("teeEventSelect").value;
-  if (!eventId || !teeSheetCache.length) {
-    return alert("Nothing to save.");
-  }
-
-  // Clear existing tee times for this event then insert new
-  const { error: delErr } = await supabase
-    .from("tee_times")
-    .delete()
-    .eq("event_id", eventId);
-  if (delErr) {
-    console.error(delErr);
-    showToast("⚠️ Error clearing old tee times");
-    return;
-  }
-
+  if (!teeSheetCache.length) return alert("Nothing to save.");
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
   const rows = teeSheetCache.map(g => ({
-    event_id: parseInt(eventId, 10),
-    group_number: g.groupNumber,
+    event_id: eventId,
+    group_number: g.group,
     tee_time: g.time,
-    players: g.players
+    players: g.players.map(p => p.name)
   }));
-
-  const { error: insErr } = await supabase.from("tee_times").insert(rows);
-  if (insErr) {
-    console.error(insErr);
-    showToast("⚠️ Error saving tee times");
-  } else {
-    showToast("✅ Tee times saved to Supabase!");
-  }
-}
-);
+  const { error } = await supabase.from("tee_times").insert(rows);
+  if (error) console.error(error);
+  else showToast("✅ Tee times saved!");
+});
 </script>
 </body>
 </html>
