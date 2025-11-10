@@ -26,15 +26,18 @@ label{display:block;margin-top:8px;font-weight:600;}
 select,input[type="text"],input[type="date"],button{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
 button{background:var(--green);color:#fff;font-weight:600;cursor:pointer;margin-top:10px;}
 button:hover{background:#0a6b34;}
-button.danger{background:#b22222;}
 .hidden{display:none;}
 .notice{background:#ffeecc;color:#333;padding:10px;border-radius:6px;margin:10px 0;font-size:0.95rem;}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
-#createEventForm{background:#fff;padding:20px;border-radius:10px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.small{font-size:.9rem;color:#666;}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@media (max-width: 700px){ .row{grid-template-columns:1fr;} }
-#toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);padding:10px 20px;border-radius:8px;opacity:0;transition:opacity 0.4s;}
+.tee-times{margin-top:20px;padding-top:10px;border-top:2px solid #eee;}
+.group{background:#f9f9f9;margin:10px 0;padding:10px;border-radius:8px;}
+.group strong{color:var(--green);}
+.player{margin-left:15px;}
+.buggy{color:#c47f00;margin-left:5px;}
+.phone{font-size:0.9rem;color:#666;}
+@media (max-width:700px){
+  .event-header{flex-direction:column;align-items:flex-start;}
+}
 </style>
 </head>
 <body>
@@ -55,211 +58,138 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
 </header>
 
 <div class="container">
-  <h2>Events</h2>
-
-  <div id="adminCreate">
-    <h3>Create a New Event (Admin Only)</h3>
-    <div id="adminLogin">
-      <input type="password" id="adminPw" placeholder="Enter admin password">
-      <button type="button" id="unlockBtn">Unlock</button>
-      <p class="small">Creating events is password protected.</p>
-    </div>
-
-    <div id="createEventForm" class="hidden">
-      <div class="row">
-        <div>
-          <label>Event Name</label>
-          <input type="text" id="eventName" required>
-        </div>
-        <div>
-          <label>Location</label>
-          <input type="text" id="eventLocation" required>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Date</label>
-          <input type="date" id="eventDate" required>
-        </div>
-        <div>
-          <label>Price (£)</label>
-          <input type="text" id="eventPrice" required>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Round Number</label>
-          <select id="eventRound">
-            <option value="1">Round 1</option>
-            <option value="2">Round 2</option>
-            <option value="3">Round 3</option>
-            <option value="4">Round 4</option>
-            <option value="5">Round 5</option>
-            <option value="6">Round 6</option>
-            <option value="7">Round 7</option>
-          </select>
-        </div>
-      </div>
-
-      <button type="button" id="createEventBtn">Create Event</button>
-      <button type="button" id="lockBtn" class="danger">Lock</button>
-    </div>
-  </div>
-
-  <h2 style="margin-top:40px;">Upcoming Events</h2>
-  <div id="eventList"></div>
+  <h2>Upcoming Events</h2>
+  <div id="eventList">Loading events...</div>
 </div>
 
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
-<div id="toast"></div>
-
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const ADMIN_PASSWORD = "westbrom1997";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.style.opacity = 1;
-  setTimeout(() => t.style.opacity = 0, 2500);
-}
-
-// Unlock admin
-const adminLogin = document.getElementById("adminLogin");
-const createForm = document.getElementById("createEventForm");
-
-document.getElementById("unlockBtn").addEventListener("click", () => {
-  const pw = document.getElementById("adminPw").value.trim();
-  if (pw === ADMIN_PASSWORD) {
-    adminLogin.classList.add("hidden");
-    createForm.classList.remove("hidden");
-    showToast("Admin unlocked");
-  } else alert("Incorrect password");
-});
-
-document.getElementById("lockBtn").addEventListener("click", () => {
-  adminLogin.classList.remove("hidden");
-  createForm.classList.add("hidden");
-  document.getElementById("adminPw").value = "";
-  showToast("Locked");
-});
-
-// Create Event
-document.getElementById("createEventBtn").addEventListener("click", async () => {
-  const name = document.getElementById("eventName").value.trim();
-  const location = document.getElementById("eventLocation").value.trim();
-  const date = document.getElementById("eventDate").value;
-  const price = document.getElementById("eventPrice").value.trim();
-  const round = document.getElementById("eventRound").value;
-
-  if (!name || !location || !date || !price) return alert("Fill all fields");
-
-  const { error } = await supabase.from("events").insert([{ name, location, date, price, round }]);
-  if (error) console.error(error);
-  else {
-    showToast("Event created");
-    loadEvents();
-  }
-});
-
-// Load events
-async function loadEvents() {
-  const { data, error } = await supabase.from("events").select("*").order("date", { ascending: true });
-  if (error) return console.error(error);
-  renderEvents(data);
-}
-
-function renderEvents(events) {
-  const list = document.getElementById("eventList");
-  list.innerHTML = "";
-  if (!events.length) {
-    list.innerHTML = "<p>No events yet.</p>";
-    return;
-  }
-  events.forEach(ev => {
-    const safeId = ev.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-    const div = document.createElement("div");
-    div.className = "event-card";
-    div.innerHTML = `
+// Load all events
+async function loadEvents(){
+  const { data: events, error } = await supabase.from("events").select("*").order("date",{ascending:true});
+  if(error){ console.error(error); document.getElementById("eventList").innerHTML="Error loading events."; return; }
+  if(!events.length){ document.getElementById("eventList").innerHTML="<p>No events found.</p>"; return; }
+  const container=document.getElementById("eventList");
+  container.innerHTML="";
+  for(const ev of events){
+    const card=document.createElement("div");
+    card.className="event-card";
+    card.innerHTML=`
       <div class="event-header">
         <div>
           <div class="event-name">${ev.name}</div>
-          <div>${ev.location} — ${ev.date}</div>
-          <div><strong>Round:</strong> ${ev.round}</div>
+          <div>${ev.location || ""} — ${ev.date}</div>
+          <div><strong>Round:</strong> ${ev.round || ""}</div>
         </div>
-        <div><strong>Price:</strong> £${ev.price}</div>
+        <div><strong>Price:</strong> £${ev.price || "-"}</div>
       </div>
-
-      <form class="rsvp-form" onsubmit="submitRSVP(event, ${ev.id}, '${safeId}')">
+      <form class="rsvp-form" onsubmit="submitRSVP(event,'${ev.id}')">
         <h4>RSVP for this Event</h4>
-
         <label>Full Name</label>
-        <input type="text" id="name_${safeId}" required>
-
+        <input type="text" id="name_${ev.id}" placeholder="Your name" required>
         <label>Email (optional)</label>
-        <input type="text" id="email_${safeId}" placeholder="you@email.com">
-
-        <label>Will you be attending this event?</label>
-        <select id="attending_${safeId}">
+        <input type="text" id="email_${ev.id}" placeholder="Your email">
+        <label>Phone (for buggy pairing)</label>
+        <input type="text" id="phone_${ev.id}" placeholder="Your phone number">
+        <label>Will you be attending?</label>
+        <select id="attending_${ev.id}">
           <option value="true">Yes, I’ll be playing</option>
           <option value="false">No, I can’t attend</option>
         </select>
-
-        <label>Would you like to use a buggy for this event?</label>
-        <select id="buggy_${safeId}" onchange="toggleBuggy('${safeId}')">
+        <label>Would you like to use a buggy?</label>
+        <select id="buggy_${ev.id}">
           <option value="false">No</option>
           <option value="true">Yes</option>
         </select>
-
-        <div id="phoneGroup_${safeId}" class="hidden">
-          <label>Phone Number (required if requesting a buggy)</label>
-          <input type="text" id="phone_${safeId}" placeholder="Enter phone number">
-        </div>
-
+        <small>If you request a buggy, you’ll be paired with another member who also requested one. You’ll find out your pairing about a week before the event. Once paired, please contact your partner directly to arrange buggy booking.</small>
         <label>If there’s an odd number of buggy requests, are you willing to walk instead?</label>
-        <select id="flexibility_${safeId}">
-          <option>Yes, happy to walk</option>
-          <option>No, need buggy</option>
+        <select id="flex_${ev.id}">
+          <option value="Yes, happy to walk if needed">Yes, I’m happy to walk</option>
+          <option value="No, need buggy">No, I need a buggy</option>
         </select>
-
         <button type="submit">Submit RSVP</button>
       </form>
+      <div class="tee-times" id="tee_${ev.id}">
+        <em>Loading tee times...</em>
+      </div>
     `;
-    list.appendChild(div);
-  });
+    container.appendChild(card);
+    loadTeeTimes(ev.id);
+  }
 }
-
-function toggleBuggy(safeId) {
-  const show = document.getElementById(`buggy_${safeId}`).value === "true";
-  document.getElementById(`phoneGroup_${safeId}`).classList.toggle("hidden", !show);
-}
-
 // Save RSVP
-async function submitRSVP(e, eventId, safeId) {
+async function submitRSVP(e, eventId){
   e.preventDefault();
-  const name = document.getElementById(`name_${safeId}`).value.trim();
-  const email = document.getElementById(`email_${safeId}`).value.trim();
-  const attending = document.getElementById(`attending_${safeId}`).value === "true";
-  const buggy = document.getElementById(`buggy_${safeId}`).value === "true";
-  const phone = document.getElementById(`phone_${safeId}`).value.trim();
-  const flexibility = document.getElementById(`flexibility_${safeId}`).value;
+  const name=document.getElementById(`name_${eventId}`).value.trim();
+  const email=document.getElementById(`email_${eventId}`).value.trim();
+  const phone=document.getElementById(`phone_${eventId}`).value.trim();
+  const attending=document.getElementById(`attending_${eventId}`).value==="true";
+  const buggy=document.getElementById(`buggy_${eventId}`).value==="true";
+  const flexibility=document.getElementById(`flex_${eventId}`).value;
 
-  if (buggy && !phone) return alert("Please provide a phone number if you request a buggy.");
+  if(!name){ alert("Please enter your name."); return; }
 
-  const { error } = await supabase.from("rsvps").upsert([
-    { event_id: eventId, name, email, phone, attending, buggy, flexibility }
-  ]);
+  const { error } = await supabase.from("rsvps").upsert({
+    event_id: eventId,
+    name,
+    email,
+    phone,
+    attending,
+    buggy,
+    flexibility
+  }, { onConflict: ['event_id','name'] });
 
-  if (error) {
-    console.error(error);
-    alert("Error saving RSVP");
-  } else showToast("RSVP saved to Supabase");
+  if(error){ console.error(error); return alert("Error saving RSVP."); }
+
+  alert("✅ RSVP saved successfully!");
 }
 
+// Load tee times for event
+async function loadTeeTimes(eventId){
+  const container=document.getElementById(`tee_${eventId}`);
+  const { data: tees, error } = await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
+  if(error){ console.error(error); container.innerHTML="Error loading tee times."; return; }
+
+  if(!tees.length){
+    container.innerHTML="<em>Tee times will appear here once published.</em>";
+    return;
+  }
+
+  // Fetch event details for header
+  const { data: evData } = await supabase.from("events").select("name, date").eq("id", eventId).single();
+  const header = `<h3>⛳ Tee Times – ${evData.name} (${evData.date})</h3>`;
+
+  let html=header;
+  tees.forEach(g=>{
+    html+=`
+      <div class='group'>
+        <strong>Group ${g.group_number} — ${g.tee_time}</strong>
+        <ul>
+          ${g.players.map(p=>{
+            const buggyIcon = p.includes("🛺") ? " <span class='buggy'>🛺</span>" : "";
+            return `<li class='player'>${p}${buggyIcon}</li>`;
+          }).join("")}
+        </ul>
+      </div>
+    `;
+  });
+  container.innerHTML=html;
+}
+
+// Subscribe for realtime tee time updates
+supabase.channel('tee_times_changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'tee_times' }, payload => {
+    if(payload.new?.event_id){ loadTeeTimes(payload.new.event_id); }
+  })
+  .subscribe();
+
+// Initialise
 loadEvents();
 </script>
 </body>
