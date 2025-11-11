@@ -384,17 +384,23 @@ async function loadTeeTimes(eventId) {
   c.innerHTML = html;
 }
 
-// ---------------------------
-// ADMIN TEE TIME ORGANISER
-// ---------------------------
+// =========================
+// 🧩 Auto Tee Time Generator (with manual reordering)
+// =========================
+
 async function loadAdminTeeTimeEvents() {
-  const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, name, date")
+    .order("date", { ascending: true });
   const select = document.getElementById("teeEventSelect");
   if (!events || !events.length) {
     select.innerHTML = "<option>No events found</option>";
     return;
   }
-  select.innerHTML = events.map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
+  select.innerHTML = events.map(
+    e => `<option value='${e.id}'>${e.name} (${e.date})</option>`
+  ).join("");
 }
 
 async function loadAdminPlayers() {
@@ -402,9 +408,14 @@ async function loadAdminPlayers() {
   const container = document.getElementById("playerPool");
   container.innerHTML = "<em>Loading players...</em>";
 
-  const { data: rsvps } = await supabase.from("rsvps").select("name, buggy, flexibility, phone").eq("event_id", eventId).eq("attending", true);
-  if (!rsvps?.length) {
-    container.innerHTML = "<em>No RSVPs found.</em>";
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("name, buggy, flexibility, phone")
+    .eq("event_id", eventId)
+    .eq("attending", true);
+
+  if (error || !rsvps?.length) {
+    container.innerHTML = "<em>No RSVPs found for this event.</em>";
     return;
   }
 
@@ -420,14 +431,22 @@ async function generateTeeGroups(eventId) {
   const area = document.getElementById("teeGroups");
   area.innerHTML = "<em>Generating groups...</em>";
 
-  const { data: rsvps } = await supabase.from("rsvps").select("name, buggy, flexibility, phone").eq("event_id", eventId).eq("attending", true);
+  const { data: rsvps } = await supabase
+    .from("rsvps")
+    .select("name, buggy, flexibility, phone")
+    .eq("event_id", eventId)
+    .eq("attending", true);
+
   if (!rsvps?.length) {
-    area.innerHTML = "<p>No RSVPs.</p>";
+    area.innerHTML = "<p>No RSVPs for this event.</p>";
     return;
   }
 
+  // Separate buggy and walkers
   let buggy = rsvps.filter(r => r.buggy);
   let walkers = rsvps.filter(r => !r.buggy);
+
+  // Fix odd buggy count by moving a flexible player to walkers
   if (buggy.length % 2 !== 0) {
     const flex = buggy.find(r => (r.flexibility || "").toLowerCase().includes("happy"));
     if (flex) {
@@ -436,86 +455,119 @@ async function generateTeeGroups(eventId) {
     }
   }
 
+  // Shuffle function
   function shuffle(arr) {
     return arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
   }
   buggy = shuffle(buggy);
   walkers = shuffle(walkers);
 
+  // Create groups
   const groups = [];
-  for (let i=0;i<buggy.length;i+=4) groups.push(buggy.slice(i,i+4));
+  for (let i=0; i<buggy.length; i+=4) groups.push(buggy.slice(i, i+4));
   if (walkers.length % 4 === 3) {
-    groups.push(walkers.slice(0,3));
+    groups.push(walkers.slice(0, 3));
     walkers = walkers.slice(3);
   }
-  for (let i=0;i<walkers.length;i+=4) groups.push(walkers.slice(i,i+4));
+  for (let i=0; i<walkers.length; i+=4) groups.push(walkers.slice(i, i+4));
 
-  function addMinutesToTime(start, mins){
+  // Tee time calculator (12-hour clock)
+  function addMinutesToTime(start, mins) {
     let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
     let [h,m]=t.split(":").map(Number);
     if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
     const d=new Date();d.setHours(h);d.setMinutes(m+mins);
     const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
+    return`${disp}:${mi}${sfx}`;
   }
 
+  // Display groups
   area.innerHTML = "";
   groups.forEach((g,i)=>{
-    const teeTime=addMinutesToTime(start,i*gap);
-    const div=document.createElement("div");
-    div.className="tee-group";
-    div.innerHTML=`
+    const teeTime = addMinutesToTime(start, i*gap);
+    const div = document.createElement("div");
+    div.className = "tee-group";
+    div.innerHTML = `
       <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
         <strong>Group ${i+1}</strong> — ${teeTime}
         <ul id="group_${i+1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
       </div>`;
     area.appendChild(div);
-    const ul=div.querySelector("ul");
+
+    const ul = div.querySelector("ul");
     g.forEach(p=>{
-      const li=document.createElement("li");
-      li.dataset.name=p.name;
-      li.dataset.phone=p.phone||"";
-      li.dataset.type=p.buggy?(p.flexibility?.toLowerCase().includes("happy")?"flexible":"buggy"):"walker";
-      li.innerHTML=`${getIcon(li.dataset.type)} ${p.name}${p.phone?` (${p.phone})`:""}`;
+      const li = document.createElement("li");
+      li.className = "player-card";
+      li.dataset.name = p.name;
+      li.dataset.phone = p.phone || "";
+      li.dataset.type = p.buggy
+        ? (p.flexibility?.toLowerCase().includes("happy") ? "flexible" : "buggy")
+        : "walker";
+      li.innerHTML = `${getIcon(li.dataset.type)} ${p.name}${p.phone ? ` (${p.phone})` : ""}`;
       ul.appendChild(li);
     });
-    new Sortable(ul,{group:"players",animation:150});
+
+    // Enable drag & drop reordering
+    new Sortable(ul, { group: "players", animation: 150 });
   });
 
-  alert("✅ Tee times auto-generated! You can now drag and rearrange players manually.");
+  alert("✅ Tee times auto-generated! You can now drag players between groups before saving.");
 }
 
-function getIcon(type){if(type==="buggy")return"🛺";if(type==="walker")return"🚶";return"😊";}
+function getIcon(type) {
+  if (type === "buggy") return "🛺";
+  if (type === "walker") return "🚶";
+  return "😊";
+}
 
-async function saveTeeTimes(){
-  const eventId=document.getElementById("teeEventSelect").value;
-  const start=document.getElementById("startTime").value.trim();
-  const gap=parseInt(document.getElementById("gapMins").value)||7;
-  const groups=Array.from(document.querySelectorAll(".groupList"));
-  if(!groups.length){alert("No groups to save.");return;}
+// Save tee times
+async function saveTeeTimes() {
+  const eventId = document.getElementById("teeEventSelect").value;
+  const start = document.getElementById("startTime").value.trim();
+  const gap = parseInt(document.getElementById("gapMins").value) || 7;
+  const groups = Array.from(document.querySelectorAll(".groupList"));
+  if (!groups.length) {
+    alert("Generate groups first!");
+    return;
+  }
 
-  function addMinutesToTime(start,mins){
-    let[t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let[h,m]=t.split(":").map(Number);
+  function addMinutesToTime(start, mins) {
+    let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h,m]=t.split(":").map(Number);
     if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
     const d=new Date();d.setHours(h);d.setMinutes(m+mins);
     const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
+    return`${disp}:${mi}${sfx}`;
   }
 
-  const data=groups.map((g,i)=>{
-    const players=Array.from(g.children).map(el=>({
-      name:el.dataset.name,phone:el.dataset.phone,type:el.dataset.type
+  const data = groups.map((g,i)=>{
+    const players = Array.from(g.children).map(el=>({
+      name: el.dataset.name,
+      phone: el.dataset.phone,
+      type: el.dataset.type
     }));
-    return{event_id:eventId,group_number:i+1,tee_time:addMinutesToTime(start,i*gap),players};
+    return {
+      event_id: eventId,
+      group_number: i+1,
+      tee_time: addMinutesToTime(start, i*gap),
+      players
+    };
   });
 
-  await supabase.from("tee_times").delete().eq("event_id",eventId);
-  const {error}=await supabase.from("tee_times").insert(data);
-  if(error){console.error(error);alert("Error saving tee times.");return;}
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
+  const { error } = await supabase.from("tee_times").insert(data);
+  if (error) {
+    console.error(error);
+    alert("❌ Error saving tee times.");
+    return;
+  }
+
   alert("✅ Tee times saved!");
   loadTeeTimes(eventId);
 }
+
 </script>
 </body>
 </html>
