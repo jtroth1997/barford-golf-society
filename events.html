@@ -91,35 +91,18 @@ header,footer {
   margin-top:10px;
   white-space:pre-line;
 }
-.rsvp-form {
-  margin-top:15px;
-  border-top:1px solid #ccc;
-  padding-top:15px;
-}
-label {
-  display:block;
-  margin-top:8px;
+.admin-btn {
+  display:inline-block;
+  background:var(--gold);
+  color:#1b1b1b;
   font-weight:600;
-}
-select,
-input[type="text"],
-input[type="date"],
-input[type="number"],
-textarea,
-button {
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  font-family:inherit;
-}
-button {
-  background:var(--green);
-  color:#fff;
-  font-weight:600;
+  padding:8px 15px;
+  border:none;
+  border-radius:8px;
   cursor:pointer;
-  margin-top:10px;
+  margin-bottom:25px;
 }
-button:hover { background:#0a6b34; }
+.admin-btn:hover { background:#e0c35a; }
 .hidden { display:none; }
 .notice {
   background:#ffeecc;
@@ -162,10 +145,6 @@ img.preview {
   border-radius:8px;
 }
 .group strong { color:var(--green); }
-.phone {
-  font-size:0.9rem;
-  color:#666;
-}
 .tee-card {
   background:#fff;
   border:1px solid #ddd;
@@ -175,8 +154,6 @@ img.preview {
   cursor:move;
 }
 .tee-card ul { margin:0; padding-left:20px; }
-.tee-player-buggy { color:#8a6200; }
-.tee-player-walker { color:#005a2b; }
 @media (max-width:700px){
   .event-header { flex-direction:column; align-items:flex-start; }
 }
@@ -184,13 +161,16 @@ img.preview {
 </head>
 
 <body>
+<!-- Header -->
 <header class="site-header">
   <div class="header-container">
     <h1 class="site-title">Barford Golf Society</h1>
     <nav class="site-nav">
       <ul>
-        <li><a href="#" class="active">Events</a></li>
-        <li><a href="#" onclick="showAdminLogin()">Admin Login</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html" class="active">Events</a></li>
+        <li><a href="scores.html">Scores</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
       </ul>
     </nav>
   </div>
@@ -198,11 +178,13 @@ img.preview {
 
 <div class="container">
 
-  <!-- ADMIN PANEL -->
+  <!-- Admin Toggle -->
+  <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
+
+  <!-- Admin Panel -->
   <div id="adminPanel" class="admin-panel hidden">
     <h3>Admin Control Panel</h3>
 
-    <!-- Add Event -->
     <form id="eventForm" onsubmit="submitEvent(event)">
       <h4>Add New Event</h4>
       <label>Event Title</label><input type="text" id="title" required>
@@ -235,6 +217,7 @@ img.preview {
     </div>
   </div>
 
+  <!-- Public Events -->
   <h2>Upcoming Events</h2>
   <div id="eventList">Loading events...</div>
 </div>
@@ -248,35 +231,45 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ADMIN LOGIN
-function showAdminLogin(){
-  const pass = prompt("Enter admin password:");
-  if(pass === ADMIN_PASSWORD){
-    localStorage.setItem("isAdmin","true");
-    document.getElementById("adminPanel").classList.remove("hidden");
-    alert("✅ Admin access granted");
-  } else alert("❌ Incorrect password");
+function toggleAdminAccess(){
+  const panel=document.getElementById("adminPanel");
+  const btn=document.getElementById("adminToggle");
+  const isAdmin=localStorage.getItem("isAdmin")==="true";
+  if(!isAdmin){
+    const pass=prompt("Enter admin password:");
+    if(pass===ADMIN_PASSWORD){
+      localStorage.setItem("isAdmin","true");
+      panel.classList.remove("hidden");
+      btn.textContent="⬅️ Back to Events";
+      alert("✅ Admin access granted");
+    } else alert("❌ Incorrect password");
+  } else {
+    localStorage.removeItem("isAdmin");
+    panel.classList.add("hidden");
+    btn.textContent="🔐 Admin Access";
+  }
 }
 
-window.onload = ()=>{
-  if(localStorage.getItem("isAdmin")==="true") document.getElementById("adminPanel").classList.remove("hidden");
+window.onload=()=>{
+  if(localStorage.getItem("isAdmin")==="true"){
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("adminToggle").textContent="⬅️ Back to Events";
+  }
   loadEvents();
   loadTeeTimeEvents();
 };
 
-// ADD EVENT
+// Admin: Add Event
 function previewImage(e){
   const file=e.target.files[0];
   const preview=document.getElementById("preview");
   if(file){preview.src=URL.createObjectURL(file);preview.classList.remove("hidden");}
 }
-
 function generateWeatherLink(location,date){
   if(!location||!date)return "";
   const clean=encodeURIComponent(location.trim());
   return `https://www.bbc.co.uk/weather/search?q=${clean}#${date}`;
 }
-
 async function submitEvent(e){
   e.preventDefault();
   const title=document.getElementById("title").value.trim();
@@ -303,60 +296,58 @@ async function submitEvent(e){
   loadEvents();loadTeeTimeEvents();
 }
 
-// LOAD EVENTS
+// Load Events
 async function loadEvents(){
   const {data:events,error}=await supabase.from("events").select("*").order("date",{ascending:true});
   const c=document.getElementById("eventList");
   if(error||!events?.length){c.innerHTML="<p>No events found.</p>";return;}
   c.innerHTML="";
   for(const ev of events){
-    const img=ev.image_url?`<img src="${ev.image_url}" class="event-image">`:"";
+    const img=ev.image_url?`<img src='${ev.image_url}' class='event-image'>`:"";
     const desc=ev.description?`<div class='event-description'>${ev.description}</div>`:"";
     const links=`<div class='event-links'>
-      ${ev.course_link?`<a href='${ev.course_link}' target='_blank'>🌐 Course</a>`:""}
-      ${ev.weather_link?`<a href='${ev.weather_link}' target='_blank'>☀️ Weather</a>`:""}
+      ${ev.course_link?`<a href='${ev.course_link}' target='_blank'>🌐 Course Website</a>`:""}
+      ${ev.weather_link?`<a href='${ev.weather_link}' target='_blank'>☀️ BBC Weather</a>`:""}
     </div>`;
     c.innerHTML+=`<div class='event-card'>
-      <div class='event-header'><div><div class='event-name'>${ev.name}</div><div>${ev.location} — ${ev.date}</div></div><div><strong>£${ev.price||"-"}</strong></div></div>
-      ${img}${desc}${links}<div class='tee-times' id='tee_${ev.id}'><em>Loading tee times...</em></div></div>`;
+      <div class='event-header'>
+        <div><div class='event-name'>${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
+        <div><strong>Price:</strong> £${ev.price||"-"}</div>
+      </div>
+      ${img}${desc}${links}
+      <div class='tee-times' id='tee_${ev.id}'><em>Loading tee times...</em></div>
+    </div>`;
     loadTeeTimes(ev.id);
   }
 }
 
-// LOAD TEE TIMES
+// Tee Times
 async function loadTeeTimes(eventId){
   const c=document.getElementById(`tee_${eventId}`);
   const {data:tees}=await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
   if(!tees?.length){c.innerHTML="<em>No tee times yet.</em>";return;}
   let html="<h4>Tee Times</h4>";
-  tees.forEach(g=>{
-    html+=`<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul></div>`;
-  });
+  tees.forEach(g=>{html+=`<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul></div>`;});
   c.innerHTML=html;
 }
 
-// ADMIN - LOAD EVENTS FOR GENERATOR
+// Tee Time Generator
 async function loadTeeTimeEvents(){
   const {data:ev}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});
   const s=document.getElementById("teeEventSelect");
   if(!ev?.length){s.innerHTML="<option>No events</option>";return;}
   s.innerHTML=ev.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
 }
-
-// GENERATOR HELPERS
 function addMinutesToTime(start,mins){
   let [time,ampm]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
   let [h,m]=time.split(":").map(Number);
-  if(ampm==="pm"&&h<12)h+=12;
-  if(ampm==="am"&&h===12)h=0;
+  if(ampm==="pm"&&h<12)h+=12;if(ampm==="am"&&h===12)h=0;
   const d=new Date();d.setHours(h);d.setMinutes(m+mins);
   const hr=d.getHours();const min=String(d.getMinutes()).padStart(2,"0");
   const suffix=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
   return `${disp}:${min}${suffix}`;
 }
 function shuffle(a){return a.map(v=>[Math.random(),v]).sort().map(p=>p[1]);}
-
-// GENERATE TEE TIMES
 async function generateTeeTimes(){
   const id=document.getElementById("teeEventSelect").value;
   const start=document.getElementById("startTime").value.trim();
@@ -365,7 +356,7 @@ async function generateTeeTimes(){
   if(!id||!start){alert("Select event and start time");return;}
   const {data:rsvps}=await supabase.from("rsvps").select("name,buggy,flexibility").eq("event_id",id).eq("attending",true);
   if(!rsvps?.length){out.innerHTML="<p>No RSVPs.</p>";return;}
-  let buggy=rsvps.filter(r=>r.buggy), walkers=rsvps.filter(r=>!r.buggy);
+  let buggy=rsvps.filter(r=>r.buggy),walkers=rsvps.filter(r=>!r.buggy);
   if(buggy.length%2!==0){const flex=buggy.find(r=>(r.flexibility||'').includes('happy'));if(flex){walkers.push(flex);buggy=buggy.filter(b=>b!==flex);}}
   buggy=shuffle(buggy);walkers=shuffle(walkers);
   const groups=[];for(let i=0;i<buggy.length;i+=4)groups.push(buggy.slice(i,i+4));
@@ -374,20 +365,13 @@ async function generateTeeTimes(){
   const teeData=groups.map((g,i)=>({group_number:i+1,tee_time:addMinutesToTime(start,i*gap),players:g.map(p=>p.name)}));
   renderTeeCards(teeData,id,start,gap);
 }
-
-// RENDER CARDS
 function renderTeeCards(data,eventId,start,gap){
   const c=document.getElementById("teeTimeOutput");c.innerHTML="";const l=document.createElement("div");l.id="teeTimeList";c.appendChild(l);
-  data.forEach(g=>{
-    const card=document.createElement("div");card.className="tee-card";card.dataset.group=JSON.stringify(g);
-    card.innerHTML=`<strong>Group ${g.group_number}</strong> — ${g.tee_time}<ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul>`;
-    l.appendChild(card);
-  });
+  data.forEach(g=>{const card=document.createElement("div");card.className="tee-card";card.dataset.group=JSON.stringify(g);
+  card.innerHTML=`<strong>Group ${g.group_number}</strong> — ${g.tee_time}<ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul>`;l.appendChild(card);});
   new Sortable(l,{animation:150});
   c.dataset.eventId=eventId;c.dataset.start=start;c.dataset.gap=gap;
 }
-
-// SAVE TEE TIMES
 async function saveTeeTimes(){
   const list=document.getElementById("teeTimeList");if(!list)return;
   const eventId=document.getElementById("teeTimeOutput").dataset.eventId;
