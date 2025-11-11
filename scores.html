@@ -462,7 +462,7 @@ function changePassword() {
 async function confirmReset() {
   const pw = prompt("Enter password to clear the league:");
   if (pw !== PASSWORD) return alert("Incorrect password");
-  const { error } = await supabase.from("scores").delete().neq("id", 0);
+ const { error } = await supabase.rpc("reset_league_scores");
   if (error) {
     console.error(error);
     alert("❌ Error clearing league. Please try again.");
