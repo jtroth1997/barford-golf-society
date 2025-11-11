@@ -398,23 +398,55 @@ async function loadTeeTimes(eventId) {
   c.innerHTML = html;
 }
 
-// ----------------------------
-// 🧩 Admin Tee Time Organiser
-// ----------------------------
+// =========================
+// 🧩 Admin Tee Time Organiser (Auto + Manual)
+// =========================
+
 async function loadAdminTeeTimeEvents() {
-  const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
+  const { data: events } = await supabase
+    .from("events")
+    .select("id, name, date")
+    .order("date", { ascending: true });
   const select = document.getElementById("teeEventSelect");
   if (!events || !events.length) {
     select.innerHTML = "<option>No events found</option>";
     return;
   }
-  select.innerHTML = events.map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
+  select.innerHTML = events.map(
+    e => `<option value='${e.id}'>${e.name} (${e.date})</option>`
+  ).join("");
 }
 
+// Load RSVP players when event selected
 async function loadAdminPlayers() {
   const eventId = document.getElementById("teeEventSelect").value;
   const container = document.getElementById("playerPool");
   container.innerHTML = "<em>Loading players...</em>";
+
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("name, buggy, flexibility, phone")
+    .eq("event_id", eventId)
+    .eq("attending", true);
+
+  if (error || !rsvps?.length) {
+    container.innerHTML = "<em>No RSVPs found for this event.</em>";
+    return;
+  }
+
+  container.innerHTML = `
+    <strong>Players Loaded: ${rsvps.length}</strong>
+    <button type="button" onclick="generateTeeGroups(${eventId})" style="margin-left:10px;">⚙️ Generate Tee Times</button>
+    <div id="playerList" style="display:none;"></div>
+  `;
+}
+
+// Auto-generate tee time groups
+async function generateTeeGroups(eventId) {
+  const start = document.getElementById("startTime").value.trim();
+  const gap = parseInt(document.getElementById("gapMins").value) || 7;
+  const area = document.getElementById("teeGroups");
+  area.innerHTML = "<em>Generating groups...</em>";
 
   const { data: rsvps } = await supabase
     .from("rsvps")
@@ -423,35 +455,101 @@ async function loadAdminPlayers() {
     .eq("attending", true);
 
   if (!rsvps?.length) {
-    container.innerHTML = "<em>No RSVPs found for this event.</em>";
+    area.innerHTML = "<p>No RSVPs for this event.</p>";
     return;
   }
 
-  container.innerHTML = `<strong>All Players:</strong>
-    <div id="playerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;"></div>`;
+  // Separate buggy and walkers
+  let buggy = rsvps.filter(r => r.buggy);
+  let walkers = rsvps.filter(r => !r.buggy);
 
-  const list = document.getElementById("playerList");
+  // Fix odd buggy count: move one flexible player to walkers
+  if (buggy.length % 2 !== 0) {
+    const flexPlayer = buggy.find(r =>
+      (r.flexibility || "").toLowerCase().includes("happy")
+    );
+    if (flexPlayer) {
+      walkers.push(flexPlayer);
+      buggy = buggy.filter(b => b.name !== flexPlayer.name);
+    }
+  }
 
-  rsvps.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "player-card";
-    div.dataset.name = p.name;
-    div.dataset.phone = p.phone || "";
-    div.dataset.type = p.buggy ? (p.flexibility?.toLowerCase().includes("happy") ? "flexible" : "buggy") : "walker";
-    div.innerHTML = `
-      <div style="background:#fff;border:1px solid #ccc;padding:6px 10px;border-radius:8px;cursor:grab;display:flex;align-items:center;gap:8px;">
-        <span class="icon">${getIcon(div.dataset.type)}</span>
-        <span class="player-name">${p.name}${p.phone ? ` (${p.phone})` : ""}</span>
-        <select onchange="changePlayerType(this)" style="margin-left:auto;">
-          <option value="buggy" ${p.buggy && !p.flexibility?.toLowerCase().includes("happy") ? "selected" : ""}>🛺 Buggy</option>
-          <option value="walker" ${!p.buggy ? "selected" : ""}>🚶 Walker</option>
-          <option value="flexible" ${p.flexibility?.toLowerCase().includes("happy") ? "selected" : ""}>😊 Happy to Walk</option>
-        </select>
+  // Shuffle both lists
+  function shuffle(arr) {
+    return arr.map(v => [Math.random(), v]).sort((a,b) => a[0]-b[0]).map(p=>p[1]);
+  }
+  buggy = shuffle(buggy);
+  walkers = shuffle(walkers);
+
+  // Create buggy-first groups of 4
+  const groups = [];
+  for (let i = 0; i < buggy.length; i += 4) {
+    groups.push(buggy.slice(i, i + 4));
+  }
+
+  // If walkers total gives odd 3-ball group, handle first group
+  if (walkers.length % 4 === 3) {
+    groups.push(walkers.slice(0, 3));
+    walkers = walkers.slice(3);
+  }
+
+  for (let i = 0; i < walkers.length; i += 4) {
+    groups.push(walkers.slice(i, i + 4));
+  }
+
+  // Generate tee times
+  function addMinutesToTime(start, mins) {
+    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h, m] = t.split(":").map(Number);
+    if (a === "pm" && h < 12) h += 12;
+    if (a === "am" && h === 12) h = 0;
+    const d = new Date();
+    d.setHours(h);
+    d.setMinutes(m + mins);
+    const hr = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const sfx = hr >= 12 ? "pm" : "am";
+    const disp = ((hr + 11) % 12) + 1;
+    return `${disp}:${mi}${sfx}`;
+  }
+
+  area.innerHTML = "";
+  groups.forEach((g, i) => {
+    const teeTime = addMinutesToTime(start, i * gap);
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "tee-group";
+    groupDiv.innerHTML = `
+      <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
+        <strong>Group ${i + 1}</strong> — ${teeTime}
+        <ul id="group_${i + 1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
       </div>`;
-    list.appendChild(div);
+    area.appendChild(groupDiv);
+
+    const ul = groupDiv.querySelector("ul");
+    g.forEach(p => {
+      const li = document.createElement("li");
+      li.className = "player-card";
+      li.dataset.name = p.name;
+      li.dataset.phone = p.phone || "";
+      li.dataset.type = p.buggy
+        ? (p.flexibility?.toLowerCase().includes("happy") ? "flexible" : "buggy")
+        : "walker";
+      li.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span>${getIcon(li.dataset.type)} ${p.name}${p.phone ? ` (${p.phone})` : ""}</span>
+          <select onchange="changePlayerType(this)">
+            <option value="buggy" ${li.dataset.type === "buggy" ? "selected" : ""}>🛺 Buggy</option>
+            <option value="walker" ${li.dataset.type === "walker" ? "selected" : ""}>🚶 Walker</option>
+            <option value="flexible" ${li.dataset.type === "flexible" ? "selected" : ""}>😊 Happy to Walk</option>
+          </select>
+        </div>`;
+      ul.appendChild(li);
+    });
+
+    new Sortable(ul, { group: "players", animation: 150 });
   });
 
-  new Sortable(list, { group: "players", animation: 150, sort: false });
+  alert("✅ Tee times auto-generated! You can now drag and rearrange players manually.");
 }
 
 function getIcon(type) {
@@ -461,34 +559,19 @@ function getIcon(type) {
 }
 
 function changePlayerType(sel) {
-  const card = sel.closest(".player-card");
-  card.dataset.type = sel.value;
-  card.querySelector(".icon").textContent = getIcon(sel.value);
+  const li = sel.closest(".player-card");
+  li.dataset.type = sel.value;
+  sel.previousElementSibling.textContent = getIcon(sel.value);
 }
 
-function addTeeGroup() {
-  const area = document.getElementById("teeGroups");
-  const num = area.children.length + 1;
-
-  const div = document.createElement("div");
-  div.className = "tee-group";
-  div.innerHTML = `
-    <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
-      <strong>Group ${num}</strong>
-      <ul id="group_${num}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
-    </div>`;
-  area.appendChild(div);
-
-  new Sortable(div.querySelector(".groupList"), { group: "players", animation: 150 });
-}
-
+// Save final groups
 async function saveTeeTimes() {
   const eventId = document.getElementById("teeEventSelect").value;
   const start = document.getElementById("startTime").value.trim();
   const gap = parseInt(document.getElementById("gapMins").value) || 7;
   const groups = Array.from(document.querySelectorAll(".groupList"));
   if (!groups.length) {
-    alert("Add at least one group.");
+    alert("Add or generate at least one group.");
     return;
   }
 
@@ -532,6 +615,7 @@ async function saveTeeTimes() {
   alert("✅ Tee times saved!");
   loadTeeTimes(eventId);
 }
+
 </script>
 </body>
 </html>
