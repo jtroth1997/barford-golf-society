@@ -15,6 +15,7 @@
   --gold:#d4af37;
   --light-bg:#f7f7f5;
   --card:#fff;
+  --cancel:red;
 }
 body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
 header,footer{background:var(--green);color:#fff;padding:15px 0;}
@@ -24,7 +25,7 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .site-nav a{color:#fff;text-decoration:none;font-weight:600;}
 .site-nav a:hover,.active{color:var(--gold);}
 .container{max-width:1100px;margin:40px auto;padding:0 20px;}
-.event-card{position:relative;background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);overflow:hidden;}
+.event-card{position:relative;background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
 .event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
 .event-name{color:var(--green);font-size:1.4rem;font-weight:700;}
 .event-image{width:100%;max-height:350px;object-fit:cover;border-radius:10px;margin-top:10px;}
@@ -32,35 +33,31 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .event-links a{margin-right:10px;color:var(--green);font-weight:600;text-decoration:none;}
 .event-links a:hover{text-decoration:underline;}
 .event-description{margin-top:10px;white-space:pre-line;}
-.cancelled-banner{
-  position:absolute;
-  top:40%;
-  left:-25%;
-  width:150%;
-  background:rgba(255,0,0,0.7);
-  color:white;
-  text-align:center;
-  font-size:2rem;
-  font-weight:800;
-  transform:rotate(-25deg);
-  z-index:5;
-  padding:15px 0;
-  pointer-events:none;
-}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
 
 .admin-btn{display:inline-block;background:var(--gold);color:#1b1b1b;font-weight:600;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;margin:10px 0;}
 .admin-btn:hover{background:#e0c35a;}
 .hidden{display:none;}
 .admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.tab-buttons{display:flex;gap:10px;margin-bottom:15px;}
-.tab-buttons button{flex:1;padding:10px;border:none;cursor:pointer;font-weight:600;border-radius:8px;}
-.tab-buttons button.active{background:var(--gold);color:#1b1b1b;}
-.tab-section{display:none;}
-.tab-section.active{display:block;}
-.new-event-form input, .new-event-form textarea {width:100%;margin-bottom:10px;padding:6px;border:1px solid #ccc;border-radius:6px;}
-.new-event-form button {background:var(--green);color:#fff;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
-.new-event-form button:hover{background:#007a3d;}
+.admin-tabs{display:flex;gap:10px;margin-bottom:15px;}
+.admin-tab{padding:8px 15px;border-radius:6px;border:1px solid var(--gold);cursor:pointer;background:#fff;color:#1b1b1b;font-weight:600;}
+.admin-tab.active{background:var(--gold);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.cancelled-banner{
+  position:absolute;
+  top:30%;
+  left:50%;
+  transform:translate(-50%,-50%) rotate(-20deg);
+  background:rgba(255,0,0,0.75);
+  color:#fff;
+  font-size:2rem;
+  font-weight:900;
+  padding:15px 60px;
+  border-radius:10px;
+  pointer-events:none;
+  text-transform:uppercase;
+}
 </style>
 </head>
 
@@ -83,42 +80,41 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
   <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
 
   <div id="adminPanel" class="admin-panel hidden">
-    <div class="tab-buttons">
-      <button id="tabCreate" class="active" onclick="showTab('createTab', this)">➕ Create Event</button>
-      <button id="tabDelete" onclick="showTab('deleteTab', this)">🗑️ Delete Event</button>
-      <button id="tabEdit" onclick="showTab('editTab', this)">✏️ Edit / Cancel Event</button>
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchTab('createTab')">🟩 Create Event</div>
+      <div class="admin-tab" onclick="switchTab('deleteTab')">🟥 Delete Event</div>
+      <div class="admin-tab" onclick="switchTab('editTab')">🟨 Edit / Cancel Event</div>
     </div>
 
     <!-- CREATE TAB -->
-    <div id="createTab" class="tab-section active">
-      <h3>➕ Create Event</h3>
-      <div class="new-event-form">
-        <input type="text" id="newName" placeholder="Event name*" required>
-        <input type="date" id="newDate" required>
-        <input type="text" id="newLocation" placeholder="Location*" required>
-        <input type="number" id="newPrice" placeholder="Price (£)" step="0.01">
-        <input type="text" id="newImage" placeholder="Image URL">
-        <input type="text" id="newCourseLink" placeholder="Course link (optional)">
-        <input type="text" id="newWeatherLink" placeholder="Weather link (optional)">
-        <textarea id="newDesc" placeholder="Description" rows="3"></textarea>
-        <button type="button" onclick="createEvent()">Create Event</button>
-        <div id="createMsg" style="margin-top:8px;font-weight:600;"></div>
-      </div>
+    <div id="createTab" class="tab-content active">
+      <h3>Create a New Event</h3>
+      <label>Name*</label><br><input id="newName" type="text" style="width:100%;"><br>
+      <label>Date*</label><br><input id="newDate" type="date" style="width:200px;"><br>
+      <label>Location*</label><br><input id="newLocation" type="text" style="width:100%;"><br>
+      <label>Price (£)</label><br><input id="newPrice" type="number" step="0.01" style="width:120px;"><br>
+      <label>Image URL</label><br><input id="newImage" type="text" style="width:100%;"><br>
+      <label>Course Link</label><br><input id="newCourseLink" type="text" style="width:100%;"><br>
+      <label>Weather Link</label><br><input id="newWeatherLink" type="text" style="width:100%;"><br>
+      <label>Description</label><br><textarea id="newDesc" rows="4" style="width:100%;"></textarea><br>
+      <button class="admin-btn" onclick="createEvent()">✅ Create Event</button>
+      <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
     <!-- DELETE TAB -->
-    <div id="deleteTab" class="tab-section">
-      <h3>🗑️ Delete Event</h3>
-      <select id="deleteEventSelect" style="width:100%;max-width:400px;margin-bottom:10px;"></select>
-      <button onclick="deleteEvent()" style="background:#b22222;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">🗑️ Delete Selected Event</button>
+    <div id="deleteTab" class="tab-content">
+      <h3>Delete Event</h3>
+      <select id="deleteSelect" style="width:100%;max-width:400px;margin-bottom:10px;"></select>
+      <button class="admin-btn" style="background:#ff4d4d;" onclick="deleteEvent()">🗑️ Delete Selected Event</button>
+      <div id="deleteMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
     <!-- EDIT TAB -->
-    <div id="editTab" class="tab-section">
-      <h3>✏️ Edit / Cancel Event</h3>
-      <select id="editEventSelect" style="width:100%;max-width:400px;margin-bottom:10px;"></select>
-      <button onclick="toggleCancel()" style="background:#e67e22;color:#fff;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">❌ Toggle Cancel / Uncancel</button>
-      <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
+    <div id="editTab" class="tab-content">
+      <h3>Edit / Cancel Event</h3>
+      <select id="editSelect" style="width:100%;max-width:400px;margin-bottom:10px;"></select>
+      <button class="admin-btn" onclick="toggleCancelled()">🚫 Cancel / Uncancel Selected Event</button>
+      <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
   </div>
 
@@ -135,15 +131,17 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ---------- Tab switching ----------
-function showTab(tabId, btn) {
-  document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-buttons button").forEach(b => b.classList.remove("active"));
-  document.getElementById(tabId).classList.add("active");
-  btn.classList.add("active");
-}
+// PAGE LOAD
+window.onload = () => {
+  loadEvents();
+  if (localStorage.getItem("isAdmin") === "true") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
+    loadAdminEventOptions();
+  }
+};
 
-// ---------- Admin toggle ----------
+// ADMIN ACCESS
 function toggleAdminAccess() {
   const panel = document.getElementById("adminPanel");
   const btn = document.getElementById("adminToggle");
@@ -164,31 +162,25 @@ function toggleAdminAccess() {
   }
 }
 
-// ---------- Load events ----------
-window.onload = () => {
-  loadEvents();
-  if (localStorage.getItem("isAdmin") === "true") {
-    document.getElementById("adminPanel").classList.remove("hidden");
-    document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
-    loadAdminEventOptions();
-  }
-};
+// TAB SWITCH
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+  event.target.classList.add("active");
+}
 
+// LOAD EVENTS
 async function loadEvents() {
-  const { data: events, error } = await supabase.from("events").select("*").order("date",{ascending:true});
+  const { data: events, error } = await supabase.from("events").select("*").order("date", { ascending: true });
   const container = document.getElementById("eventList");
-  if (error) {
-    console.error(error);
-    container.innerHTML = "<p>There was an error loading events.</p>";
-    return;
-  }
-  if (!events?.length) {
-    container.innerHTML = "<p>No events found.</p>";
-    return;
-  }
+  if (error) { container.innerHTML = "<p>Error loading events.</p>"; return; }
+  if (!events?.length) { container.innerHTML = "<p>No events found.</p>"; return; }
+
   container.innerHTML = "";
   for (const ev of events) {
     const cancelledBanner = ev.cancelled ? `<div class="cancelled-banner">❌ EVENT CANCELLED</div>` : "";
+    const img = ev.ImageUrl ? `<img src="${ev.ImageUrl}" class="event-image">` : "";
     container.innerHTML += `
       <div class="event-card">
         ${cancelledBanner}
@@ -196,7 +188,7 @@ async function loadEvents() {
           <div><div class="event-name">${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
           <div><strong>Price:</strong> £${ev.price || "-"}</div>
         </div>
-        ${ev.image_url ? `<img src="${ev.image_url}" class="event-image">` : ""}
+        ${img}
         ${ev.description ? `<div class='event-description'>${ev.description}</div>` : ""}
         <div class="event-links">
           ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
@@ -204,10 +196,25 @@ async function loadEvents() {
         </div>
       </div>`;
   }
+
   loadAdminEventOptions();
 }
 
-// ---------- Create Event ----------
+// ADMIN OPTIONS REFRESH
+async function loadAdminEventOptions() {
+  const { data } = await supabase.from("events").select("id,name,date,cancelled").order("date",{ascending:true});
+  const sel1 = document.getElementById("deleteSelect");
+  const sel2 = document.getElementById("editSelect");
+  if (!data?.length) {
+    sel1.innerHTML = "<option>No events</option>";
+    sel2.innerHTML = "<option>No events</option>";
+    return;
+  }
+  sel1.innerHTML = data.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
+  sel2.innerHTML = data.map(e=>`<option value='${e.id}'>${e.name} (${e.date}) ${e.cancelled?"[CANCELLED]":""}</option>`).join("");
+}
+
+// CREATE EVENT
 async function createEvent() {
   const name = document.getElementById("newName").value.trim();
   const date = document.getElementById("newDate").value;
@@ -220,139 +227,48 @@ async function createEvent() {
   const msg = document.getElementById("createMsg");
 
   msg.textContent = "";
-
-  if (!name || !date || !location) {
-    msg.textContent = "⚠️ Name, date and location are required.";
-    return;
-  }
-
+  if (!name || !date || !location) return msg.textContent="⚠️ Name, date and location are required.";
   const confirmMsg = `Please confirm event details:\n\n${name}\n${date}\n${location}\nPrice: £${price || "-"}`;
   if (!confirm(confirmMsg)) return;
 
-  const { error } = await supabase.from("events").insert([{
-    name,
-    date,
-    location,
-    price,
-    ImageUrl,          // ✅ matches your table’s field name
-    description,
-    course_link,
-    weather_link,
-    cancelled: false
-  }]);
-
-  if (error) {
-    console.error(error);
-    msg.textContent = "❌ Error creating event: " + error.message;
-    alert("❌ Supabase error: " + error.message);
-    return;
-  }
-
+  const { error } = await supabase.from("events").insert([{ name, date, location, price, ImageUrl, description, course_link, weather_link, cancelled:false }]);
+  if (error) { msg.textContent="❌ Error creating event: "+error.message; alert("❌ "+error.message); return; }
+  msg.textContent="✅ Event created successfully!";
   alert("✅ Event created successfully!");
-  msg.textContent = "✅ Event created successfully!";
+  document.querySelectorAll("#newName,#newDate,#newLocation,#newPrice,#newImage,#newCourseLink,#newWeatherLink,#newDesc").forEach(el=>el.value="");
   loadEvents();
-  loadAdminEventOptions();
-}
 }
 
-// ---------- Delete Event ----------
+// DELETE EVENT
 async function deleteEvent() {
-  const id = document.getElementById("deleteEventSelect").value;
-  if (!id) return alert("Select an event to delete.");
-  if (!confirm("Are you sure? This will delete the event, RSVPs and tee times.")) return;
-
-  try {
-    await supabase.from("tee_times").delete().eq("event_id", id);
-    await supabase.from("rsvps").delete().eq("event_id", id);
-    const { error } = await supabase.from("events").delete().eq("id", id);
-    if (error) {
-      console.error(error);
-      alert("❌ Error deleting event.");
-    } else {
-      alert("🗑️ Event deleted.");
-      loadEvents();
-      loadAdminEventOptions();
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Unexpected error deleting event.");
-  }
+  const id=document.getElementById("deleteSelect").value;
+  if(!id) return;
+  if(!confirm("Are you sure you want to permanently delete this event and all related data?"))return;
+  await supabase.from("tee_times").delete().eq("event_id",id);
+  await supabase.from("rsvps").delete().eq("event_id",id);
+  const {error}=await supabase.from("events").delete().eq("id",id);
+  const msg=document.getElementById("deleteMsg");
+  if(error){msg.textContent="❌ "+error.message;return;}
+  msg.textContent="✅ Event deleted.";
+  alert("✅ Event deleted!");
+  loadEvents();
 }
 
-// ---------- Cancel / Uncancel ----------
-async function toggleCancel() {
-  const id = document.getElementById("editEventSelect").value;
-  const msg = document.getElementById("cancelMsg");
-  msg.textContent = "";
-
-  if (!id) {
-    alert("Select an event first.");
-    return;
-  }
-
-  const pass = prompt("Enter admin password to confirm:");
-  if (pass !== ADMIN_PASSWORD) {
-    alert("❌ Incorrect password.");
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from("events")
-      .select("cancelled")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      console.error(error);
-      msg.textContent = "❌ Error loading event status.";
-      return;
-    }
-
-    const newVal = !data.cancelled;
-    const { error: updateError } = await supabase
-      .from("events")
-      .update({ cancelled: newVal })
-      .eq("id", id);
-
-    if (updateError) {
-      console.error(updateError);
-      msg.textContent = "❌ Error updating event status.";
-      return;
-    }
-
-    msg.textContent = newVal
-      ? "🚫 Event marked as CANCELLED."
-      : "✅ Event marked as ACTIVE.";
-
-    loadEvents();
-    loadAdminEventOptions();
-  } catch (err) {
-    console.error(err);
-    msg.textContent = "❌ Unexpected error updating status.";
-  }
-}
-
-// ---------- Load admin dropdowns ----------
-async function loadAdminEventOptions() {
-  const { data, error } = await supabase
-    .from("events")
-    .select("id,name,date,cancelled")
-    .order("date", { ascending: true });
-
-  if (error || !data) return;
-
-  const options = data
-    .map(
-      e =>
-        `<option value='${e.id}'>${e.name} (${e.date})${e.cancelled ? " - CANCELLED" : ""}</option>`
-    )
-    .join("");
-
-  ["deleteEventSelect", "editEventSelect"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = `<option value=''>Select event</option>${options}`;
-  });
+// CANCEL / UN-CANCEL
+async function toggleCancelled() {
+  const id=document.getElementById("editSelect").value;
+  if(!id)return;
+  const pass=prompt("Enter admin password to confirm:");
+  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
+  const {data,error}=await supabase.from("events").select("cancelled").eq("id",id).single();
+  if(error)return alert("❌ "+error.message);
+  const newStatus=!data.cancelled;
+  const confirmText=newStatus?"Mark this event as CANCELLED?":"Mark this event as ACTIVE again?";
+  if(!confirm(confirmText))return;
+  const {error:e2}=await supabase.from("events").update({cancelled:newStatus}).eq("id",id);
+  if(e2)return alert("❌ "+e2.message);
+  alert(newStatus?"🚫 Event marked as CANCELLED":"✅ Event reactivated");
+  loadEvents();
 }
 </script>
 </body>
