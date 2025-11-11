@@ -394,14 +394,24 @@ function calculateHandicaps() {
 
   // now calculate adjustments
   for (let i = 0; i < players.length; i++) {
-    const hcp = currentHcp[i] ?? 0;
-    const pts = parseInt(document.getElementById(`points_${i}`).value);
+   const hcpInput = document.getElementById(`hcp_${i}`).value;
+const hcp = hcpInput === "" ? null : parseFloat(hcpInput);
 
-    // skip if DNP or blank
-    if (pts === 0 || isNaN(pts)) continue;
+const ptsInput = document.getElementById(`points_${i}`).value;
+const pts = ptsInput === "" ? null : parseInt(ptsInput);
 
-    const adj = stablefordAdj(pts);
-    const next = Math.max(0, hcp + adj);
+// Skip if DNP or blank
+if (pts === null || isNaN(pts)) continue;
+
+// Only calculate if handicap exists
+const baseHcp = hcp === null ? 0 : hcp;
+const adj = stablefordAdj(pts);
+const next = Math.max(0, baseHcp + adj);
+
+playerScores[i][currentRound - 1] = pts;
+lastAdj[i] = (adj > 0 ? "+" : "") + adj;
+nextHcp[i] = next;
+
 
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
