@@ -388,21 +388,29 @@ async function loadTeeTimes(eventId) {
 // 🧩 Auto Tee Time Generator (with manual reordering)
 // =========================
 
+// Load events into dropdown
 async function loadAdminTeeTimeEvents() {
-  const { data: events } = await supabase
+  const { data: events, error } = await supabase
     .from("events")
     .select("id, name, date")
     .order("date", { ascending: true });
+
   const select = document.getElementById("teeEventSelect");
-  if (!events || !events.length) {
+  if (error || !events?.length) {
     select.innerHTML = "<option>No events found</option>";
     return;
   }
-  select.innerHTML = events.map(
-    e => `<option value='${e.id}'>${e.name} (${e.date})</option>`
-  ).join("");
+
+  // Populate dropdown
+  select.innerHTML = events
+    .map((e) => `<option value='${e.id}'>${e.name} (${e.date})</option>`)
+    .join("");
+
+  // ✅ Auto-load first event
+  loadAdminPlayers();
 }
 
+// Load players for selected event
 async function loadAdminPlayers() {
   const eventId = document.getElementById("teeEventSelect").value;
   const container = document.getElementById("playerPool");
@@ -425,6 +433,7 @@ async function loadAdminPlayers() {
     <div id="teeGroups" style="margin-top:20px;"></div>`;
 }
 
+// Generate groups automatically
 async function generateTeeGroups(eventId) {
   const start = document.getElementById("startTime").value.trim();
   const gap = parseInt(document.getElementById("gapMins").value) || 7;
@@ -443,60 +452,65 @@ async function generateTeeGroups(eventId) {
   }
 
   // Separate buggy and walkers
-  let buggy = rsvps.filter(r => r.buggy);
-  let walkers = rsvps.filter(r => !r.buggy);
+  let buggy = rsvps.filter((r) => r.buggy);
+  let walkers = rsvps.filter((r) => !r.buggy);
 
-  // Fix odd buggy count by moving a flexible player to walkers
+  // ✅ Move flexible buggy player to walkers if odd buggy count
   if (buggy.length % 2 !== 0) {
-    const flex = buggy.find(r => (r.flexibility || "").toLowerCase().includes("happy"));
+    const flex = buggy.find((r) => (r.flexibility || "").toLowerCase().includes("happy"));
     if (flex) {
       walkers.push(flex);
-      buggy = buggy.filter(b => b.name !== flex.name);
+      buggy = buggy.filter((b) => b.name !== flex.name);
     }
   }
 
-  // Shuffle function
+  // Shuffle for randomness
   function shuffle(arr) {
-    return arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
+    return arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
   }
   buggy = shuffle(buggy);
   walkers = shuffle(walkers);
 
-  // Create groups
+  // Create groups (buggy first)
   const groups = [];
-  for (let i=0; i<buggy.length; i+=4) groups.push(buggy.slice(i, i+4));
+  for (let i = 0; i < buggy.length; i += 4) groups.push(buggy.slice(i, i + 4));
   if (walkers.length % 4 === 3) {
     groups.push(walkers.slice(0, 3));
     walkers = walkers.slice(3);
   }
-  for (let i=0; i<walkers.length; i+=4) groups.push(walkers.slice(i, i+4));
+  for (let i = 0; i < walkers.length; i += 4) groups.push(walkers.slice(i, i + 4));
 
-  // Tee time calculator (12-hour clock)
+  // Time helper
   function addMinutesToTime(start, mins) {
-    let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h,m]=t.split(":").map(Number);
-    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
-    const d=new Date();d.setHours(h);d.setMinutes(m+mins);
-    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
-    return`${disp}:${mi}${sfx}`;
+    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h, m] = t.split(":").map(Number);
+    if (a === "pm" && h < 12) h += 12;
+    if (a === "am" && h === 12) h = 0;
+    const d = new Date();
+    d.setHours(h);
+    d.setMinutes(m + mins);
+    const hr = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const sfx = hr >= 12 ? "pm" : "am";
+    const disp = ((hr + 11) % 12) + 1;
+    return `${disp}:${mi}${sfx}`;
   }
 
-  // Display groups
+  // Render groups
   area.innerHTML = "";
-  groups.forEach((g,i)=>{
-    const teeTime = addMinutesToTime(start, i*gap);
+  groups.forEach((g, i) => {
+    const teeTime = addMinutesToTime(start, i * gap);
     const div = document.createElement("div");
     div.className = "tee-group";
     div.innerHTML = `
       <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
-        <strong>Group ${i+1}</strong> — ${teeTime}
-        <ul id="group_${i+1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
+        <strong>Group ${i + 1}</strong> — ${teeTime}
+        <ul id="group_${i + 1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
       </div>`;
     area.appendChild(div);
 
     const ul = div.querySelector("ul");
-    g.forEach(p=>{
+    g.forEach((p) => {
       const li = document.createElement("li");
       li.className = "player-card";
       li.dataset.name = p.name;
@@ -508,7 +522,7 @@ async function generateTeeGroups(eventId) {
       ul.appendChild(li);
     });
 
-    // Enable drag & drop reordering
+    // ✅ Enable drag & drop
     new Sortable(ul, { group: "players", animation: 150 });
   });
 
@@ -521,7 +535,7 @@ function getIcon(type) {
   return "😊";
 }
 
-// Save tee times
+// Save to Supabase
 async function saveTeeTimes() {
   const eventId = document.getElementById("teeEventSelect").value;
   const start = document.getElementById("startTime").value.trim();
@@ -533,25 +547,30 @@ async function saveTeeTimes() {
   }
 
   function addMinutesToTime(start, mins) {
-    let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h,m]=t.split(":").map(Number);
-    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
-    const d=new Date();d.setHours(h);d.setMinutes(m+mins);
-    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
-    return`${disp}:${mi}${sfx}`;
+    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h, m] = t.split(":").map(Number);
+    if (a === "pm" && h < 12) h += 12;
+    if (a === "am" && h === 12) h = 0;
+    const d = new Date();
+    d.setHours(h);
+    d.setMinutes(m + mins);
+    const hr = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const sfx = hr >= 12 ? "pm" : "am";
+    const disp = ((hr + 11) % 12) + 1;
+    return `${disp}:${mi}${sfx}`;
   }
 
-  const data = groups.map((g,i)=>{
-    const players = Array.from(g.children).map(el=>({
+  const data = groups.map((g, i) => {
+    const players = Array.from(g.children).map((el) => ({
       name: el.dataset.name,
       phone: el.dataset.phone,
       type: el.dataset.type
     }));
     return {
       event_id: eventId,
-      group_number: i+1,
-      tee_time: addMinutesToTime(start, i*gap),
+      group_number: i + 1,
+      tee_time: addMinutesToTime(start, i * gap),
       players
     };
   });
@@ -568,6 +587,5 @@ async function saveTeeTimes() {
   loadTeeTimes(eventId);
 }
 
-</script>
 </body>
 </html>
