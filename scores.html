@@ -282,8 +282,18 @@ async function loadData() {
         latestByPlayer[r.player] = r;
     });
     players = Object.keys(latestByPlayer);
-    currentHcp = players.map(p => latestByPlayer[p].handicap || 0);
-    nextHcp = players.map(p => latestByPlayer[p].next_handicap || 0);
+   currentHcp = players.map(p =>
+  latestByPlayer[p].handicap !== null && latestByPlayer[p].handicap !== undefined
+    ? latestByPlayer[p].handicap
+    : null
+);
+
+nextHcp = players.map(p =>
+  latestByPlayer[p].next_handicap !== null && latestByPlayer[p].next_handicap !== undefined
+    ? latestByPlayer[p].next_handicap
+    : null
+);
+
     playerScores = players.map(p => {
       const rounds = data.filter(r => r.player === p);
       const arr = Array(maxRounds).fill(null);
