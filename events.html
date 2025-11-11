@@ -254,6 +254,33 @@ async function setupAdminPanel(){
   document.getElementById("teeEventSelect").innerHTML=data.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
   document.getElementById("teeEventSelect").addEventListener("change",e=>loadAdminPlayers(e.target.value));
 }
+// =========================
+// LOAD ADMIN EVENTS (Fix for dropdown not loading)
+// =========================
+async function loadAdminEventOptions() {
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id,name,date")
+    .order("date", { ascending: true });
+
+  const select = document.getElementById("teeEventSelect");
+
+  if (error || !events?.length) {
+    select.innerHTML = "<option>No events found</option>";
+    return;
+  }
+
+  select.innerHTML = events
+    .map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`)
+    .join("");
+
+  // ✅ Properly trigger player loading when an event is selected
+  select.onchange = async (e) => {
+    const eventId = Number(e.target.value);
+    console.log("Selected event ID:", eventId);
+    await loadAdminPlayers(eventId);
+  };
+}
 
 async function loadAdminPlayers(id){
   const pool=document.getElementById("playerPool");
