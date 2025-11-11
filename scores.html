@@ -426,11 +426,14 @@ async function confirmReset() {
   document.body.style.cursor = "wait";
 
   try {
-    // Step 1: Delete all existing records
-    const { error: delError } = await supabase.from("scores").delete().neq("id", 0);
+    // Step 1: Delete all existing records (wait for completion)
+    const { error: delError } = await supabase.from("scores").delete().neq("id", -1);
     if (delError) throw delError;
 
-    // Step 2: Insert all players again
+    // Wait briefly to ensure Supabase processes the delete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Step 2: Insert all default players fresh
     const players = [
       'Brad Davies','Will Lovell','Richard Jones','David Hardcastle','Tim Oliver','John Hawkes','Mike Cook','Colin Oliver',
       'Gary Moyce','David Jordan','Nick Benbow','Simon Morgan','Wes Lacey','Chris Oliver','Burt Pickering','Chris Harris',
@@ -448,7 +451,8 @@ async function confirmReset() {
       adj: ''
     }));
 
-    const { error: insError } = await supabase.from("scores").insert(newRows);
+    // Step 3: Insert safely
+    const { error: insError } = await supabase.from("scores").insert(newRows, { upsert: false });
     if (insError) throw insError;
 
     alert("✅ League reset successfully!");
@@ -462,6 +466,7 @@ async function confirmReset() {
     document.body.style.cursor = "default";
   }
 }
+
 
 function toCSV(arr) {
   return arr.map(r => Object.values(r).map(v => `${v ?? ""}`).join(",")).join("\n");
