@@ -359,33 +359,29 @@ function calculateHandicaps() {
   if (!unlocked) return alert("Unlock first");
 
   for (let i = 0; i < players.length; i++) {
-    // Use currentHcp array as the base handicap
+    // ✅ Always start from the stored handicap, not the input box
     const hcp = currentHcp[i] ?? 0;
+
+    // Read entered points
     const pts = parseInt(document.getElementById(`points_${i}`).value);
 
     // ✅ Skip players who didn't play (blank or 0 points)
     if (pts === 0 || isNaN(pts)) continue;
 
+    // Apply Stableford adjustment
     const adj = stablefordAdj(pts);
     const next = Math.max(0, hcp + adj);
 
+    // Save results to arrays for display and Supabase sync
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
-    currentHcp[i] = hcp;
     nextHcp[i] = next;
   }
 
+  // Refresh table, save, redraw chart
   renderLeaderboard();
   saveData();
   drawChart();
-}
-
-function calculateTotals() {
-  return players.map((n, i) => {
-    const s = playerScores[i].filter(v => v !== null);
-    const total = s.sort((a, b) => b - a).slice(0, 5).reduce((a, b) => a + b, 0);
-    return { i, name: n, total };
-  }).sort((a, b) => b.total - a.total);
 }
 
 function renderLeaderboard() {
