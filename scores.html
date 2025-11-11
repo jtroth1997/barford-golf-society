@@ -193,6 +193,7 @@ async function loadData(){
   renderLeaderboard();
   supabase.channel("scores").on("postgres_changes",{event:"*",schema:"public",table:"scores"},()=>loadData()).subscribe();
 }
+console.log("🏌️ New Handicaps:", nextHcp);
 
 // --- SAVE DATA ---
 async function saveData() {
