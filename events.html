@@ -268,14 +268,76 @@ async function renderRSVPList(id) {
 }
 
 // Tee Times
-async function loadTeeTimes(eventId){
- const c=document.getElementById(`tee_${eventId}`);
- const {data:tees}=await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
- if(!tees||!tees.length){c.innerHTML="<em>No tee times yet.</em>";return;}
- let html="<h4>🕓 Official Tee Times</h4>";
- tees.forEach(g=>{html+=`<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul></div>`;});
- c.innerHTML=html;
+async function loadTeeTimes(eventId) {
+  const c = document.getElementById(`tee_${eventId}`);
+  const { data: tees } = await supabase
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("group_number", { ascending: true });
+
+  if (!tees || !tees.length) {
+    c.innerHTML = "<em>No tee times yet.</em>";
+    return;
+  }
+
+  // Fetch RSVPs for buggy info + phone numbers
+  const { data: rsvps } = await supabase
+    .from("rsvps")
+    .select("name, buggy, phone")
+    .eq("event_id", eventId);
+
+  const findRSVP = (playerName) =>
+    rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
+
+  let html = "<h4>🕓 Official Tee Times</h4>";
+
+  tees.forEach((g) => {
+    // Match RSVP details to players
+    const playersWithRSVP = g.players.map(p => ({
+      name: p,
+      ...findRSVP(p)
+    }));
+
+    // Separate buggy + walking players
+    const buggyPlayers = playersWithRSVP.filter(p => p.buggy);
+    const walkers = playersWithRSVP.filter(p => !p.buggy);
+
+    html += `<div class='group'>
+      <strong>Group ${g.group_number} — ${g.tee_time}</strong>`;
+
+    // --- Buggy pairs ---
+    if (buggyPlayers.length > 0) {
+      html += `<div style="margin-top:6px;margin-left:10px;">
+        <strong>🛺 Buggy Pairs:</strong>
+        <ul>`;
+      for (let i = 0; i < buggyPlayers.length; i += 2) {
+        const pair = buggyPlayers.slice(i, i + 2);
+        if (pair.length === 2) {
+          html += `<li>🛺 Pair ${i / 2 + 1}: ${pair[0].name} (${pair[0].phone || 'no phone'}) & ${pair[1].name} (${pair[1].phone || 'no phone'})</li>`;
+        } else {
+          html += `<li>🛺 Single buggy: ${pair[0].name} (${pair[0].phone || 'no phone'}) <em>(pays full cost)</em></li>`;
+        }
+      }
+      html += `</ul></div>`;
+    }
+
+    // --- Walkers ---
+    if (walkers.length > 0) {
+      html += `<div style="margin-top:6px;margin-left:10px;">
+        <strong>🚶 Walkers:</strong>
+        <ul>
+          ${walkers.map(p => `<li>🚶 ${p.name}</li>`).join("")}
+        </ul>
+      </div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  c.innerHTML = html;
 }
+
 
 // Tee Time Generator
 async function loadTeeTimeEvents(){const {data:ev}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});const s=document.getElementById("teeEventSelect");if(!ev?.length){s.innerHTML="<option>No events</option>";return;}s.innerHTML=ev.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");}
