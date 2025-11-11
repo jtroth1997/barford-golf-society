@@ -146,6 +146,10 @@ async function loadEvents() {
         </div>
         ${ev.image_url ? `<img src="${ev.image_url}" class="event-image">` : ""}
         ${ev.description ? `<div class='event-description'>${ev.description}</div>` : ""}
+        <div class="event-links">
+          ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
+          ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
+        </div>
         <button class="admin-btn" id="rsvpBtn_${ev.id}" onclick="showRSVPForm(${ev.id})">📝 RSVP to this event</button>
         <div id="rsvpForm_${ev.id}" class="hidden"></div>
         <div id="teeTimes_${ev.id}" class="tee-display"></div>
@@ -181,16 +185,25 @@ function showRSVPForm(eventId) {
         <input type="text" id="phone_${eventId}" placeholder="07123 456789">
         <small>Your phone number will be visible to your buggy partner.</small>
       </div>
+      <label>Preferred tee time (optional)</label>
+      <select id="preference_${eventId}">
+        <option value="">No preference</option>
+        <option value="First">First</option>
+        <option value="Middle">Middle</option>
+        <option value="End">End</option>
+      </select>
       <button type="submit">Submit RSVP</button>
       <div id="rsvpMsg_${eventId}" style="margin-top:10px;font-weight:600;"></div>
     </form>
     <div id="rsvpList_${eventId}" style="margin-top:20px;"></div>`;
   loadRSVPList(eventId);
 }
+
 function handleBuggyChange(eventId) {
   const val = document.getElementById(`buggy_${eventId}`).value;
   document.getElementById(`buggyOptions_${eventId}`).classList.toggle("hidden", val !== "yes");
 }
+
 async function submitRSVP(e, eventId) {
   e.preventDefault();
   const name = document.getElementById(`name_${eventId}`).value.trim();
@@ -198,14 +211,16 @@ async function submitRSVP(e, eventId) {
   const buggy = document.getElementById(`buggy_${eventId}`).value;
   const flex = buggy === "yes" ? document.getElementById(`flexibility_${eventId}`).value : null;
   const phone = buggy === "yes" ? document.getElementById(`phone_${eventId}`).value.trim() : null;
+  const pref = document.getElementById(`preference_${eventId}`).value;
   const msg = document.getElementById(`rsvpMsg_${eventId}`);
   if (!name || !playing || !buggy) return msg.textContent = "⚠️ Fill all required fields.";
   if (buggy === "yes" && !phone) return msg.textContent = "⚠️ Enter phone number.";
   const attending = playing === "yes";
-  await supabase.from("rsvps").insert([{ event_id: eventId, name, attending, buggy: buggy === "yes", flexibility: flex, phone }]);
+  await supabase.from("rsvps").insert([{ event_id: eventId, name, attending, buggy: buggy === "yes", flexibility: flex, phone, preference: pref }]);
   msg.textContent = "✅ RSVP saved!";
   loadRSVPList(eventId);
 }
+
 async function loadRSVPList(eventId) {
   const { data } = await supabase.from("rsvps").select("name,buggy,flexibility,attending").eq("event_id", eventId).eq("attending", true);
   const div = document.getElementById(`rsvpList_${eventId}`);
@@ -249,6 +264,7 @@ async function loadAdminEventOptions() {
     if (val) loadAdminPlayers(val);
   };
 }
+
 async function loadAdminPlayers(eventId) {
   const pool = document.getElementById("playerPool");
   const { data } = await supabase.from("rsvps").select("name,buggy,flexibility,phone,attending").eq("event_id",eventId).eq("attending",true);
@@ -282,11 +298,6 @@ function generateTeeGroups(eventId) {
   for (let i = 0; i < buggy.length; i += 4) groups.push(buggy.slice(i,i+4));
   for (let i = 0; i < walkers.length; i += 4) groups.push(walkers.slice(i,i+4));
 
-  const addTime = (s,m) => {
-    let [t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);let[h,mm]=t.split(":").map(Number);
-    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
-    const d=new Date();d.setHours(h);d.setMinutes(mm+m);
-    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0
   const addTime = (s, m) => {
     let [t, a] = s.toLowerCase().split(/(am|pm)/).filter(Boolean);
     let [h, mm] = t.split(":").map(Number);
@@ -302,7 +313,6 @@ function generateTeeGroups(eventId) {
     return `${disp}:${mi}${sfx}`;
   };
 
-  // Render groups visually
   groups.forEach((group, i) => {
     const teeTime = addTime(start, i * gap);
     const div = document.createElement("div");
@@ -319,8 +329,7 @@ function generateTeeGroups(eventId) {
       li.dataset.phone = p.phone || "";
       li.dataset.type = p.buggy ? "buggy" : "walker";
       const label = p.buggy
-        ? (p.flexibility === "happy" ? " (Happy to walk if odd)" : " (Needs buggy)")
-        : "";
+        ? (p.flexibility === "happy" ? " (Happy to walk if odd)" : " (Needs buggy)") : "";
       li.innerHTML = `${p.buggy ? "🛺" : "🚶"} ${p.name}${label}
         <button onclick="toggleType(this)" style="float:right;font-size:11px;padding:2px 6px;">🔄</button>`;
       ul.appendChild(li);
