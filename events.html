@@ -130,14 +130,13 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ----------------------------
-// 🔒 Admin Access Toggle
-// ----------------------------
+// ---------------------------
+// ADMIN LOGIN
+// ---------------------------
 function toggleAdminAccess() {
   const panel = document.getElementById("adminPanel");
   const btn = document.getElementById("adminToggle");
   const isAdmin = localStorage.getItem("isAdmin") === "true";
-
   if (!isAdmin) {
     const pass = prompt("Enter admin password:");
     if (pass === ADMIN_PASSWORD) {
@@ -145,10 +144,7 @@ function toggleAdminAccess() {
       panel.classList.remove("hidden");
       btn.textContent = "⬅️ Back to Events";
       alert("✅ Admin access granted");
-      loadAdminTeeTimeEvents();
-    } else {
-      alert("❌ Incorrect password");
-    }
+    } else alert("❌ Incorrect password");
   } else {
     localStorage.removeItem("isAdmin");
     panel.classList.add("hidden");
@@ -156,21 +152,18 @@ function toggleAdminAccess() {
   }
 }
 
-// ----------------------------
-// 🚀 On Page Load
-// ----------------------------
 window.onload = () => {
   if (localStorage.getItem("isAdmin") === "true") {
     document.getElementById("adminPanel").classList.remove("hidden");
     document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
-    loadAdminTeeTimeEvents();
   }
   loadEvents();
+  loadAdminTeeTimeEvents();
 };
 
-// ----------------------------
-// 🖼️ Event Creation (Admin)
-// ----------------------------
+// ---------------------------
+// ADD NEW EVENT
+// ---------------------------
 function previewImage(e) {
   const file = e.target.files[0];
   const preview = document.getElementById("preview");
@@ -211,9 +204,9 @@ async function submitEvent(e) {
   }
 
   const weather_link = generateWeatherLink(location, date);
-  const { error } = await supabase
-    .from("events")
-    .insert([{ name: title, location, date, price, description, course_link, image_url, weather_link }]);
+  const { error } = await supabase.from("events").insert([
+    { name: title, location, date, price, description, course_link, image_url, weather_link }
+  ]);
 
   if (error) {
     console.error(error);
@@ -226,9 +219,9 @@ async function submitEvent(e) {
   loadAdminTeeTimeEvents();
 }
 
-// ----------------------------
-// 📅 Load Public Events
-// ----------------------------
+// ---------------------------
+// LOAD EVENTS (Public)
+// ---------------------------
 async function loadEvents() {
   const { data: events, error } = await supabase.from("events").select("*").order("date", { ascending: true });
   const c = document.getElementById("eventList");
@@ -236,7 +229,6 @@ async function loadEvents() {
     c.innerHTML = "<p>No events found.</p>";
     return;
   }
-
   c.innerHTML = "";
   for (const ev of events) {
     const img = ev.image_url ? `<img src='${ev.image_url}' class='event-image'>` : "";
@@ -245,7 +237,6 @@ async function loadEvents() {
       ${ev.course_link ? `<a href='${ev.course_link}' target='_blank'>🌐 Course Website</a>` : ""}
       ${ev.weather_link ? `<a href='${ev.weather_link}' target='_blank'>☀️ BBC Weather</a>` : ""}
     </div>`;
-
     c.innerHTML += `
       <div class='event-card'>
         <div class='event-header'>
@@ -261,9 +252,9 @@ async function loadEvents() {
   }
 }
 
-// ----------------------------
-// ✅ RSVP System
-// ----------------------------
+// ---------------------------
+// RSVP SECTION
+// ---------------------------
 async function loadRSVPs(eventId) {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const { data: tees } = await supabase.from("tee_times").select("event_id").eq("event_id", eventId);
@@ -274,7 +265,6 @@ async function loadRSVPs(eventId) {
   cont.innerHTML = `
     <form class='rsvp-form' onsubmit='submitRSVP(event,${eventId})'>
       <h4>RSVP for this Event</h4>
-
       <label>Full Name</label>
       <input type='text' id='name_${eventId}' required>
 
@@ -293,7 +283,6 @@ async function loadRSVPs(eventId) {
           <option value='Yes, happy to walk if needed'>Yes, happy to walk</option>
           <option value='No, need buggy'>No, need buggy</option>
         </select>
-
         <label>Phone (for buggy pairing)</label>
         <input type='text' id='phone_${eventId}' placeholder='Your phone number'>
       </div>
@@ -303,10 +292,8 @@ async function loadRSVPs(eventId) {
 
       <button type='submit'>Submit RSVP</button>
     </form>
-
     <div id='rsvpList_${eventId}' class='rsvp-list'><em>Loading RSVPs...</em></div>
   `;
-
   renderRSVPList(eventId);
 }
 
@@ -343,13 +330,11 @@ async function submitRSVP(e, id) {
     },
     { onConflict: ["event_id", "name"] }
   );
-
   if (error) {
     console.error("RSVP Save Error:", error);
     alert("❌ Error saving RSVP. Check console for details.");
     return;
   }
-
   alert("✅ RSVP saved!");
   renderRSVPList(id);
 }
@@ -357,27 +342,23 @@ async function submitRSVP(e, id) {
 async function renderRSVPList(id) {
   const cont = document.getElementById(`rsvpList_${id}`);
   const { data: rsvps } = await supabase.from("rsvps").select("*").eq("event_id", id).eq("attending", true);
-
   if (!rsvps || !rsvps.length) {
     cont.innerHTML = "<em>No RSVPs yet.</em>";
     return;
   }
-
   const buggy = rsvps.filter(r => r.buggy);
   const walkers = rsvps.filter(r => !r.buggy);
-
   let html = `<p class='count'>Total Attending: ${rsvps.length}</p>`;
   if (buggy.length)
     html += `<h4>🛺 Buggy Users</h4><ul>${buggy.map(r => `<li>${r.name}${r.phone ? ` (${r.phone})` : ""}</li>`).join("")}</ul>`;
   if (walkers.length)
     html += `<h4>🚶 Walkers</h4><ul>${walkers.map(r => `<li>${r.name}</li>`).join("")}</ul>`;
-
   cont.innerHTML = html;
 }
 
-// ----------------------------
-// 🕓 Tee Times Display
-// ----------------------------
+// ---------------------------
+// LOAD OFFICIAL TEE TIMES
+// ---------------------------
 async function loadTeeTimes(eventId) {
   const c = document.getElementById(`tee_${eventId}`);
   const { data: tees } = await supabase.from("tee_times").select("*").eq("event_id", eventId).order("group_number", { ascending: true });
@@ -386,35 +367,34 @@ async function loadTeeTimes(eventId) {
     return;
   }
 
+  const { data: rsvps } = await supabase.from("rsvps").select("name, phone").eq("event_id", eventId);
+  const findRSVP = (playerName) => rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
+
   let html = "<h4>🕓 Official Tee Times</h4>";
-  tees.forEach(g => {
+  tees.forEach((g) => {
     html += `<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><ul>`;
     g.players.forEach(p => {
-      const icon = p.type === "buggy" ? "🛺" : p.type === "walker" ? "🚶" : "😊";
-      html += `<li>${icon} ${p.name}${p.phone ? ` (${p.phone})` : ""}</li>`;
+      const player = typeof p === "string" ? { name: p } : p;
+      const phone = findRSVP(player.name)?.phone || "";
+      const icon = player.type === "buggy" ? "🛺" : player.type === "walker" ? "🚶" : "😊";
+      html += `<li>${icon} ${player.name}${phone ? ` (${phone})` : ""}</li>`;
     });
     html += "</ul></div>";
   });
   c.innerHTML = html;
 }
 
-// =========================
-// 🧩 Admin Tee Time Organiser (Auto + Manual)
-// =========================
-
+// ---------------------------
+// ADMIN TEE TIME ORGANISER
+// ---------------------------
 async function loadAdminTeeTimeEvents() {
-  const { data: events } = await supabase
-    .from("events")
-    .select("id, name, date")
-    .order("date", { ascending: true });
+  const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
   const select = document.getElementById("teeEventSelect");
   if (!events || !events.length) {
     select.innerHTML = "<option>No events found</option>";
     return;
   }
-  select.innerHTML = events
-    .map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`)
-    .join("");
+  select.innerHTML = events.map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
 }
 
 async function loadAdminPlayers() {
@@ -422,22 +402,16 @@ async function loadAdminPlayers() {
   const container = document.getElementById("playerPool");
   container.innerHTML = "<em>Loading players...</em>";
 
-  const { data: rsvps, error } = await supabase
-    .from("rsvps")
-    .select("name, buggy, flexibility, phone")
-    .eq("event_id", eventId)
-    .eq("attending", true);
-
-  if (error || !rsvps?.length) {
-    container.innerHTML = "<em>No RSVPs found for this event.</em>";
+  const { data: rsvps } = await supabase.from("rsvps").select("name, buggy, flexibility, phone").eq("event_id", eventId).eq("attending", true);
+  if (!rsvps?.length) {
+    container.innerHTML = "<em>No RSVPs found.</em>";
     return;
   }
 
   container.innerHTML = `
     <strong>Players Loaded: ${rsvps.length}</strong>
     <button type="button" onclick="generateTeeGroups(${eventId})" style="margin-left:10px;">⚙️ Generate Tee Times</button>
-    <div id="playerList" style="display:none;"></div>
-  `;
+    <div id="teeGroups" style="margin-top:20px;"></div>`;
 }
 
 async function generateTeeGroups(eventId) {
@@ -446,176 +420,102 @@ async function generateTeeGroups(eventId) {
   const area = document.getElementById("teeGroups");
   area.innerHTML = "<em>Generating groups...</em>";
 
-  const { data: rsvps } = await supabase
-    .from("rsvps")
-    .select("name, buggy, flexibility, phone")
-    .eq("event_id", eventId)
-    .eq("attending", true);
-
+  const { data: rsvps } = await supabase.from("rsvps").select("name, buggy, flexibility, phone").eq("event_id", eventId).eq("attending", true);
   if (!rsvps?.length) {
-    area.innerHTML = "<p>No RSVPs for this event.</p>";
+    area.innerHTML = "<p>No RSVPs.</p>";
     return;
   }
 
-  // Separate buggy and walkers
   let buggy = rsvps.filter(r => r.buggy);
   let walkers = rsvps.filter(r => !r.buggy);
-
-  // Fix odd buggy count: move one flexible player to walkers
   if (buggy.length % 2 !== 0) {
-    const flexPlayer = buggy.find(r =>
-      (r.flexibility || "").toLowerCase().includes("happy")
-    );
-    if (flexPlayer) {
-      walkers.push(flexPlayer);
-      buggy = buggy.filter(b => b.name !== flexPlayer.name);
+    const flex = buggy.find(r => (r.flexibility || "").toLowerCase().includes("happy"));
+    if (flex) {
+      walkers.push(flex);
+      buggy = buggy.filter(b => b.name !== flex.name);
     }
   }
 
-  // Shuffle both lists
   function shuffle(arr) {
-    return arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
+    return arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
   }
   buggy = shuffle(buggy);
   walkers = shuffle(walkers);
 
-  // Create buggy-first groups of 4
   const groups = [];
-  for (let i = 0; i < buggy.length; i += 4) {
-    groups.push(buggy.slice(i, i + 4));
-  }
-
-  // If walkers total gives odd 3-ball group, handle first group
+  for (let i=0;i<buggy.length;i+=4) groups.push(buggy.slice(i,i+4));
   if (walkers.length % 4 === 3) {
-    groups.push(walkers.slice(0, 3));
+    groups.push(walkers.slice(0,3));
     walkers = walkers.slice(3);
   }
+  for (let i=0;i<walkers.length;i+=4) groups.push(walkers.slice(i,i+4));
 
-  for (let i = 0; i < walkers.length; i += 4) {
-    groups.push(walkers.slice(i, i + 4));
-  }
-
-  // Generate tee times
-  function addMinutesToTime(start, mins) {
-    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h, m] = t.split(":").map(Number);
-    if (a === "pm" && h < 12) h += 12;
-    if (a === "am" && h === 12) h = 0;
-    const d = new Date();
-    d.setHours(h);
-    d.setMinutes(m + mins);
-    const hr = d.getHours();
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    const sfx = hr >= 12 ? "pm" : "am";
-    const disp = ((hr + 11) % 12) + 1;
-    return `${disp}:${mi}${sfx}`;
+  function addMinutesToTime(start, mins){
+    let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h,m]=t.split(":").map(Number);
+    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
+    const d=new Date();d.setHours(h);d.setMinutes(m+mins);
+    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;
   }
 
   area.innerHTML = "";
-  groups.forEach((g, i) => {
-    const teeTime = addMinutesToTime(start, i * gap);
-    const groupDiv = document.createElement("div");
-    groupDiv.className = "tee-group";
-    groupDiv.innerHTML = `
+  groups.forEach((g,i)=>{
+    const teeTime=addMinutesToTime(start,i*gap);
+    const div=document.createElement("div");
+    div.className="tee-group";
+    div.innerHTML=`
       <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
-        <strong>Group ${i + 1}</strong> — ${teeTime}
-        <ul id="group_${i + 1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
+        <strong>Group ${i+1}</strong> — ${teeTime}
+        <ul id="group_${i+1}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
       </div>`;
-    area.appendChild(groupDiv);
-
-    const ul = groupDiv.querySelector("ul");
-    g.forEach(p => {
-      const li = document.createElement("li");
-      li.className = "player-card";
-      li.dataset.name = p.name;
-      li.dataset.phone = p.phone || "";
-      li.dataset.type = p.buggy
-        ? (p.flexibility?.toLowerCase().includes("happy") ? "flexible" : "buggy")
-        : "walker";
-      li.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <span>${getIcon(li.dataset.type)} ${p.name}${p.phone ? ` (${p.phone})` : ""}</span>
-          <select onchange="changePlayerType(this)">
-            <option value="buggy" ${li.dataset.type === "buggy" ? "selected" : ""}>🛺 Buggy</option>
-            <option value="walker" ${li.dataset.type === "walker" ? "selected" : ""}>🚶 Walker</option>
-            <option value="flexible" ${li.dataset.type === "flexible" ? "selected" : ""}>😊 Happy to Walk</option>
-          </select>
-        </div>`;
+    area.appendChild(div);
+    const ul=div.querySelector("ul");
+    g.forEach(p=>{
+      const li=document.createElement("li");
+      li.dataset.name=p.name;
+      li.dataset.phone=p.phone||"";
+      li.dataset.type=p.buggy?(p.flexibility?.toLowerCase().includes("happy")?"flexible":"buggy"):"walker";
+      li.innerHTML=`${getIcon(li.dataset.type)} ${p.name}${p.phone?` (${p.phone})`:""}`;
       ul.appendChild(li);
     });
-
-    new Sortable(ul, { group: "players", animation: 150 });
+    new Sortable(ul,{group:"players",animation:150});
   });
 
   alert("✅ Tee times auto-generated! You can now drag and rearrange players manually.");
 }
 
-function getIcon(type) {
-  if (type === "buggy") return "🛺";
-  if (type === "walker") return "🚶";
-  return "😊";
-}
+function getIcon(type){if(type==="buggy")return"🛺";if(type==="walker")return"🚶";return"😊";}
 
-function changePlayerType(sel) {
-  const li = sel.closest(".player-card");
-  li.dataset.type = sel.value;
-  const span = li.querySelector("span");
-  span.textContent = `${getIcon(sel.value)} ${li.dataset.name}${li.dataset.phone ? ` (${li.dataset.phone})` : ""}`;
-}
+async function saveTeeTimes(){
+  const eventId=document.getElementById("teeEventSelect").value;
+  const start=document.getElementById("startTime").value.trim();
+  const gap=parseInt(document.getElementById("gapMins").value)||7;
+  const groups=Array.from(document.querySelectorAll(".groupList"));
+  if(!groups.length){alert("No groups to save.");return;}
 
-// Save final groups to Supabase
-async function saveTeeTimes() {
-  const eventId = document.getElementById("teeEventSelect").value;
-  const start = document.getElementById("startTime").value.trim();
-  const gap = parseInt(document.getElementById("gapMins").value) || 7;
-  const groups = Array.from(document.querySelectorAll(".groupList"));
-  if (!groups.length) {
-    alert("Add or generate at least one group.");
-    return;
+  function addMinutesToTime(start,mins){
+    let[t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let[h,m]=t.split(":").map(Number);
+    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
+    const d=new Date();d.setHours(h);d.setMinutes(m+mins);
+    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;
   }
 
-  function addMinutesToTime(start, mins) {
-    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h, m] = t.split(":").map(Number);
-    if (a === "pm" && h < 12) h += 12;
-    if (a === "am" && h === 12) h = 0;
-    const d = new Date();
-    d.setHours(h);
-    d.setMinutes(m + mins);
-    const hr = d.getHours();
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    const sfx = hr >= 12 ? "pm" : "am";
-    const disp = ((hr + 11) % 12) + 1;
-    return `${disp}:${mi}${sfx}`;
-  }
-
-  const data = groups.map((g, i) => {
-    const players = Array.from(g.children).map(el => ({
-      name: el.dataset.name,
-      phone: el.dataset.phone,
-      type: el.dataset.type
+  const data=groups.map((g,i)=>{
+    const players=Array.from(g.children).map(el=>({
+      name:el.dataset.name,phone:el.dataset.phone,type:el.dataset.type
     }));
-    return {
-      event_id: eventId,
-      group_number: i + 1,
-      tee_time: addMinutesToTime(start, i * gap),
-      players
-    };
+    return{event_id:eventId,group_number:i+1,tee_time:addMinutesToTime(start,i*gap),players};
   });
 
-  await supabase.from("tee_times").delete().eq("event_id", eventId);
-  const { error } = await supabase.from("tee_times").insert(data);
-  if (error) {
-    console.error(error);
-    alert("Error saving tee times.");
-    return;
-  }
-
+  await supabase.from("tee_times").delete().eq("event_id",eventId);
+  const {error}=await supabase.from("tee_times").insert(data);
+  if(error){console.error(error);alert("Error saving tee times.");return;}
   alert("✅ Tee times saved!");
   loadTeeTimes(eventId);
 }
-
-
 </script>
 </body>
 </html>
