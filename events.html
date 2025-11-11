@@ -227,16 +227,49 @@ async function createEvent() {
   const msg = document.getElementById("createMsg");
 
   msg.textContent = "";
-  if (!name || !date || !location) return msg.textContent="⚠️ Name, date and location are required.";
+
+  if (!name || !date || !location) {
+    msg.textContent = "⚠️ Name, date and location are required.";
+    return;
+  }
+
   const confirmMsg = `Please confirm event details:\n\n${name}\n${date}\n${location}\nPrice: £${price || "-"}`;
   if (!confirm(confirmMsg)) return;
 
-  const { error } = await supabase.from("events").insert([{ name, date, location, price, ImageUrl, description, course_link, weather_link, cancelled:false }]);
-  if (error) { msg.textContent="❌ Error creating event: "+error.message; alert("❌ "+error.message); return; }
-  msg.textContent="✅ Event created successfully!";
+  const { data, error } = await supabase
+    .from("events")
+    .insert([
+      {
+        name,
+        date,
+        location,
+        price,
+        ImageUrl,
+        description,
+        course_link,
+        weather_link,
+        cancelled: false,
+      },
+    ])
+    .select();
+
+  console.log("Insert result:", data, error);
+
+  if (error) {
+    alert("❌ Supabase insert error:\n" + error.message);
+    msg.textContent = "❌ Error creating event: " + error.message;
+    return;
+  }
+
   alert("✅ Event created successfully!");
-  document.querySelectorAll("#newName,#newDate,#newLocation,#newPrice,#newImage,#newCourseLink,#newWeatherLink,#newDesc").forEach(el=>el.value="");
+  msg.textContent = "✅ Event created successfully!";
+  document
+    .querySelectorAll(
+      "#newName,#newDate,#newLocation,#newPrice,#newImage,#newCourseLink,#newWeatherLink,#newDesc"
+    )
+    .forEach((el) => (el.value = ""));
   loadEvents();
+  loadAdminEventOptions();
 }
 
 // DELETE EVENT
