@@ -195,20 +195,71 @@ async function loadData(){
 }
 
 // --- SAVE DATA ---
-async function saveData(){
-  const updates=[];
-  for(let i=0;i<players.length;i++){
-    const hcpVal=document.getElementById(`hcp_${i}`).value;
-    const hcp=hcpVal===""?currentHcp[i]:parseFloat(hcpVal);
-    const pts=playerScores[i][currentRound-1];
-    const adj=parseInt(lastAdj[i])||0;
-    const next=nextHcp[i]??hcp;
-    const total=playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-    updates.push({player:players[i],round:currentRound,handicap:hcp,points:pts,adj,next_handicap:next,total});
+async function saveData() {
+  const updates = [];
+
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
+
+    // Read current displayed handicap (may be blank)
+    const hcpInput = document.getElementById(`hcp_${i}`).value;
+    const hcp =
+      hcpInput === "" || isNaN(parseFloat(hcpInput))
+        ? currentHcp[i] === 0
+          ? null
+          : currentHcp[i]
+        : parseFloat(hcpInput);
+
+    // Read points
+    const ptsInput = document.getElementById(`points_${i}`).value;
+    const pts =
+      ptsInput === "" || isNaN(parseInt(ptsInput))
+        ? null
+        : parseInt(ptsInput);
+
+    const adj =
+      lastAdj[i] === "" || lastAdj[i] === null
+        ? null
+        : parseInt(lastAdj[i]);
+
+    const next =
+      nextHcp[i] === 0 || nextHcp[i] === null
+        ? hcp
+        : nextHcp[i];
+
+    // Calculate total safely
+    const total = playerScores[i]
+      .filter((v) => v !== null && !isNaN(v))
+      .sort((a, b) => b - a)
+      .slice(0, 5)
+      .reduce((a, b) => a + b, 0);
+
+    updates.push({
+      player,
+      round: currentRound,
+      handicap: hcp,
+      points: pts,
+      adj,
+      next_handicap: next,
+      total,
+      updated_at: new Date().toISOString(),
+    });
   }
-  const {error}=await supabase.from("scores").upsert(updates,{onConflict:["player","round"]});
-  if(error)console.error(error);else showToast("✅ Saved to Supabase");
+
+  console.log("💾 Saving data to Supabase:", updates);
+
+  const { error } = await supabase
+    .from("scores")
+    .upsert(updates, { onConflict: ["player", "round"] });
+
+  if (error) {
+    console.error("Save error:", error);
+    showToast("⚠️ Error saving data");
+  } else {
+    showToast("✅ Data saved to Supabase");
+  }
 }
+
 
 // --- CALCULATE HANDICAPS ---
 function calculateHandicaps(){
