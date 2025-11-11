@@ -93,26 +93,36 @@ async function loadEvents(){
         <h4>RSVP for this Event</h4>
         <label>Full Name</label>
         <input type="text" id="name_${ev.id}" placeholder="Your name" required>
+
         <label>Email (optional)</label>
         <input type="text" id="email_${ev.id}" placeholder="Your email">
-        <label>Phone (for buggy pairing)</label>
-        <input type="text" id="phone_${ev.id}" placeholder="Your phone number">
-        <label>Will you be attending?</label>
-        <select id="attending_${ev.id}">
-          <option value="true">Yes, I’ll be playing</option>
-          <option value="false">No, I can’t attend</option>
-        </select>
+
         <label>Would you like to use a buggy?</label>
-        <select id="buggy_${ev.id}">
+        <select id="buggy_${ev.id}" onchange="togglePhoneRequirement('${ev.id}')">
           <option value="false">No</option>
           <option value="true">Yes</option>
         </select>
-        <small>If you request a buggy, you’ll be paired with another member who also requested one. You’ll find out your pairing about a week before the event. Once paired, please contact your partner directly to arrange buggy booking.</small>
+
         <label>If there’s an odd number of buggy requests, are you willing to walk instead?</label>
         <select id="flex_${ev.id}">
           <option value="Yes, happy to walk if needed">Yes, I’m happy to walk</option>
           <option value="No, need buggy">No, I need a buggy</option>
         </select>
+
+        <label id="phoneLabel_${ev.id}" class="hidden">Phone (required for buggy pairing)</label>
+        <input type="text" id="phone_${ev.id}" placeholder="Your phone number" class="hidden">
+
+        <label>Need a specific tee time? (optional)</label> <!-- NEW -->
+        <input type="text" id="tee_pref_${ev.id}" placeholder="e.g. early, after 11am"> <!-- NEW -->
+
+        <label>Will you be attending?</label>
+        <select id="attending_${ev.id}">
+          <option value="true">Yes, I’ll be playing</option>
+          <option value="false">No, I can’t attend</option>
+        </select>
+
+        <small>If you request a buggy, please include your phone number so your potential partner can contact you directly to arrange booking.</small>
+
         <button type="submit">Submit RSVP</button>
       </form>
       <div class="tee-times" id="tee_${ev.id}">
@@ -123,17 +133,36 @@ async function loadEvents(){
     loadTeeTimes(ev.id);
   }
 }
+
+// NEW: toggle phone field when buggy selected
+function togglePhoneRequirement(eventId){
+  const buggySelect=document.getElementById(`buggy_${eventId}`);
+  const phoneField=document.getElementById(`phone_${eventId}`);
+  const phoneLabel=document.getElementById(`phoneLabel_${eventId}`);
+  if(buggySelect.value==="true"){
+    phoneField.classList.remove("hidden");
+    phoneLabel.classList.remove("hidden");
+    phoneField.required=true;
+  }else{
+    phoneField.classList.add("hidden");
+    phoneLabel.classList.add("hidden");
+    phoneField.required=false;
+  }
+}
+
 // Save RSVP
 async function submitRSVP(e, eventId){
   e.preventDefault();
   const name=document.getElementById(`name_${eventId}`).value.trim();
   const email=document.getElementById(`email_${eventId}`).value.trim();
   const phone=document.getElementById(`phone_${eventId}`).value.trim();
+  const tee_pref=document.getElementById(`tee_pref_${eventId}`).value.trim(); // NEW
   const attending=document.getElementById(`attending_${eventId}`).value==="true";
   const buggy=document.getElementById(`buggy_${eventId}`).value==="true";
   const flexibility=document.getElementById(`flex_${eventId}`).value;
 
   if(!name){ alert("Please enter your name."); return; }
+  if(buggy && !phone){ alert("Please enter your phone number if you require a buggy."); return; }
 
   const { error } = await supabase.from("rsvps").upsert({
     event_id: eventId,
@@ -142,7 +171,8 @@ async function submitRSVP(e, eventId){
     phone,
     attending,
     buggy,
-    flexibility
+    flexibility,
+    tee_pref // NEW
   }, { onConflict: ['event_id','name'] });
 
   if(error){ console.error(error); return alert("Error saving RSVP."); }
@@ -230,8 +260,6 @@ async function loadTeeTimes(eventId){
 
   container.innerHTML = html;
 }
-
-
 
 // Subscribe for realtime tee time updates
 supabase.channel('tee_times_changes')
