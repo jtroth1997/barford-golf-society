@@ -421,70 +421,68 @@ function changePassword() {
 async function confirmReset() {
   const pw = prompt("Enter password to clear the league:");
   if (pw !== PASSWORD) return alert("Incorrect password");
-
-  // confirm with the user
   if (!confirm("This will erase all rounds and reset the league — continue?")) return;
 
-  // show loading cursor
   document.body.style.cursor = "wait";
 
-  // Run DELETE + INSERT directly in Supabase SQL
-  const sql = `
-  DELETE FROM scores;
+  try {
+    // Step 1: Delete all existing records
+    const { error: delError } = await supabase.rpc('exec_sql', { sql_query: 'DELETE FROM scores;' });
+    if (delError) throw delError;
 
-  INSERT INTO scores (player, round, points, handicap, next_handicap, adj)
-  VALUES
-  ('Brad Davies', 1, NULL, NULL, NULL, ''),
-  ('Will Lovell', 1, NULL, NULL, NULL, ''),
-  ('Richard Jones', 1, NULL, NULL, NULL, ''),
-  ('David Hardcastle', 1, NULL, NULL, NULL, ''),
-  ('Tim Oliver', 1, NULL, NULL, NULL, ''),
-  ('John Hawkes', 1, NULL, NULL, NULL, ''),
-  ('Mike Cook', 1, NULL, NULL, NULL, ''),
-  ('Colin Oliver', 1, NULL, NULL, NULL, ''),
-  ('Gary Moyce', 1, NULL, NULL, NULL, ''),
-  ('David Jordan', 1, NULL, NULL, NULL, ''),
-  ('Nick Benbow', 1, NULL, NULL, NULL, ''),
-  ('Simon Morgan', 1, NULL, NULL, NULL, ''),
-  ('Wes Lacey', 1, NULL, NULL, NULL, ''),
-  ('Chris Oliver', 1, NULL, NULL, NULL, ''),
-  ('Burt Pickering', 1, NULL, NULL, NULL, ''),
-  ('Chris Harris', 1, NULL, NULL, NULL, ''),
-  ('Derek Lewis', 1, NULL, NULL, NULL, ''),
-  ('Liz Oliver', 1, NULL, NULL, NULL, ''),
-  ('Jack Troth', 1, NULL, NULL, NULL, ''),
-  ('Lucie Byerley', 1, NULL, NULL, NULL, ''),
-  ('David Pritchard', 1, NULL, NULL, NULL, ''),
-  ('Robert Pocknell', 1, NULL, NULL, NULL, ''),
-  ('John Close', 1, NULL, NULL, NULL, ''),
-  ('Nick Wright', 1, NULL, NULL, NULL, ''),
-  ('Matt Oliver', 1, NULL, NULL, NULL, ''),
-  ('Vince Hall', 1, NULL, NULL, NULL, ''),
-  ('Elliot Hobbs', 1, NULL, NULL, NULL, ''),
-  ('Will Hunt', 1, NULL, NULL, NULL, ''),
-  ('Martc Taylor', 1, NULL, NULL, NULL, ''),
-  ('Simon Meade', 1, NULL, NULL, NULL, ''),
-  ('Emma Saywell', 1, NULL, NULL, NULL, ''),
-  ('Cam Tolley', 1, NULL, NULL, NULL, ''),
-  ('John Blackwell', 1, NULL, NULL, NULL, ''),
-  ('Bekim', 1, NULL, NULL, NULL, ''),
-  ('Zac Lovell', 1, NULL, NULL, NULL, ''),
-  ('Clive Irwin', 1, NULL, NULL, NULL, '');
-  `;
+    // Step 2: Insert all default players fresh
+    const insertSQL = `
+      INSERT INTO scores (player, round, points, handicap, next_handicap, adj)
+      VALUES
+      ('Brad Davies', 1, NULL, NULL, NULL, ''),
+      ('Will Lovell', 1, NULL, NULL, NULL, ''),
+      ('Richard Jones', 1, NULL, NULL, NULL, ''),
+      ('David Hardcastle', 1, NULL, NULL, NULL, ''),
+      ('Tim Oliver', 1, NULL, NULL, NULL, ''),
+      ('John Hawkes', 1, NULL, NULL, NULL, ''),
+      ('Mike Cook', 1, NULL, NULL, NULL, ''),
+      ('Colin Oliver', 1, NULL, NULL, NULL, ''),
+      ('Gary Moyce', 1, NULL, NULL, NULL, ''),
+      ('David Jordan', 1, NULL, NULL, NULL, ''),
+      ('Nick Benbow', 1, NULL, NULL, NULL, ''),
+      ('Simon Morgan', 1, NULL, NULL, NULL, ''),
+      ('Wes Lacey', 1, NULL, NULL, NULL, ''),
+      ('Chris Oliver', 1, NULL, NULL, NULL, ''),
+      ('Burt Pickering', 1, NULL, NULL, NULL, ''),
+      ('Chris Harris', 1, NULL, NULL, NULL, ''),
+      ('Derek Lewis', 1, NULL, NULL, NULL, ''),
+      ('Liz Oliver', 1, NULL, NULL, NULL, ''),
+      ('Jack Troth', 1, NULL, NULL, NULL, ''),
+      ('Lucie Byerley', 1, NULL, NULL, NULL, ''),
+      ('David Pritchard', 1, NULL, NULL, NULL, ''),
+      ('Robert Pocknell', 1, NULL, NULL, NULL, ''),
+      ('John Close', 1, NULL, NULL, NULL, ''),
+      ('Nick Wright', 1, NULL, NULL, NULL, ''),
+      ('Matt Oliver', 1, NULL, NULL, NULL, ''),
+      ('Vince Hall', 1, NULL, NULL, NULL, ''),
+      ('Elliot Hobbs', 1, NULL, NULL, NULL, ''),
+      ('Will Hunt', 1, NULL, NULL, NULL, ''),
+      ('Martc Taylor', 1, NULL, NULL, NULL, ''),
+      ('Simon Meade', 1, NULL, NULL, NULL, ''),
+      ('Emma Saywell', 1, NULL, NULL, NULL, ''),
+      ('Cam Tolley', 1, NULL, NULL, NULL, ''),
+      ('John Blackwell', 1, NULL, NULL, NULL, ''),
+      ('Bekim', 1, NULL, NULL, NULL, ''),
+      ('Zac Lovell', 1, NULL, NULL, NULL, ''),
+      ('Clive Irwin', 1, NULL, NULL, NULL, '');
+    `;
+    const { error: insError } = await supabase.rpc('exec_sql', { sql_query: insertSQL });
+    if (insError) throw insError;
 
-  // Execute the SQL command using Supabase
-  const { error } = await supabase.rpc('exec_sql', { sql_query: sql });
-
-  document.body.style.cursor = "default";
-
-  if (error) {
-    console.error(error);
-    alert("❌ Error resetting league. Check console for details.");
-  } else {
     alert("✅ League reset successfully!");
     currentRound = 1;
     await loadData();
     showToast("League reset complete");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error resetting league. Check console for details.");
+  } finally {
+    document.body.style.cursor = "default";
   }
 }
 
