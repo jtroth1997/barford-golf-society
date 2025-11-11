@@ -213,7 +213,7 @@ async function createEvent() {
   const date = document.getElementById("newDate").value;
   const location = document.getElementById("newLocation").value.trim();
   const price = document.getElementById("newPrice").value || null;
-  const image_url = document.getElementById("newImage").value.trim() || null;
+  const ImageUrl = document.getElementById("newImage").value.trim() || null;
   const course_link = document.getElementById("newCourseLink").value.trim() || null;
   const weather_link = document.getElementById("newWeatherLink").value.trim() || null;
   const description = document.getElementById("newDesc").value.trim();
@@ -226,57 +226,33 @@ async function createEvent() {
     return;
   }
 
-  // Confirmation step so you can double-check details
-  const summary = `Please confirm event details:\n\n` +
-                  `Name: ${name}\n` +
-                  `Date: ${date}\n` +
-                  `Location: ${location}\n` +
-                  `Price: £${price || "-"}`;
-  const ok = confirm(summary);
-  if (!ok) {
-    msg.textContent = "Creation cancelled.";
+  const confirmMsg = `Please confirm event details:\n\n${name}\n${date}\n${location}\nPrice: £${price || "-"}`;
+  if (!confirm(confirmMsg)) return;
+
+  const { error } = await supabase.from("events").insert([{
+    name,
+    date,
+    location,
+    price,
+    ImageUrl,          // ✅ matches your table’s field name
+    description,
+    course_link,
+    weather_link,
+    cancelled: false
+  }]);
+
+  if (error) {
+    console.error(error);
+    msg.textContent = "❌ Error creating event: " + error.message;
+    alert("❌ Supabase error: " + error.message);
     return;
   }
 
-  try {
-    const { error } = await supabase.from("events").insert([{
-      name,
-      date,
-      location,
-      price,
-      image_url,
-      description,
-      course_link,
-      weather_link,
-      cancelled: false
-    }]);
-
-    if (error) {
-      console.error(error);
-      msg.textContent = "❌ Error creating event: " + (error.message || "");
-      return;
-    }
-
-    msg.textContent = "✅ Event created!";
-    alert("✅ Event created successfully.");
-
-    // Clear form
-    document.getElementById("newName").value = "";
-    document.getElementById("newDate").value = "";
-    document.getElementById("newLocation").value = "";
-    document.getElementById("newPrice").value = "";
-    document.getElementById("newImage").value = "";
-    document.getElementById("newCourseLink").value = "";
-    document.getElementById("newWeatherLink").value = "";
-    document.getElementById("newDesc").value = "";
-
-    // Refresh events and admin dropdowns
-    loadEvents();
-    loadAdminEventOptions();
-  } catch (err) {
-    console.error(err);
-    msg.textContent = "❌ Unexpected error creating event.";
-  }
+  alert("✅ Event created successfully!");
+  msg.textContent = "✅ Event created successfully!";
+  loadEvents();
+  loadAdminEventOptions();
+}
 }
 
 // ---------- Delete Event ----------
