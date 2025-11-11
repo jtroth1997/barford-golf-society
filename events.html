@@ -101,7 +101,7 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
         <input type="text" id="newCourseLink" placeholder="Course link (optional)">
         <input type="text" id="newWeatherLink" placeholder="Weather link (optional)">
         <textarea id="newDesc" placeholder="Description" rows="3"></textarea>
-        <button onclick="createEvent()">Create Event</button>
+        <button type="button" onclick="createEvent()">Create Event</button>
         <div id="createMsg" style="margin-top:8px;font-weight:600;"></div>
       </div>
     </div>
@@ -165,14 +165,29 @@ function toggleAdminAccess() {
 }
 
 // ---------- Load events ----------
-window.onload = () => { loadEvents(); if (localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");loadAdminEventOptions();}};
+window.onload = () => {
+  loadEvents();
+  if (localStorage.getItem("isAdmin") === "true") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
+    loadAdminEventOptions();
+  }
+};
 
 async function loadEvents() {
-  const { data: events } = await supabase.from("events").select("*").order("date",{ascending:true});
-  const container=document.getElementById("eventList");
-  if(!events?.length) return container.innerHTML="<p>No events found.</p>";
-  container.innerHTML="";
-  for(const ev of events){
+  const { data: events, error } = await supabase.from("events").select("*").order("date",{ascending:true});
+  const container = document.getElementById("eventList");
+  if (error) {
+    console.error(error);
+    container.innerHTML = "<p>There was an error loading events.</p>";
+    return;
+  }
+  if (!events?.length) {
+    container.innerHTML = "<p>No events found.</p>";
+    return;
+  }
+  container.innerHTML = "";
+  for (const ev of events) {
     const cancelledBanner = ev.cancelled ? `<div class="cancelled-banner">❌ EVENT CANCELLED</div>` : "";
     container.innerHTML += `
       <div class="event-card">
@@ -192,57 +207,175 @@ async function loadEvents() {
   loadAdminEventOptions();
 }
 
-// ---------- Create ----------
-async function createEvent(){
-  const name=document.getElementById("newName").value.trim();
-  const date=document.getElementById("newDate").value;
-  const location=document.getElementById("newLocation").value.trim();
-  const price=document.getElementById("newPrice").value||null;
-  const image_url=document.getElementById("newImage").value.trim()||null;
-  const description=document.getElementById("newDesc").value.trim();
-  const course_link=document.getElementById("newCourseLink").value.trim()||null;
-  const weather_link=document.getElementById("newWeatherLink").value.trim()||null;
-  const msg=document.getElementById("createMsg");
-  if(!name||!date||!location)return msg.textContent="⚠️ Name, date and location required.";
-  const {error}=await supabase.from("events").insert([{name,date,location,price,image_url,description,course_link,weather_link,cancelled:false}]);
-  msg.textContent=error?"❌ Error creating event.":"✅ Event created!";
-  loadEvents();
+// ---------- Create Event ----------
+async function createEvent() {
+  const name = document.getElementById("newName").value.trim();
+  const date = document.getElementById("newDate").value;
+  const location = document.getElementById("newLocation").value.trim();
+  const price = document.getElementById("newPrice").value || null;
+  const image_url = document.getElementById("newImage").value.trim() || null;
+  const course_link = document.getElementById("newCourseLink").value.trim() || null;
+  const weather_link = document.getElementById("newWeatherLink").value.trim() || null;
+  const description = document.getElementById("newDesc").value.trim();
+  const msg = document.getElementById("createMsg");
+
+  msg.textContent = "";
+
+  if (!name || !date || !location) {
+    msg.textContent = "⚠️ Name, date and location are required.";
+    return;
+  }
+
+  // Confirmation step so you can double-check details
+  const summary = `Please confirm event details:\n\n` +
+                  `Name: ${name}\n` +
+                  `Date: ${date}\n` +
+                  `Location: ${location}\n` +
+                  `Price: £${price || "-"}`;
+  const ok = confirm(summary);
+  if (!ok) {
+    msg.textContent = "Creation cancelled.";
+    return;
+  }
+
+  try {
+    const { error } = await supabase.from("events").insert([{
+      name,
+      date,
+      location,
+      price,
+      image_url,
+      description,
+      course_link,
+      weather_link,
+      cancelled: false
+    }]);
+
+    if (error) {
+      console.error(error);
+      msg.textContent = "❌ Error creating event: " + (error.message || "");
+      return;
+    }
+
+    msg.textContent = "✅ Event created!";
+    alert("✅ Event created successfully.");
+
+    // Clear form
+    document.getElementById("newName").value = "";
+    document.getElementById("newDate").value = "";
+    document.getElementById("newLocation").value = "";
+    document.getElementById("newPrice").value = "";
+    document.getElementById("newImage").value = "";
+    document.getElementById("newCourseLink").value = "";
+    document.getElementById("newWeatherLink").value = "";
+    document.getElementById("newDesc").value = "";
+
+    // Refresh events and admin dropdowns
+    loadEvents();
+    loadAdminEventOptions();
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "❌ Unexpected error creating event.";
+  }
 }
 
-// ---------- Delete ----------
-async function deleteEvent(){
-  const id=document.getElementById("deleteEventSelect").value;
-  if(!id)return alert("Select event to delete.");
-  if(!confirm("Are you sure? This will delete event, RSVPs and tee times."))return;
-  await supabase.from("tee_times").delete().eq("event_id",id);
-  await supabase.from("rsvps").delete().eq("event_id",id);
-  await supabase.from("events").delete().eq("id",id);
-  alert("🗑️ Event deleted.");
-  loadEvents();
+// ---------- Delete Event ----------
+async function deleteEvent() {
+  const id = document.getElementById("deleteEventSelect").value;
+  if (!id) return alert("Select an event to delete.");
+  if (!confirm("Are you sure? This will delete the event, RSVPs and tee times.")) return;
+
+  try {
+    await supabase.from("tee_times").delete().eq("event_id", id);
+    await supabase.from("rsvps").delete().eq("event_id", id);
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (error) {
+      console.error(error);
+      alert("❌ Error deleting event.");
+    } else {
+      alert("🗑️ Event deleted.");
+      loadEvents();
+      loadAdminEventOptions();
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Unexpected error deleting event.");
+  }
 }
 
-// ---------- Cancel/Uncancel ----------
-async function toggleCancel(){
-  const id=document.getElementById("editEventSelect").value;
-  const msg=document.getElementById("cancelMsg");
-  if(!id)return alert("Select an event first.");
-  const pass=prompt("Enter admin password to confirm:");
-  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password.");
-  const { data }=await supabase.from("events").select("cancelled").eq("id",id).single();
-  const newVal=!data.cancelled;
-  await supabase.from("events").update({cancelled:newVal}).eq("id",id);
-  msg.textContent=newVal?"🚫 Event marked as CANCELLED.":"✅ Event marked as ACTIVE.";
-  loadEvents();
+// ---------- Cancel / Uncancel ----------
+async function toggleCancel() {
+  const id = document.getElementById("editEventSelect").value;
+  const msg = document.getElementById("cancelMsg");
+  msg.textContent = "";
+
+  if (!id) {
+    alert("Select an event first.");
+    return;
+  }
+
+  const pass = prompt("Enter admin password to confirm:");
+  if (pass !== ADMIN_PASSWORD) {
+    alert("❌ Incorrect password.");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("cancelled")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error(error);
+      msg.textContent = "❌ Error loading event status.";
+      return;
+    }
+
+    const newVal = !data.cancelled;
+    const { error: updateError } = await supabase
+      .from("events")
+      .update({ cancelled: newVal })
+      .eq("id", id);
+
+    if (updateError) {
+      console.error(updateError);
+      msg.textContent = "❌ Error updating event status.";
+      return;
+    }
+
+    msg.textContent = newVal
+      ? "🚫 Event marked as CANCELLED."
+      : "✅ Event marked as ACTIVE.";
+
+    loadEvents();
+    loadAdminEventOptions();
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "❌ Unexpected error updating status.";
+  }
 }
 
-// ---------- Admin dropdown refresh ----------
-async function loadAdminEventOptions(){
-  const { data }=await supabase.from("events").select("id,name,date,cancelled").order("date",{ascending:true});
-  if(!data)return;
-  const opts=data.map(e=>`<option value='${e.id}'>${e.name} (${e.date})${e.cancelled?" - CANCELLED":""}</option>`).join("");
-  ["deleteEventSelect","editEventSelect"].forEach(sel=>{
-    const el=document.getElementById(sel);
-    if(el)el.innerHTML=`<option value=''>Select event</option>${opts}`;
+// ---------- Load admin dropdowns ----------
+async function loadAdminEventOptions() {
+  const { data, error } = await supabase
+    .from("events")
+    .select("id,name,date,cancelled")
+    .order("date", { ascending: true });
+
+  if (error || !data) return;
+
+  const options = data
+    .map(
+      e =>
+        `<option value='${e.id}'>${e.name} (${e.date})${e.cancelled ? " - CANCELLED" : ""}</option>`
+    )
+    .join("");
+
+  ["deleteEventSelect", "editEventSelect"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<option value=''>Select event</option>${options}`;
   });
 }
 </script>
