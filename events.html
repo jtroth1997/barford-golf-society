@@ -1,364 +1,271 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Events | Barford Golf Society</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barford Golf Society | Events</title>
 
-<style>
-:root {
-  --green:#005a2b;
-  --gold:#d4af37;
-  --light-bg:#f7f7f5;
-  --card:#fff;
-}
-body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
-header,footer{background:var(--green);color:#fff;padding:15px 0;}
-.header-container{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 20px;}
-.site-title{color:var(--gold);}
-.site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
-.site-nav a{color:#fff;text-decoration:none;font-weight:600;}
-.site-nav a:hover,.active{color:var(--gold);}
-.container{max-width:1100px;margin:40px auto;padding:0 20px;}
-.event-card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.event-name{color:var(--green);font-size:1.4rem;font-weight:700;}
-.event-image{width:100%;max-height:350px;object-fit:cover;border-radius:10px;margin-top:10px;}
-.event-links{margin-top:10px;}
-.event-links a{margin-right:10px;color:var(--green);font-weight:600;text-decoration:none;}
-.event-links a:hover{text-decoration:underline;}
-.event-description{margin-top:10px;white-space:pre-line;}
-.admin-btn{display:inline-block;background:var(--gold);color:#1b1b1b;font-weight:600;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;margin-bottom:25px;}
-.admin-btn:hover{background:#e0c35a;}
-.hidden{display:none;}
-footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
-.admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-label{display:block;margin-top:8px;font-weight:600;}
-select,input[type="text"],input[type="date"],input[type="number"],textarea,button{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
-button{background:var(--green);color:#fff;font-weight:600;cursor:pointer;margin-top:10px;}
-button:hover{background:#0a6b34;}
-.rsvp-list{margin-top:15px;background:#fafafa;border:1px solid #ddd;padding:10px;border-radius:8px;}
-.tee-display{margin-top:10px;padding-left:10px;font-size:0.95rem;white-space:pre-line;}
-.tee-display .group{margin-bottom:10px;}
-.player-card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:5px;margin:4px 0;cursor:move;}
-</style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --green:#005a2b;
+      --gold:#d4af37;
+      --light-bg:#f7f7f5;
+      --card:#fff;
+    }
+    body {font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
+    header,footer{background:var(--green);color:#fff;padding:15px 0;}
+    .header-container{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:0 20px;}
+    .site-title{color:var(--gold);font-size:1.5rem;font-weight:700;}
+    .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
+    .site-nav a{color:#fff;text-decoration:none;font-weight:600;}
+    .site-nav a:hover{color:var(--gold);}
+    .container{max-width:1100px;margin:40px auto;padding:0 20px;}
+    .event-card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+    .event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+    .event-name{color:var(--green);font-size:1.4rem;font-weight:700;}
+    .event-image{width:100%;max-height:350px;object-fit:cover;border-radius:10px;margin-top:10px;}
+    .event-links{margin-top:10px;}
+    .event-links a{margin-right:10px;color:var(--green);font-weight:600;text-decoration:none;}
+    .event-links a:hover{text-decoration:underline;}
+    footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
+
+    .admin-btn{display:inline-block;background:var(--gold);color:#1b1b1b;font-weight:600;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;margin-bottom:25px;}
+    .admin-btn:hover{background:#e0c35a;}
+    .admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+    .admin-panel h3{color:var(--green);}
+    .hidden{display:none;}
+  </style>
 </head>
 
 <body>
-<header class="site-header">
-  <div class="header-container">
-    <h1 class="site-title">Barford Golf Society</h1>
-    <nav class="site-nav">
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="events.html" class="active">Events</a></li>
-        <li><a href="scores.html">Scores</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
+  <header>
+    <div class="header-container">
+      <div class="site-title">Barford Golf Society</div>
+      <nav class="site-nav">
+        <ul>
+          <li><a href="#" class="active">Events</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-<div class="container">
-  <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
-  <div id="eventList">Loading events...</div>
-</div>
+  <main class="container">
+    <!-- Admin Access Button -->
+    <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
 
-<footer><p>© 2025 Barford Golf Society</p></footer>
-
-<script>
-const ADMIN_PASSWORD = "westbrom1997";
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-window.onload = () => {
-  if (localStorage.getItem("isAdmin") === "true") {
-    document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
-    setupAdminPanel();
-  }
-  loadEvents();
-};
-
-// =========================
-// LOAD EVENTS + RSVP FORM
-// =========================
-async function loadEvents() {
-  const { data: events, error } = await supabase.from("events").select("*").order("date", { ascending: true });
-  const container = document.getElementById("eventList");
-  if (error || !events?.length) {
-    container.innerHTML = "<p>No events found.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-  for (const ev of events) {
-    const img = ev.image_url ? `<img src="${ev.image_url}" class="event-image">` : "";
-    const desc = ev.description ? `<div class='event-description'>${ev.description}</div>` : "";
-    const links = `<div class="event-links">
-      ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">🌐 Course Website</a>` : ""}
-      ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">☀️ BBC Weather</a>` : ""}
-    </div>`;
-
-    const rsvp = `
-      <button class="admin-btn" onclick="toggleRSVPForm(${ev.id})" id="rsvpBtn_${ev.id}">📝 RSVP to this event</button>
-      <div id="rsvpForm_${ev.id}" class="hidden"></div>
-      <div id="teeTimes_${ev.id}" class="tee-display"></div>
-    `;
-
-    container.innerHTML += `
-      <div class="event-card">
-        <div class="event-header">
-          <div><div class="event-name">${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
-          <div><strong>Price:</strong> £${ev.price || "-"}</div>
-        </div>
-        ${img}${desc}${links}${rsvp}
-      </div>`;
-    loadTeeTimes(ev.id);
-  }
-}
-
-// =========================
-// RSVP FORM
-// =========================
-function toggleRSVPForm(eventId) {
-  const formContainer = document.getElementById(`rsvpForm_${eventId}`);
-  const btn = document.getElementById(`rsvpBtn_${eventId}`);
-  if (!formContainer.classList.contains("hidden")) {
-    formContainer.classList.add("hidden");
-    btn.textContent = "📝 RSVP to this event";
-    return;
-  }
-  formContainer.classList.remove("hidden");
-  btn.textContent = "⬆️ Hide RSVP Form";
-  formContainer.innerHTML = `
-    <form onsubmit="submitRSVP(event, ${eventId})" class="rsvp-list">
-      <label>Name*</label>
-      <input type="text" id="name_${eventId}" required>
-
-      <label>Are you playing?*</label>
-      <select id="playing_${eventId}" required>
-        <option value="">Select</option>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
-
-      <label>Do you need a buggy?*</label>
-      <select id="buggy_${eventId}" onchange="handleBuggyChange(${eventId})" required>
-        <option value="">Select</option>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
-
-      <div id="buggyOptions_${eventId}" class="hidden">
-        <label>Buggy preference</label>
-        <select id="flexibility_${eventId}">
-          <option value="need">I need a buggy</option>
-          <option value="happy">Happy to walk if odd numbers</option>
-        </select>
-
-        <label>Phone number*</label>
-        <input type="text" id="phone_${eventId}" placeholder="07123 456789">
-        <small>Your phone number will be displayed with your buggy partner so you can contact each other to organise booking the buggy.</small>
-      </div>
-
-      <label>Preferred Tee Time (optional)</label>
-      <select id="preferred_${eventId}">
-        <option value="">No preference</option>
-        <option value="first">First</option>
-        <option value="middle">Middle</option>
-        <option value="end">Near the end</option>
-      </select>
-
-      <button type="submit">Submit RSVP</button>
-      <div id="rsvpMsg_${eventId}" style="margin-top:10px;font-weight:600;"></div>
-    </form>
-  `;
-}
-
-function handleBuggyChange(id){
-  const val=document.getElementById(`buggy_${id}`).value;
-  const sect=document.getElementById(`buggyOptions_${id}`);
-  if(val==="yes")sect.classList.remove("hidden");else sect.classList.add("hidden");
-}
-
-async function submitRSVP(e,id){
-  e.preventDefault();
-  const name=document.getElementById(`name_${id}`).value.trim();
-  const playing=document.getElementById(`playing_${id}`).value;
-  const buggy=document.getElementById(`buggy_${id}`).value;
-  const flex=buggy==="yes"?document.getElementById(`flexibility_${id}`).value:null;
-  const phone=buggy==="yes"?document.getElementById(`phone_${id}`).value.trim():null;
-  const pref=document.getElementById(`preferred_${id}`).value;
-  const msg=document.getElementById(`rsvpMsg_${id}`);
-  if(!name||!playing||!buggy){msg.textContent="⚠️ Please fill all fields.";msg.style.color="red";return;}
-  if(buggy==="yes"&&!phone){msg.textContent="⚠️ Phone required if buggy.";msg.style.color="red";return;}
-  const attending=playing==="yes";
-  const {error}=await supabase.from("rsvps").insert([{event_id:id,name,attending,buggy:buggy==="yes",flexibility:flex,phone,preferred_time:pref}]);
-  if(error){msg.textContent="❌ Error saving RSVP.";msg.style.color="red";}
-  else{msg.textContent="✅ RSVP saved!";msg.style.color="green";e.target.reset();}
-}
-
-// =========================
-// LOAD PUBLIC TEE TIMES
-// =========================
-async function loadTeeTimes(id){
-  const {data,error}=await supabase.from("tee_times").select("*").eq("event_id",id).order("group_number",{ascending:true});
-  const area=document.getElementById(`teeTimes_${id}`);
-  if(error||!data?.length){area.innerHTML="";return;}
-  let html="<h4>⛳ Tee Times</h4>";
-  data.forEach(g=>{
-    const b=g.players.filter(p=>p.type==="buggy");
-    const w=g.players.filter(p=>p.type==="walker");
-    html+=`<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><br>`;
-    for(let i=0;i<b.length;i+=2){
-      const p1=b[i],p2=b[i+1];
-      if(p2)html+=`🛺 Pair ${(i/2)+1}: ${p1.name} (${p1.phone}) & ${p2.name} (${p2.phone})<br>`;
-      else html+=`🛺 ${p1.name} (${p1.phone})<br>`;
-    }
-    w.forEach(x=>html+=`🚶 ${x.name}<br>`);
-    html+="</div>";
-  });
-  area.innerHTML=html;
-}
-
-// =========================
-// ADMIN SYSTEM
-// =========================
-function toggleAdminAccess(){
-  const is=localStorage.getItem("isAdmin")==="true";
-  if(!is){
-    const p=prompt("Enter admin password:");
-    if(p===ADMIN_PASSWORD){localStorage.setItem("isAdmin","true");location.reload();}
-    else alert("❌ Wrong password");
-  }else{localStorage.removeItem("isAdmin");location.reload();}
-}
-
-async function setupAdminPanel(){
-  const wrap=document.createElement("div");
-  wrap.className="admin-panel";
-  wrap.innerHTML=`
-    <h3>🕓 Tee Time Generator</h3>
-    <label>Select Event</label>
-    <select id="teeEventSelect" style="width:100%;max-width:400px;"></select>
-    <div id="playerPool" style="margin-top:10px;"><em>Players will load once you select an event...</em></div>
-    <label>Starting Tee Time</label><input type="text" id="startTime" value="9:00am" style="width:120px;">
-    <label>Gap (mins)</label><input type="number" id="gapMins" value="7" style="width:60px;">
-    <button onclick="saveTeeTimes()" style="background:#d4af37;margin-top:15px;">💾 Save Tee Times</button>`;
-  document.querySelector(".container").prepend(wrap);
-  const {data}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});
-  document.getElementById("teeEventSelect").innerHTML=data.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
-  document.getElementById("teeEventSelect").addEventListener("change",e=>loadAdminPlayers(e.target.value));
-}
-// =========================
-// LOAD ADMIN EVENTS (Fix for dropdown not loading)
-// =========================
-async function loadAdminEventOptions() {
-  const { data: events, error } = await supabase
-    .from("events")
-    .select("id,name,date")
-    .order("date", { ascending: true });
-
-  const select = document.getElementById("teeEventSelect");
-
-  if (error || !events?.length) {
-    select.innerHTML = "<option>No events found</option>";
-    return;
-  }
-
-  select.innerHTML = events
-    .map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`)
-    .join("");
-
-  // ✅ Properly trigger player loading when an event is selected
-  select.onchange = async (e) => {
-    const eventId = Number(e.target.value);
-    console.log("Selected event ID:", eventId);
-    await loadAdminPlayers(eventId);
-  };
-}
-
-async function loadAdminPlayers(id){
-  const pool=document.getElementById("playerPool");
-  pool.innerHTML="<em>Loading...</em>";
-  const {data}=await supabase.from("rsvps").select("name,buggy,flexibility,phone,attending").eq("event_id",id).eq("attending",true);
-  if(!data?.length){pool.innerHTML="<em>No RSVPs found.</em>";return;}
-  pool.innerHTML=`<strong>Players: ${data.length}</strong><button onclick='generateTeeGroups(${id})' style='margin-left:10px;'>⚙️ Generate</button><div id='teeGroups' style='margin-top:20px;'></div>`;
-  window.currentPlayers=data;
-}
-
-async function generateTeeGroups(id){
-  const start=document.getElementById("startTime").value.trim();
-  const gap=parseInt(document.getElementById("gapMins").value)||7;
-  const area=document.getElementById("teeGroups");
-  const rsvps=window.currentPlayers;
-  if(!rsvps?.length){area.innerHTML="<p>No RSVPs.</p>";return;}
-  let b=rsvps.filter(r=>r.buggy),w=rsvps.filter(r=>!r.buggy);
-  if(b.length%2!==0){const f=b.find(r=>(r.flexibility||'').includes('happy'));if(f){w.push(f);b=b.filter(x=>x.name!==f.name);}}
-  const sh=a=>a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
-  b=sh(b);w=sh(w);
-  const groups=[];for(let i=0;i<b.length;i+=4)groups.push(b.slice(i,i+4));for(let i=0;i<w.length;i+=4)groups.push(w.slice(i,i+4));
-  const add=(s,m)=>{let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);let[h,min]=t.split(":").map(Number);if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;const d=new Date();d.setHours(h);d.setMinutes(min+m);const hr=d.getHours(),mi=String(d.getMinutes()).padStart(2,"0");const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;};
-  area.innerHTML="";
-  groups.forEach((g,i)=>{const t=add(start,i*gap);const d=document.createElement("div");d.className="tee-group";d.innerHTML=`<strong>Group ${i+1}</strong> — ${t}<ul id='group_${i+1}' style='list-style:none;padding:0;'></ul>`;area.appendChild(d);const ul=d.querySelector("ul");g.forEach(p=>{const li=document.createElement("li");li.className="player-card";li.dataset.name=p.name;li.dataset.phone=p.phone||"";li.dataset.type=p.buggy?"buggy":"walker";li.innerHTML=`<span class='icon'>${p.buggy?"🛺":"🚶"}</span> ${p.name}${p.buggy&&p.phone?` (${p.phone})`:""} <button class='toggle-btn' onclick='togglePlayerType(this)' style='margin-left:8px;font-size:0.8rem;padding:2px 6px;border:none;border-radius:4px;background:#ccc;'>⚙️</button>`;ul.appendChild(li);});new Sortable(ul,{group:"players",animation:150});});
-  alert("✅ Tee times generated! You can drag or toggle before saving.");
-}
-
-async function saveTeeTimes(){
-  const id=document.getElementById("teeEventSelect").value;
-  const start=document.getElementById("startTime").value.trim();
-  const gap=parseInt(document.getElementById("gapMins").value)||7;
-  const uls=Array.from(document.querySelectorAll(".tee-group ul"));
-  if(!uls.length){alert("Generate groups first!");return;}
-  const add=(s,m)=>{let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);let[h,min]=t.split(":").map(Number);if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;const d=new Date();d.setHours(h);d.setMinutes(min+m);const hr=d.getHours(),mi=String(d.getMinutes()).padStart(2,"0");const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;};
-  const data=uls.map((ul,i)=>({event_id:id,group_number:i+1,tee_time:add(start,i*gap),players:Array.from(ul.children).map(el=>({name:el.dataset.name,phone:el.dataset.phone,type:el.dataset.type}))}));
-  await supabase.from("tee_times").delete().eq("event_id",id);
-  const {error}=await supabase.from("tee_times").insert(data);
-  if(error){alert("❌ Error saving tee times");console.error(error);}else{alert("✅ Tee times saved!");}
-}
-
-function togglePlayerType(btn){
-  const li=btn.closest("li");const icon=li.querySelector(".icon");
-  if(li.dataset.type==="buggy"){li.dataset.type="walker";icon.textContent="🚶";}
-  else{li.dataset.type="buggy";icon.textContent="🛺";}
-}
-  // =========================
-// ADMIN PANEL SETUP (Fixed version)
-// =========================
-window.addEventListener("DOMContentLoaded", async () => {
-  if (localStorage.getItem("isAdmin") === "true") {
-    console.log("✅ Admin mode detected — creating Tee Time Generator panel...");
-
-    const adminPanel = document.createElement("div");
-    adminPanel.className = "admin-panel";
-    adminPanel.innerHTML = `
-      <h3>🕓 Tee Time Generator</h3>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel hidden">
+      <h3>Admin Control Panel</h3>
       <label>Select Event</label>
-      <select id="teeEventSelect" style="width:100%;max-width:400px;margin-bottom:10px;">
-        <option>Loading events...</option>
-      </select>
-      <div id="playerPool"><em>Players will load once you select an event...</em></div>
-      <label>Starting Tee Time</label>
-      <input type="text" id="startTime" value="9:00am" style="width:120px;margin-right:10px;">
-      <label>Gap (mins)</label>
-      <input type="number" id="gapMins" value="7" style="width:60px;">
-      <button onclick="saveTeeTimes()" style="background:#d4af37;margin-top:15px;">💾 Save Tee Times</button>
-    `;
+      <select id="eventSelect" style="width:100%;max-width:400px;"></select>
 
-    document.querySelector(".container").prepend(adminPanel);
+      <div id="playerPool" style="margin-top:10px;"><em>Players will load once you select an event...</em></div>
+      <div id="teeGroups" style="margin-top:20px;"></div>
+    </div>
 
-    // Wait a moment to ensure dropdown exists
-    await new Promise(r => setTimeout(r, 300));
+    <!-- Event List -->
+    <div id="eventList"></div>
+  </main>
 
-    console.log("🔍 Loading admin events into dropdown...");
-    await loadAdminEventOptions();
-  }
-});
+  <footer>
+    <p>© 2025 Barford Golf Society</p>
+  </footer>
 
-</script>
+  <!-- JS logic -->
+  <script>
+    const ADMIN_PASSWORD = "westbrom1997";
+    const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+    const SUPABASE_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+    const { createClient } = window.supabase;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    window.onload = () => {
+      if (localStorage.getItem("isAdmin") === "true") {
+        document.getElementById("adminPanel").classList.remove("hidden");
+        document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
+        loadAdminEvents();
+      }
+      loadEvents();
+    };
+
+    // =========================
+    // ADMIN ACCESS
+    // =========================
+    function toggleAdminAccess() {
+      const panel = document.getElementById("adminPanel");
+      const btn = document.getElementById("adminToggle");
+      const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+      if (!isAdmin) {
+        const pass = prompt("Enter admin password:");
+        if (pass === ADMIN_PASSWORD) {
+          localStorage.setItem("isAdmin", "true");
+          panel.classList.remove("hidden");
+          btn.textContent = "⬅️ Back to Events";
+          loadAdminEvents();
+          alert("✅ Admin access granted");
+        } else alert("❌ Incorrect password");
+      } else {
+        localStorage.removeItem("isAdmin");
+        panel.classList.add("hidden");
+        btn.textContent = "🔐 Admin Access";
+      }
+    }
+
+    // =========================
+    // LOAD EVENTS (Public)
+    // =========================
+    async function loadEvents() {
+      const { data: events, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("date", { ascending: true });
+      const container = document.getElementById("eventList");
+
+      if (error || !events?.length) {
+        container.innerHTML = "<p>No events found.</p>";
+        return;
+      }
+
+      container.innerHTML = "";
+      for (const ev of events) {
+        const img = ev.image_url ? `<img src="${ev.image_url}" class="event-image">` : "";
+        const desc = ev.description ? `<div class='event-description'>${ev.description}</div>` : "";
+        const links = `<div class="event-links">
+          ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">🌐 Course Website</a>` : ""}
+          ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">☀️ BBC Weather</a>` : ""}
+        </div>`;
+
+        container.innerHTML += `
+          <div class="event-card">
+            <div class="event-header">
+              <div><div class="event-name">${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
+              <div><strong>Price:</strong> £${ev.price || "-"}</div>
+            </div>
+            ${img}${desc}${links}
+          </div>`;
+      }
+    }
+
+    // =========================
+    // LOAD EVENTS (Admin dropdown)
+    // =========================
+    async function loadAdminEvents() {
+      const { data: events, error } = await supabase
+        .from("events")
+        .select("id,name,date")
+        .order("date", { ascending: true });
+
+      const select = document.getElementById("eventSelect");
+      if (error || !events?.length) {
+        select.innerHTML = "<option>No events found</option>";
+        return;
+      }
+
+      select.innerHTML = `<option value="">Select Event</option>` + 
+        events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join("");
+
+      select.onchange = () => loadRSVPs(select.value);
+    }
+
+    // =========================
+    // LOAD RSVPS
+    // =========================
+    async function loadRSVPs(eventId) {
+      const pool = document.getElementById("playerPool");
+      pool.innerHTML = "<em>Loading RSVPs...</em>";
+
+      const { data: rsvps, error } = await supabase
+        .from("rsvps")
+        .select("name, buggy, flexibility, phone, attending")
+        .eq("event_id", eventId)
+        .eq("attending", true);
+
+      if (error || !rsvps?.length) {
+        pool.innerHTML = "<em>No RSVPs found for this event.</em>";
+        return;
+      }
+
+      let list = `<h4>Players (${rsvps.length})</h4><ul style="list-style:none;padding:0;">`;
+      rsvps.forEach(p => {
+        list += `<li>${p.buggy ? "🛺" : "🚶"} ${p.name} ${p.phone ? `(${p.phone})` : ""}</li>`;
+      });
+      list += `</ul><button onclick="generateTeeTimes(${eventId})" class="admin-btn">⚙️ Generate Tee Times</button>`;
+      pool.innerHTML = list;
+
+      window.currentPlayers = rsvps;
+    }
+
+    // =========================
+    // GENERATE TEE TIMES
+    // =========================
+    function generateTeeTimes(eventId) {
+      const rsvps = window.currentPlayers || [];
+      if (!rsvps.length) {
+        alert("No RSVPs loaded!");
+        return;
+      }
+
+      let buggy = rsvps.filter(p => p.buggy);
+      let walkers = rsvps.filter(p => !p.buggy);
+
+      if (buggy.length % 2 !== 0) {
+        const flex = buggy.find(p => (p.flexibility || "").toLowerCase().includes("happy"));
+        if (flex) {
+          walkers.push(flex);
+          buggy = buggy.filter(b => b.name !== flex.name);
+        }
+      }
+
+      const shuffle = (a) => a.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]);
+      buggy = shuffle(buggy);
+      walkers = shuffle(walkers);
+
+      const groups = [];
+      for (let i = 0; i < buggy.length; i += 4) groups.push(buggy.slice(i, i + 4));
+      for (let i = 0; i < walkers.length; i += 4) groups.push(walkers.slice(i, i + 4));
+
+      const area = document.getElementById("teeGroups");
+      area.innerHTML = "<h4>Generated Tee Times</h4>";
+
+      groups.forEach((g, i) => {
+        const time = `9:${String(i * 7).padStart(2, "0")}am`;
+        area.innerHTML += `<div><strong>Group ${i + 1} — ${time}</strong><ul style="list-style:none;padding:0;">${g
+          .map(p => `<li>${p.buggy ? "🛺" : "🚶"} ${p.name}</li>`)
+          .join("")}</ul></div>`;
+      });
+
+      area.innerHTML += `<button onclick="saveTeeTimes(${eventId})" class="admin-btn">💾 Save Tee Times</button>`;
+      window.generatedGroups = groups;
+    }
+
+    // =========================
+    // SAVE TEE TIMES
+    // =========================
+    async function saveTeeTimes(eventId) {
+      const groups = window.generatedGroups || [];
+      if (!groups.length) return alert("Generate groups first!");
+
+      const data = groups.map((g, i) => ({
+        event_id: eventId,
+        group_number: i + 1,
+        tee_time: `9:${String(i * 7).padStart(2, "0")}am`,
+        players: g.map(p => ({
+          name: p.name,
+          phone: p.phone,
+          type: p.buggy ? "buggy" : "walker",
+        })),
+      }));
+
+      await supabase.from("tee_times").delete().eq("event_id", eventId);
+      const { error } = await supabase.from("tee_times").insert(data);
+      if (error) alert("❌ Error saving tee times.");
+      else alert("✅ Tee times saved successfully!");
+    }
+  </script>
 </body>
 </html>
