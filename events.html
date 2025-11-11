@@ -152,55 +152,119 @@ async function loadEvents(){
 }
 
 // RSVP
-async function loadRSVPs(eventId){
- const isAdmin=localStorage.getItem("isAdmin")==="true";
- const {data:tees}=await supabase.from("tee_times").select("event_id").eq("event_id",eventId);
- const teeExists=tees&&tees.length>0;
- if(teeExists&&!isAdmin)return;
- const cont=document.getElementById(`rsvp_${eventId}`);
- cont.innerHTML=`<form class='rsvp-form' onsubmit='submitRSVP(event,${eventId})'>
-   <h4>RSVP for this Event</h4>
-   <label>Full Name</label><input type='text' id='name_${eventId}' required>
-   <label>Email (optional)</label><input type='text' id='email_${eventId}'>
-   <label>Would you like a buggy?</label>
-   <select id='buggy_${eventId}' onchange='togglePhone(${eventId})'>
-     <option value='false'>No</option><option value='true'>Yes</option>
-   </select>
-   <label>If there’s an odd number of buggy requests, are you willing to walk?</label>
-   <select id='flex_${eventId}'>
-     <option value='Yes, happy to walk if needed'>Yes, happy to walk</option>
-     <option value='No, need buggy'>No, need buggy</option>
-   </select>
-   <div id='phoneDiv_${eventId}' class='hidden'><label>Phone (for buggy pairing)</label><input type='text' id='phone_${eventId}'></div>
-   <label>Preferred Tee Time (optional)</label><input type='text' id='teePref_${eventId}'>
-   <button type='submit'>Submit RSVP</button>
-  </form>
-  <div id='rsvpList_${eventId}' class='rsvp-list'><em>Loading RSVPs...</em></div>`;
- renderRSVPList(eventId);
+async function loadRSVPs(eventId) {
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const { data: tees } = await supabase.from("tee_times").select("event_id").eq("event_id", eventId);
+  const teeExists = tees && tees.length > 0;
+  if (teeExists && !isAdmin) return;
+
+  const cont = document.getElementById(`rsvp_${eventId}`);
+  cont.innerHTML = `
+    <form class='rsvp-form' onsubmit='submitRSVP(event,${eventId})'>
+      <h4>RSVP for this Event</h4>
+
+      <label>Full Name</label>
+      <input type='text' id='name_${eventId}' required>
+
+      <label>Email (optional)</label>
+      <input type='text' id='email_${eventId}'>
+
+      <label>Would you like a buggy?</label>
+      <select id='buggy_${eventId}' onchange='toggleBuggyFields(${eventId})'>
+        <option value='false'>No</option>
+        <option value='true'>Yes</option>
+      </select>
+
+      <div id='buggyFields_${eventId}' class='hidden'>
+        <label>If there’s an odd number of buggy requests, are you willing to walk?</label>
+        <select id='flex_${eventId}'>
+          <option value='Yes, happy to walk if needed'>Yes, happy to walk</option>
+          <option value='No, need buggy'>No, need buggy</option>
+        </select>
+
+        <label>Phone (for buggy pairing)</label>
+        <input type='text' id='phone_${eventId}' placeholder='Your phone number'>
+      </div>
+
+      <label>Preferred Tee Time (optional)</label>
+      <input type='text' id='teePref_${eventId}'>
+
+      <button type='submit'>Submit RSVP</button>
+    </form>
+
+    <div id='rsvpList_${eventId}' class='rsvp-list'><em>Loading RSVPs...</em></div>
+  `;
+
+  renderRSVPList(eventId);
 }
-function togglePhone(id){const buggy=document.getElementById(`buggy_${id}`).value==="true";document.getElementById(`phoneDiv_${id}`).classList.toggle("hidden",!buggy);}
-async function submitRSVP(e,id){
- e.preventDefault();
- const name=document.getElementById(`name_${id}`).value.trim();
- const email=document.getElementById(`email_${id}`).value.trim();
- const buggy=document.getElementById(`buggy_${id}`).value==="true";
- const phone=document.getElementById(`phone_${id}`).value.trim();
- const flexibility=document.getElementById(`flex_${id}`).value;
- const teePref=document.getElementById(`teePref_${id}`).value.trim();
- if(buggy&&!phone){alert("Please enter your phone number if requesting a buggy.");return;}
- const {error}=await supabase.from("rsvps").upsert({event_id:id,name,email,phone,attending:true,buggy,flexibility,tee_time_pref:teePref},{onConflict:["event_id","name"]});
- if(error){console.error(error);alert("Error saving RSVP.");return;}
- alert("✅ RSVP saved!");renderRSVPList(id);
+
+// Toggle buggy-related fields
+function toggleBuggyFields(id) {
+  const buggy = document.getElementById(`buggy_${id}`).value === "true";
+  const buggyFields = document.getElementById(`buggyFields_${id}`);
+  buggyFields.classList.toggle("hidden", !buggy);
 }
-async function renderRSVPList(id){
- const cont=document.getElementById(`rsvpList_${id}`);
- const {data:rsvps}=await supabase.from("rsvps").select("*").eq("event_id",id).eq("attending",true);
- if(!rsvps||!rsvps.length){cont.innerHTML="<em>No RSVPs yet.</em>";return;}
- const buggy=rsvps.filter(r=>r.buggy);const walkers=rsvps.filter(r=>!r.buggy);
- let html=`<p class='count'>Total Attending: ${rsvps.length}</p>`;
- if(buggy.length)html+=`<h4>🛺 Buggy Users</h4><ul>${buggy.map(r=>`<li>${r.name}${r.phone?` (${r.phone})`:""}</li>`).join("")}</ul>`;
- if(walkers.length)html+=`<h4>🚶 Walkers</h4><ul>${walkers.map(r=>`<li>${r.name}</li>`).join("")}</ul>`;
- cont.innerHTML=html;
+
+// Handle RSVP submit
+async function submitRSVP(e, id) {
+  e.preventDefault();
+
+  const name = document.getElementById(`name_${id}`).value.trim();
+  const email = document.getElementById(`email_${id}`).value.trim();
+  const buggy = document.getElementById(`buggy_${id}`).value === "true";
+  const phone = document.getElementById(`phone_${id}`)?.value.trim() || "";
+  const flexibility = buggy ? document.getElementById(`flex_${id}`).value : null;
+  const teePref = document.getElementById(`teePref_${id}`).value.trim();
+
+  if (buggy && !phone) {
+    alert("Please enter your phone number if requesting a buggy.");
+    return;
+  }
+
+  const { error } = await supabase.from("rsvps").upsert(
+    {
+      event_id: id,
+      name,
+      email,
+      phone,
+      attending: true,
+      buggy,
+      flexibility,
+      tee_time_pref: teePref
+    },
+    { onConflict: ["event_id", "name"] }
+  );
+
+  if (error) {
+    console.error(error);
+    alert("Error saving RSVP.");
+    return;
+  }
+
+  alert("✅ RSVP saved!");
+  renderRSVPList(id);
+}
+
+// Display RSVP list
+async function renderRSVPList(id) {
+  const cont = document.getElementById(`rsvpList_${id}`);
+  const { data: rsvps } = await supabase.from("rsvps").select("*").eq("event_id", id).eq("attending", true);
+
+  if (!rsvps || !rsvps.length) {
+    cont.innerHTML = "<em>No RSVPs yet.</em>";
+    return;
+  }
+
+  const buggy = rsvps.filter(r => r.buggy);
+  const walkers = rsvps.filter(r => !r.buggy);
+
+  let html = `<p class='count'>Total Attending: ${rsvps.length}</p>`;
+  if (buggy.length)
+    html += `<h4>🛺 Buggy Users</h4><ul>${buggy.map(r => `<li>${r.name}${r.phone ? ` (${r.phone})` : ""}</li>`).join("")}</ul>`;
+  if (walkers.length)
+    html += `<h4>🚶 Walkers</h4><ul>${walkers.map(r => `<li>${r.name}</li>`).join("")}</ul>`;
+
+  cont.innerHTML = html;
 }
 
 // Tee Times
