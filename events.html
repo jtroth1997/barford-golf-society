@@ -97,7 +97,7 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
       <label>Course Link</label><br><input id="newCourseLink" type="text" style="width:100%;"><br>
       <label>Weather Link</label><br><input id="newWeatherLink" type="text" style="width:100%;"><br>
       <label>Description</label><br><textarea id="newDesc" rows="4" style="width:100%;"></textarea><br>
-      <button class="admin-btn" onclick="createEvent()">✅ Create Event</button>
+      <button class="admin-btn" onclick="createNewEvent()">✅ Create Event</button>
       <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
@@ -215,7 +215,7 @@ async function loadAdminEventOptions() {
 }
 
 // CREATE EVENT
-async function createEvent() {
+async function createNewEvent() {
   const name = document.getElementById("newName").value.trim();
   const date = document.getElementById("newDate").value;
   const location = document.getElementById("newLocation").value.trim();
