@@ -161,6 +161,74 @@ window.onload = () => {
   loadAdminTeeTimeEvents();
 };
 
+// ---------------------------
+// LOAD EVENTS
+// ---------------------------
+async function loadEvents() {
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("*")
+    .order("date", { ascending: true });
+
+  const container = document.getElementById("eventList");
+  if (error || !events?.length) {
+    container.innerHTML = "<p>No events found.</p>";
+    console.error(error);
+    return;
+  }
+
+  container.innerHTML = "";
+  for (const ev of events) {
+    const img = ev.image_url
+      ? `<img src="${ev.image_url}" class="event-image">`
+      : "";
+    const desc = ev.description
+      ? `<div class='event-description'>${ev.description}</div>`
+      : "";
+    const links = `
+      <div class="event-links">
+        ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">🌐 Course Website</a>` : ""}
+        ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">☀️ BBC Weather</a>` : ""}
+      </div>`;
+
+    container.innerHTML += `
+      <div class="event-card">
+        <div class="event-header">
+          <div>
+            <div class="event-name">${ev.name}</div>
+            <div>${ev.location} — ${ev.date}</div>
+          </div>
+          <div><strong>Price:</strong> £${ev.price || "-"}</div>
+        </div>
+        ${img}${desc}${links}
+      </div>`;
+  }
+}
+
+// ---------------------------
+// LOAD ADMIN EVENT DROPDOWN
+// ---------------------------
+async function loadAdminTeeTimeEvents() {
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id, name, date")
+    .order("date", { ascending: true });
+
+  const select = document.getElementById("teeEventSelect");
+  if (error || !events?.length) {
+    select.innerHTML = "<option>No events found</option>";
+    console.error(error);
+    return;
+  }
+
+  select.innerHTML = events
+    .map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`)
+    .join("");
+}
+</script>
+
+
+
 
 
 // ---------------------------
