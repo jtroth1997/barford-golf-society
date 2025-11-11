@@ -326,6 +326,39 @@ function togglePlayerType(btn){
   if(li.dataset.type==="buggy"){li.dataset.type="walker";icon.textContent="🚶";}
   else{li.dataset.type="buggy";icon.textContent="🛺";}
 }
+  // =========================
+// ADMIN PANEL SETUP (Fixed version)
+// =========================
+window.addEventListener("DOMContentLoaded", async () => {
+  if (localStorage.getItem("isAdmin") === "true") {
+    console.log("✅ Admin mode detected — creating Tee Time Generator panel...");
+
+    const adminPanel = document.createElement("div");
+    adminPanel.className = "admin-panel";
+    adminPanel.innerHTML = `
+      <h3>🕓 Tee Time Generator</h3>
+      <label>Select Event</label>
+      <select id="teeEventSelect" style="width:100%;max-width:400px;margin-bottom:10px;">
+        <option>Loading events...</option>
+      </select>
+      <div id="playerPool"><em>Players will load once you select an event...</em></div>
+      <label>Starting Tee Time</label>
+      <input type="text" id="startTime" value="9:00am" style="width:120px;margin-right:10px;">
+      <label>Gap (mins)</label>
+      <input type="number" id="gapMins" value="7" style="width:60px;">
+      <button onclick="saveTeeTimes()" style="background:#d4af37;margin-top:15px;">💾 Save Tee Times</button>
+    `;
+
+    document.querySelector(".container").prepend(adminPanel);
+
+    // Wait a moment to ensure dropdown exists
+    await new Promise(r => setTimeout(r, 300));
+
+    console.log("🔍 Loading admin events into dropdown...");
+    await loadAdminEventOptions();
+  }
+});
+
 </script>
 </body>
 </html>
