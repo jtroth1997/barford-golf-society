@@ -355,39 +355,51 @@ async function saveData() {
   }
 }
 
+// ---- CALCULATE TOTALS ----
+function calculateTotals() {
+  return players.map((n, i) => {
+    const scores = playerScores[i].filter(v => v !== null);
+    const total = scores
+      .sort((a, b) => b - a)
+      .slice(0, 5)
+      .reduce((a, b) => a + b, 0);
+    return { i, name: n, total };
+  }).sort((a, b) => b.total - a.total);
+}
+
+// ---- CALCULATE HANDICAPS ----
 function calculateHandicaps() {
   if (!unlocked) return alert("Unlock first");
 
   for (let i = 0; i < players.length; i++) {
-    // ✅ Always start from the stored handicap, not the input box
+    // ✅ Always start from stored handicap, not input box
     const hcp = currentHcp[i] ?? 0;
-
-    // Read entered points
     const pts = parseInt(document.getElementById(`points_${i}`).value);
 
-    // ✅ Skip players who didn't play (blank or 0 points)
+    // ✅ Skip players who didn’t play (blank or 0 points)
     if (pts === 0 || isNaN(pts)) continue;
 
-    // Apply Stableford adjustment
     const adj = stablefordAdj(pts);
     const next = Math.max(0, hcp + adj);
 
-    // Save results to arrays for display and Supabase sync
+    // Save everything for this player
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
+    currentHcp[i] = hcp;
     nextHcp[i] = next;
   }
 
-  // Refresh table, save, redraw chart
   renderLeaderboard();
   saveData();
   drawChart();
 }
 
+// ---- RENDER LEADERBOARD ----
 function renderLeaderboard() {
   const tbody = document.getElementById("playersTable");
   tbody.innerHTML = "";
   const totals = calculateTotals();
+
   totals.forEach((p, rank) => {
     const i = p.i;
     const tr = document.createElement("tr");
@@ -399,9 +411,11 @@ function renderLeaderboard() {
       <td>${lastAdj[i]}</td>
       <td>${nextHcp[i] ?? ""}</td>
       <td>${p.total}</td>
-      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1] == null ? "checked" : ""}></td>`;
+      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1] == null ? "checked" : ""}></td>
+    `;
     tbody.appendChild(tr);
   });
+
   document.getElementById("hcpHeader").textContent = `Round ${currentRound} HCP`;
   document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
   document.getElementById("progressFill").style.width = (currentRound / maxRounds * 100) + "%";
@@ -409,21 +423,8 @@ function renderLeaderboard() {
   document.getElementById("exportLeaderboardBtn").style.display = unlocked ? "inline-block" : "none";
   document.getElementById("exportAllBtn").style.display = unlocked ? "inline-block" : "none";
   document.getElementById("clearLeagueBtn").style.display = unlocked ? "inline-block" : "none";
-
-  // --- secret round blur logic ---
-  const wrap = document.getElementById("playersTableWrap");
-  const secretNotice = document.getElementById("secretNotice");
-  // if round is 6 or 7 and not unlocked -> blur and show notice
-  if ((currentRound === 6 || currentRound === 7) && !unlocked) {
-    wrap.classList.add("table-secret");
-    wrap.classList.remove("unlocked");
-    secretNotice.style.display = "block";
-  } else {
-    wrap.classList.remove("table-secret");
-    wrap.classList.add("unlocked");
-    secretNotice.style.display = "none";
-  }
 }
+
 
 function nextRound() {
   if (currentRound < maxRounds) {
