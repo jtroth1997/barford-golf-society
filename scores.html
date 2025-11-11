@@ -357,17 +357,23 @@ async function saveData() {
 
 function calculateHandicaps() {
   if (!unlocked) return alert("Unlock first");
+
   for (let i = 0; i < players.length; i++) {
     const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
     const pts = parseInt(document.getElementById(`points_${i}`).value);
-    if (isNaN(pts)) continue;
+
+    // ✅ Skip players who didn't play (blank or 0 points)
+    if (pts === 0 || isNaN(pts)) continue;
+
     const adj = stablefordAdj(pts);
     const next = Math.max(0, hcp + adj);
+
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
-    currentHcp[i] = hcp; 
+    currentHcp[i] = hcp;
     nextHcp[i] = next;
   }
+
   renderLeaderboard();
   saveData();
   drawChart();
