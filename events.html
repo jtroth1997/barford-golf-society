@@ -213,7 +213,7 @@ async function submitRSVP(e, id) {
   const email = document.getElementById(`email_${id}`).value.trim();
   const buggy = document.getElementById(`buggy_${id}`).value === "true";
   const phone = document.getElementById(`phone_${id}`)?.value.trim() || "";
-  const flexibility = buggy ? document.getElementById(`flex_${id}`).value : null;
+  const flexibility = buggy ? document.getElementById(`flex_${id}`).value : "";
   const teePref = document.getElementById(`teePref_${id}`).value.trim();
 
   if (buggy && !phone) {
@@ -225,19 +225,19 @@ async function submitRSVP(e, id) {
     {
       event_id: id,
       name,
-      email,
-      phone,
+      email: email || null,
+      phone: phone || null,
       attending: true,
       buggy,
-      flexibility,
-      tee_time_pref: teePref
+      flexibility: flexibility || null,
+      tee_time_pref: teePref || null
     },
     { onConflict: ["event_id", "name"] }
   );
 
   if (error) {
-    console.error(error);
-    alert("Error saving RSVP.");
+    console.error("RSVP Save Error:", error);
+    alert("❌ Error saving RSVP. Check console for details.");
     return;
   }
 
