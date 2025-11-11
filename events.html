@@ -136,7 +136,8 @@ function toggleAdminAccess(){
  else{localStorage.removeItem("isAdmin");panel.classList.add("hidden");btn.textContent="🔐 Admin Access";}
 }
 
-window.onload=()=>{if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");document.getElementById("adminToggle").textContent="⬅️ Back to Events";}loadEvents();loadTeeTimeEvents();};
+window.onload=()=>{if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");document.getElementById("adminToggle").textContent="⬅️ Back to Events";}loadEvents();loadAdminTeeTimeEvents();
+
 
 function previewImage(e){const file=e.target.files[0];const preview=document.getElementById("preview");if(file){preview.src=URL.createObjectURL(file);preview.classList.remove("hidden");}}
 function generateWeatherLink(location,date){if(!location||!date)return"";const clean=encodeURIComponent(location.trim());return`https://www.bbc.co.uk/weather/search?q=${clean}#${date}`;}
@@ -466,7 +467,7 @@ async function saveTeeTimes(){
 // =========================
 
 // Load events into dropdown
-async function loadTeeTimeEvents() {
+async function loadAdminTeeTimeEvents() {
   const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
   const select = document.getElementById("teeEventSelect");
   if (!events || !events.length) {
