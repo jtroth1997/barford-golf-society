@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Events | Barford Golf Society</title>
+<title>Admin | Barford Golf Society</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -17,27 +17,17 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .site-nav ul{list-style:none;display:flex;gap:20px;margin:0;padding:0;}
 .site-nav a{color:#fff;text-decoration:none;font-weight:600;}
 .site-nav a:hover,.active{color:var(--gold);}
-.container{max-width:1100px;margin:40px auto;padding:0 20px;}
-.event-card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.event-name{color:var(--green);font-size:1.3rem;font-weight:700;}
-.rsvp-form{margin-top:15px;border-top:1px solid #ccc;padding-top:15px;}
-label{display:block;margin-top:8px;font-weight:600;}
-select,input[type="text"],input[type="date"],button{padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
-button{background:var(--green);color:#fff;font-weight:600;cursor:pointer;margin-top:10px;}
+.container{max-width:900px;margin:40px auto;padding:20px;background:#fff;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+h2{color:var(--green);}
+label{display:block;margin-top:12px;font-weight:600;}
+input[type="text"],input[type="date"],input[type="number"],textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;font-family:inherit;}
+textarea{min-height:100px;}
+button{background:var(--green);color:#fff;font-weight:600;cursor:pointer;margin-top:15px;padding:10px 18px;border:none;border-radius:6px;}
 button:hover{background:#0a6b34;}
-.hidden{display:none;}
-.notice{background:#ffeecc;color:#333;padding:10px;border-radius:6px;margin:10px 0;font-size:0.95rem;}
+.notice{background:#eafbe8;color:#045b2b;padding:10px;border-radius:6px;margin-top:15px;}
+.error{background:#ffeaea;color:#a30000;padding:10px;border-radius:6px;margin-top:15px;}
 footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);margin-top:40px;padding:20px;}
-.tee-times{margin-top:20px;padding-top:10px;border-top:2px solid #eee;}
-.group{background:#f9f9f9;margin:10px 0;padding:10px;border-radius:8px;}
-.group strong{color:var(--green);}
-.player{margin-left:15px;}
-.buggy{color:#c47f00;margin-left:5px;}
-.phone{font-size:0.9rem;color:#666;}
-@media (max-width:700px){
-  .event-header{flex-direction:column;align-items:flex-start;}
-}
+img.preview{margin-top:10px;max-width:200px;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -48,18 +38,45 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
     <nav class="site-nav">
       <ul>
         <li><a href="index.html">Home</a></li>
-        <li><a href="events.html" class="active">Events</a></li>
+        <li><a href="events.html">Events</a></li>
         <li><a href="scores.html">Scores</a></li>
         <li><a href="gallery.html">Gallery</a></li>
-        <li><a href="admin.html">Admin</a></li>
+        <li><a href="admin.html" class="active">Admin</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
 <div class="container">
-  <h2>Upcoming Events</h2>
-  <div id="eventList">Loading events...</div>
+  <h2>Add New Event</h2>
+
+  <form id="eventForm" onsubmit="submitEvent(event)">
+    <label>Event Title</label>
+    <input type="text" id="title" placeholder="e.g. Spring Society Day" required>
+
+    <label>Location</label>
+    <input type="text" id="location" placeholder="e.g. The Warwickshire Golf Club" required>
+
+    <label>Date</label>
+    <input type="date" id="date" required>
+
+    <label>Price (£)</label>
+    <input type="number" id="price" placeholder="e.g. 55" required>
+
+    <label>Description</label>
+    <textarea id="description" placeholder="Event details, format, timings, etc."></textarea>
+
+    <label>Course Website Link</label>
+    <input type="text" id="course_link" placeholder="https://www.thewarwickshire.com">
+
+    <label>Upload Event Image</label>
+    <input type="file" id="image" accept="image/*" onchange="previewImage(event)">
+    <img id="preview" class="preview hidden" alt="Preview"/>
+
+    <button type="submit">Save Event</button>
+  </form>
+
+  <div id="message"></div>
 </div>
 
 <footer><p>© 2025 Barford Golf Society</p></footer>
@@ -70,206 +87,82 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Load all events
-async function loadEvents(){
-  const { data: events, error } = await supabase.from("events").select("*").order("date",{ascending:true});
-  if(error){ console.error(error); document.getElementById("eventList").innerHTML="Error loading events."; return; }
-  if(!events.length){ document.getElementById("eventList").innerHTML="<p>No events found.</p>"; return; }
-  const container=document.getElementById("eventList");
-  container.innerHTML="";
-  for(const ev of events){
-    const card=document.createElement("div");
-    card.className="event-card";
-    card.innerHTML=`
-      <div class="event-header">
-        <div>
-          <div class="event-name">${ev.name}</div>
-          <div>${ev.location || ""} — ${ev.date}</div>
-          <div><strong>Round:</strong> ${ev.round || ""}</div>
-        </div>
-        <div><strong>Price:</strong> £${ev.price || "-"}</div>
-      </div>
-      <form class="rsvp-form" onsubmit="submitRSVP(event,'${ev.id}')">
-        <h4>RSVP for this Event</h4>
-        <label>Full Name</label>
-        <input type="text" id="name_${ev.id}" placeholder="Your name" required>
-
-        <label>Email (optional)</label>
-        <input type="text" id="email_${ev.id}" placeholder="Your email">
-
-        <label>Would you like to use a buggy?</label>
-        <select id="buggy_${ev.id}" onchange="togglePhoneRequirement('${ev.id}')">
-          <option value="false">No</option>
-          <option value="true">Yes</option>
-        </select>
-
-        <label>If there’s an odd number of buggy requests, are you willing to walk instead?</label>
-        <select id="flex_${ev.id}">
-          <option value="Yes, happy to walk if needed">Yes, I’m happy to walk</option>
-          <option value="No, need buggy">No, I need a buggy</option>
-        </select>
-
-        <label id="phoneLabel_${ev.id}" class="hidden">Phone (required for buggy pairing)</label>
-        <input type="text" id="phone_${ev.id}" placeholder="Your phone number" class="hidden">
-
-        <label>Need a specific tee time? (optional)</label> <!-- NEW -->
-        <input type="text" id="tee_pref_${ev.id}" placeholder="e.g. early, after 11am"> <!-- NEW -->
-
-        <label>Will you be attending?</label>
-        <select id="attending_${ev.id}">
-          <option value="true">Yes, I’ll be playing</option>
-          <option value="false">No, I can’t attend</option>
-        </select>
-
-        <small>If you request a buggy, please include your phone number so your potential partner can contact you directly to arrange booking.</small>
-
-        <button type="submit">Submit RSVP</button>
-      </form>
-      <div class="tee-times" id="tee_${ev.id}">
-        <em>Loading tee times...</em>
-      </div>
-    `;
-    container.appendChild(card);
-    loadTeeTimes(ev.id);
+// preview uploaded image
+function previewImage(e){
+  const file = e.target.files[0];
+  const preview = document.getElementById('preview');
+  if(file){
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove('hidden');
   }
 }
 
-// NEW: toggle phone field when buggy selected
-function togglePhoneRequirement(eventId){
-  const buggySelect=document.getElementById(`buggy_${eventId}`);
-  const phoneField=document.getElementById(`phone_${eventId}`);
-  const phoneLabel=document.getElementById(`phoneLabel_${eventId}`);
-  if(buggySelect.value==="true"){
-    phoneField.classList.remove("hidden");
-    phoneLabel.classList.remove("hidden");
-    phoneField.required=true;
-  }else{
-    phoneField.classList.add("hidden");
-    phoneLabel.classList.add("hidden");
-    phoneField.required=false;
-  }
+// generate BBC weather link
+function generateWeatherLink(location, date){
+  if(!location || !date) return '';
+  const cleanLocation = encodeURIComponent(location.trim());
+  return `https://www.bbc.co.uk/weather/search?q=${cleanLocation}#${date}`;
 }
 
-// Save RSVP
-async function submitRSVP(e, eventId){
+// handle submit
+async function submitEvent(e){
   e.preventDefault();
-  const name=document.getElementById(`name_${eventId}`).value.trim();
-  const email=document.getElementById(`email_${eventId}`).value.trim();
-  const phone=document.getElementById(`phone_${eventId}`).value.trim();
-  const tee_pref=document.getElementById(`tee_pref_${eventId}`).value.trim(); // NEW
-  const attending=document.getElementById(`attending_${eventId}`).value==="true";
-  const buggy=document.getElementById(`buggy_${eventId}`).value==="true";
-  const flexibility=document.getElementById(`flex_${eventId}`).value;
+  const message = document.getElementById('message');
+  message.innerHTML = '';
 
-  if(!name){ alert("Please enter your name."); return; }
-  if(buggy && !phone){ alert("Please enter your phone number if you require a buggy."); return; }
+  const title = document.getElementById('title').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const date = document.getElementById('date').value;
+  const price = document.getElementById('price').value.trim();
+  const description = document.getElementById('description').value.trim();
+  const course_link = document.getElementById('course_link').value.trim();
+  const file = document.getElementById('image').files[0];
 
-  const { error } = await supabase.from("rsvps").upsert({
-    event_id: eventId,
-    name,
-    email,
-    phone,
-    attending,
-    buggy,
-    flexibility,
-    tee_pref // NEW
-  }, { onConflict: ['event_id','name'] });
-
-  if(error){ console.error(error); return alert("Error saving RSVP."); }
-
-  alert("✅ RSVP saved successfully!");
-}
-
-// Load tee times for event (with buggy pairs grouped and phone numbers)
-async function loadTeeTimes(eventId){
-  const container=document.getElementById(`tee_${eventId}`);
-  const { data: tees, error } = await supabase
-    .from("tee_times")
-    .select("*")
-    .eq("event_id", eventId)
-    .order("group_number", { ascending:true });
-
-  if(error){ console.error(error); container.innerHTML="Error loading tee times."; return; }
-
-  if(!tees.length){
-    container.innerHTML="<em>Tee times will appear here once published.</em>";
+  if(!title || !location || !date){
+    message.innerHTML = '<div class="error">Please fill in all required fields.</div>';
     return;
   }
 
-  // Fetch event details
-  const { data: evData } = await supabase.from("events").select("name, date").eq("id", eventId).single();
-  const header = `<h3>⛳ Tee Times – ${evData.name} (${evData.date})</h3>`;
+  let image_url = null;
 
-  // Fetch RSVPs for buggy info
-  const { data: rsvps } = await supabase
-    .from("rsvps")
-    .select("name, buggy, phone")
-    .eq("event_id", eventId);
-
-  const findRSVP = (playerName) =>
-    rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
-
-  const buggyNote = rsvps?.some(r => r.buggy) ? `
-    <p style="background:#fff8e6;padding:10px;border-radius:8px;margin-bottom:10px;">
-      🛺 <strong>Note:</strong> Any buggy pairs should contact each other directly to organise booking of their buggy.
-    </p>` : "";
-
-  let html = header + buggyNote;
-
-  tees.forEach((g) => {
-    // Sort players in each group so buggy users are first and grouped together
-    const playersWithRSVP = g.players.map(p => ({
-      name: p,
-      ...findRSVP(p)
-    }));
-
-    const buggyPlayers = playersWithRSVP.filter(p => p.buggy);
-    const walkers = playersWithRSVP.filter(p => !p.buggy);
-
-    html += `<div class='group'>
-      <strong>Group ${g.group_number} — ${g.tee_time}</strong>`;
-
-    // --- Buggy Pairs ---
-    if(buggyPlayers.length > 0){
-      html += `<div style="margin-top:6px;margin-left:10px;">
-        <strong>Buggy Pairs:</strong>
-        <ul>`;
-      for(let i=0;i<buggyPlayers.length;i+=2){
-        const pair = buggyPlayers.slice(i,i+2);
-        if(pair.length===2){
-          html += `<li>🛺 Pair: ${pair[0].name} (${pair[0].phone||'no phone'}) & ${pair[1].name} (${pair[1].phone||'no phone'})</li>`;
-        } else {
-          html += `<li>🛺 Single buggy: ${pair[0].name} (${pair[0].phone||'no phone'}) <em>(pays full cost)</em></li>`;
-        }
-      }
-      html += `</ul></div>`;
+  // Upload image to Supabase storage if provided
+  if(file){
+    const fileName = `${Date.now()}_${file.name}`;
+    const { data, error: uploadError } = await supabase.storage.from('event-images').upload(fileName, file);
+    if(uploadError){
+      console.error(uploadError);
+      message.innerHTML = '<div class="error">Error uploading image.</div>';
+      return;
     }
+    const { data: publicURLData } = supabase.storage.from('event-images').getPublicUrl(fileName);
+    image_url = publicURLData.publicUrl;
+  }
 
-    // --- Walkers ---
-    if(walkers.length > 0){
-      html += `<div style="margin-top:6px;margin-left:10px;">
-        <strong>Walkers:</strong>
-        <ul>
-          ${walkers.map(p=>`<li>${p.name}</li>`).join('')}
-        </ul>
-      </div>`;
-    }
+  // generate weather link
+  const weather_link = generateWeatherLink(location, date);
 
-    html += `</div>`;
-  });
+  // insert event
+  const { error } = await supabase.from('events').insert([{
+    name: title,
+    location,
+    date,
+    price,
+    description,
+    course_link,
+    image_url,
+    weather_link
+  }]);
 
-  container.innerHTML = html;
+  if(error){
+    console.error(error);
+    message.innerHTML = '<div class="error">Error saving event.</div>';
+    return;
+  }
+
+  message.innerHTML = '<div class="notice">✅ Event added successfully!</div>';
+  document.getElementById('eventForm').reset();
+  document.getElementById('preview').classList.add('hidden');
 }
-
-// Subscribe for realtime tee time updates
-supabase.channel('tee_times_changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'tee_times' }, payload => {
-    if(payload.new?.event_id){ loadTeeTimes(payload.new.event_id); }
-  })
-  .subscribe();
-
-// Initialise
-loadEvents();
 </script>
 </body>
 </html>
