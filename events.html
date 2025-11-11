@@ -89,15 +89,32 @@ button:hover{background:#0a6b34;}
       <div id="message"></div>
     </form>
 
-    <div id="teeTimeGenerator" style="margin-top:40px;">
-      <h4>🕓 Organise Tee Times & Groups</h4>
-      <label>Select Event</label><select id="teeEventSelect" style="width:100%;max-width:400px;"></select>
-      <label>Starting Tee Time</label><input type="text" id="startTime" placeholder="9:00am" style="width:120px;">
-      <label>Gap (mins)</label><input type="number" id="gapMins" value="7" style="width:60px;">
-      <button type="button" onclick="generateTeeTimes()">Generate</button>
-      <button type="button" onclick="saveTeeTimes()" style="background:#d4af37;">Save</button>
-      <div id="teeTimeOutput" style="margin-top:20px;"><em>No tee times generated yet.</em></div>
-    </div>
+   <!-- Admin Tee Time Organiser -->
+<div id="teeTimeGenerator" style="margin-top:40px;">
+  <h4>🕓 Tee Time Organiser</h4>
+
+  <label>Select Event</label>
+  <select id="teeEventSelect" style="width:100%;max-width:400px;" onchange="loadAdminPlayers()"></select>
+
+  <div id="playerPool" style="margin-top:15px;background:#f9f9f9;padding:10px;border-radius:8px;">
+    <em>Players will load once you select an event...</em>
+  </div>
+
+  <div id="teeGroupArea" style="margin-top:20px;">
+    <button type="button" onclick="addTeeGroup()">➕ Add Group</button>
+    <div id="teeGroups" style="margin-top:10px;"></div>
+  </div>
+
+  <div style="margin-top:15px;">
+    <label>Starting Tee Time</label>
+    <input type="text" id="startTime" placeholder="9:00am" style="width:120px;">
+    <label>Gap (mins)</label>
+    <input type="number" id="gapMins" value="7" style="width:60px;">
+  </div>
+
+  <button type="button" onclick="saveTeeTimes()" style="margin-top:20px;background:#d4af37;">💾 Save Tee Times</button>
+</div>
+
   </div>
 
   <h2>Upcoming Events</h2>
@@ -444,6 +461,153 @@ async function saveTeeTimes(){
  const {error}=await supabase.from("tee_times").insert(groups.map(g=>({event_id:eventId,group_number:g.group_number,tee_time:g.tee_time,players:g.players})));
  if(error){alert("Error saving tee times");console.error(error);return;}
  alert("✅ Tee times saved!");document.getElementById(`rsvp_${eventId}`).classList.add("hidden");loadTeeTimes(eventId);
+// =========================
+// 🧩 Admin Tee Time Organiser
+// =========================
+
+// Load events into dropdown
+async function loadTeeTimeEvents() {
+  const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
+  const select = document.getElementById("teeEventSelect");
+  if (!events || !events.length) {
+    select.innerHTML = "<option>No events found</option>";
+    return;
+  }
+  select.innerHTML = events.map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
+}
+
+// Load all RSVP players for selected event
+async function loadAdminPlayers() {
+  const eventId = document.getElementById("teeEventSelect").value;
+  const container = document.getElementById("playerPool");
+  container.innerHTML = "<em>Loading players...</em>";
+
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("name, buggy, flexibility, phone")
+    .eq("event_id", eventId)
+    .eq("attending", true);
+
+  if (error || !rsvps?.length) {
+    container.innerHTML = "<em>No RSVPs found for this event.</em>";
+    return;
+  }
+
+  container.innerHTML = `<strong>All Players:</strong>
+    <div id="playerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;"></div>`;
+
+  const list = document.getElementById("playerList");
+
+  rsvps.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "player-card";
+    div.dataset.name = p.name;
+    div.dataset.phone = p.phone || "";
+    div.dataset.type = p.buggy ? (p.flexibility?.toLowerCase().includes("happy") ? "flexible" : "buggy") : "walker";
+    div.innerHTML = `
+      <div style="background:#fff;border:1px solid #ccc;padding:6px 10px;border-radius:8px;cursor:grab;display:flex;align-items:center;gap:8px;">
+        <span class="icon">${getIcon(div.dataset.type)}</span>
+        <span class="player-name">${p.name}${p.phone ? ` (${p.phone})` : ""}</span>
+        <select onchange="changePlayerType(this)" style="margin-left:auto;">
+          <option value="buggy" ${p.buggy && !p.flexibility?.toLowerCase().includes("happy") ? "selected" : ""}>🛺 Buggy</option>
+          <option value="walker" ${!p.buggy ? "selected" : ""}>🚶 Walker</option>
+          <option value="flexible" ${p.flexibility?.toLowerCase().includes("happy") ? "selected" : ""}>😊 Happy to Walk</option>
+        </select>
+      </div>`;
+    list.appendChild(div);
+  });
+
+  // Enable drag from pool to groups
+  new Sortable(list, {
+    group: "players",
+    animation: 150,
+    sort: false
+  });
+}
+
+function getIcon(type) {
+  if (type === "buggy") return "🛺";
+  if (type === "walker") return "🚶";
+  return "😊";
+}
+
+function changePlayerType(sel) {
+  const card = sel.closest(".player-card");
+  card.dataset.type = sel.value;
+  card.querySelector(".icon").textContent = getIcon(sel.value);
+}
+
+// Add a new tee group
+function addTeeGroup() {
+  const area = document.getElementById("teeGroups");
+  const num = area.children.length + 1;
+
+  const div = document.createElement("div");
+  div.className = "tee-group";
+  div.innerHTML = `
+    <div style="background:#eee;border-radius:8px;padding:10px;margin-bottom:10px;">
+      <strong>Group ${num}</strong>
+      <ul id="group_${num}" class="groupList" style="min-height:40px;background:#fff;padding:10px;border-radius:8px;"></ul>
+    </div>`;
+  area.appendChild(div);
+
+  new Sortable(div.querySelector(".groupList"), {
+    group: "players",
+    animation: 150
+  });
+}
+
+// Save tee times into Supabase
+async function saveTeeTimes() {
+  const eventId = document.getElementById("teeEventSelect").value;
+  const start = document.getElementById("startTime").value.trim();
+  const gap = parseInt(document.getElementById("gapMins").value) || 7;
+  const groups = Array.from(document.querySelectorAll(".groupList"));
+  if (!groups.length) {
+    alert("Add at least one group.");
+    return;
+  }
+
+  // Convert time
+  function addMinutesToTime(start, mins) {
+    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h, m] = t.split(":").map(Number);
+    if (a === "pm" && h < 12) h += 12;
+    if (a === "am" && h === 12) h = 0;
+    const d = new Date();
+    d.setHours(h);
+    d.setMinutes(m + mins);
+    const hr = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const sfx = hr >= 12 ? "pm" : "am";
+    const disp = ((hr + 11) % 12) + 1;
+    return `${disp}:${mi}${sfx}`;
+  }
+
+  const data = groups.map((g, i) => {
+    const players = Array.from(g.children).map(el => ({
+      name: el.dataset.name,
+      phone: el.dataset.phone,
+      type: el.dataset.type
+    }));
+    return {
+      event_id: eventId,
+      group_number: i + 1,
+      tee_time: addMinutesToTime(start, i * gap),
+      players
+    };
+  });
+
+  // Save to Supabase
+  await supabase.from("tee_times").delete().eq("event_id", eventId);
+  const { error } = await supabase.from("tee_times").insert(data);
+  if (error) {
+    console.error(error);
+    alert("Error saving tee times.");
+    return;
+  }
+  alert("✅ Tee times saved!");
+  loadTeeTimes(eventId);
 }
 </script>
 </body>
