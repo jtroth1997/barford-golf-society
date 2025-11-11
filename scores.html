@@ -427,51 +427,28 @@ async function confirmReset() {
 
   try {
     // Step 1: Delete all existing records
-    const { error: delError } = await supabase.rpc('exec_sql', { sql_query: 'DELETE FROM scores;' });
+    const { error: delError } = await supabase.from("scores").delete().neq("id", 0);
     if (delError) throw delError;
 
-    // Step 2: Insert all default players fresh
-    const insertSQL = `
-      INSERT INTO scores (player, round, points, handicap, next_handicap, adj)
-      VALUES
-      ('Brad Davies', 1, NULL, NULL, NULL, ''),
-      ('Will Lovell', 1, NULL, NULL, NULL, ''),
-      ('Richard Jones', 1, NULL, NULL, NULL, ''),
-      ('David Hardcastle', 1, NULL, NULL, NULL, ''),
-      ('Tim Oliver', 1, NULL, NULL, NULL, ''),
-      ('John Hawkes', 1, NULL, NULL, NULL, ''),
-      ('Mike Cook', 1, NULL, NULL, NULL, ''),
-      ('Colin Oliver', 1, NULL, NULL, NULL, ''),
-      ('Gary Moyce', 1, NULL, NULL, NULL, ''),
-      ('David Jordan', 1, NULL, NULL, NULL, ''),
-      ('Nick Benbow', 1, NULL, NULL, NULL, ''),
-      ('Simon Morgan', 1, NULL, NULL, NULL, ''),
-      ('Wes Lacey', 1, NULL, NULL, NULL, ''),
-      ('Chris Oliver', 1, NULL, NULL, NULL, ''),
-      ('Burt Pickering', 1, NULL, NULL, NULL, ''),
-      ('Chris Harris', 1, NULL, NULL, NULL, ''),
-      ('Derek Lewis', 1, NULL, NULL, NULL, ''),
-      ('Liz Oliver', 1, NULL, NULL, NULL, ''),
-      ('Jack Troth', 1, NULL, NULL, NULL, ''),
-      ('Lucie Byerley', 1, NULL, NULL, NULL, ''),
-      ('David Pritchard', 1, NULL, NULL, NULL, ''),
-      ('Robert Pocknell', 1, NULL, NULL, NULL, ''),
-      ('John Close', 1, NULL, NULL, NULL, ''),
-      ('Nick Wright', 1, NULL, NULL, NULL, ''),
-      ('Matt Oliver', 1, NULL, NULL, NULL, ''),
-      ('Vince Hall', 1, NULL, NULL, NULL, ''),
-      ('Elliot Hobbs', 1, NULL, NULL, NULL, ''),
-      ('Will Hunt', 1, NULL, NULL, NULL, ''),
-      ('Martc Taylor', 1, NULL, NULL, NULL, ''),
-      ('Simon Meade', 1, NULL, NULL, NULL, ''),
-      ('Emma Saywell', 1, NULL, NULL, NULL, ''),
-      ('Cam Tolley', 1, NULL, NULL, NULL, ''),
-      ('John Blackwell', 1, NULL, NULL, NULL, ''),
-      ('Bekim', 1, NULL, NULL, NULL, ''),
-      ('Zac Lovell', 1, NULL, NULL, NULL, ''),
-      ('Clive Irwin', 1, NULL, NULL, NULL, '');
-    `;
-    const { error: insError } = await supabase.rpc('exec_sql', { sql_query: insertSQL });
+    // Step 2: Insert all players again
+    const players = [
+      'Brad Davies','Will Lovell','Richard Jones','David Hardcastle','Tim Oliver','John Hawkes','Mike Cook','Colin Oliver',
+      'Gary Moyce','David Jordan','Nick Benbow','Simon Morgan','Wes Lacey','Chris Oliver','Burt Pickering','Chris Harris',
+      'Derek Lewis','Liz Oliver','Jack Troth','Lucie Byerley','David Pritchard','Robert Pocknell','John Close','Nick Wright',
+      'Matt Oliver','Vince Hall','Elliot Hobbs','Will Hunt','Martc Taylor','Simon Meade','Emma Saywell','Cam Tolley',
+      'John Blackwell','Bekim','Zac Lovell','Clive Irwin'
+    ];
+
+    const newRows = players.map(name => ({
+      player: name,
+      round: 1,
+      points: null,
+      handicap: null,
+      next_handicap: null,
+      adj: ''
+    }));
+
+    const { error: insError } = await supabase.from("scores").insert(newRows);
     if (insError) throw insError;
 
     alert("✅ League reset successfully!");
