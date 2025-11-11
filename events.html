@@ -412,12 +412,11 @@ async function loadAdminTeeTimeEvents() {
     select.innerHTML = "<option>No events found</option>";
     return;
   }
-  select.innerHTML = events.map(
-    e => `<option value='${e.id}'>${e.name} (${e.date})</option>`
-  ).join("");
+  select.innerHTML = events
+    .map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`)
+    .join("");
 }
 
-// Load RSVP players when event selected
 async function loadAdminPlayers() {
   const eventId = document.getElementById("teeEventSelect").value;
   const container = document.getElementById("playerPool");
@@ -441,7 +440,6 @@ async function loadAdminPlayers() {
   `;
 }
 
-// Auto-generate tee time groups
 async function generateTeeGroups(eventId) {
   const start = document.getElementById("startTime").value.trim();
   const gap = parseInt(document.getElementById("gapMins").value) || 7;
@@ -476,7 +474,7 @@ async function generateTeeGroups(eventId) {
 
   // Shuffle both lists
   function shuffle(arr) {
-    return arr.map(v => [Math.random(), v]).sort((a,b) => a[0]-b[0]).map(p=>p[1]);
+    return arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(p => p[1]);
   }
   buggy = shuffle(buggy);
   walkers = shuffle(walkers);
@@ -561,10 +559,11 @@ function getIcon(type) {
 function changePlayerType(sel) {
   const li = sel.closest(".player-card");
   li.dataset.type = sel.value;
-  sel.previousElementSibling.textContent = getIcon(sel.value);
+  const span = li.querySelector("span");
+  span.textContent = `${getIcon(sel.value)} ${li.dataset.name}${li.dataset.phone ? ` (${li.dataset.phone})` : ""}`;
 }
 
-// Save final groups
+// Save final groups to Supabase
 async function saveTeeTimes() {
   const eventId = document.getElementById("teeEventSelect").value;
   const start = document.getElementById("startTime").value.trim();
@@ -615,6 +614,7 @@ async function saveTeeTimes() {
   alert("✅ Tee times saved!");
   loadTeeTimes(eventId);
 }
+
 
 </script>
 </body>
