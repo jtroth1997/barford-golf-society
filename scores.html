@@ -322,19 +322,24 @@ async function saveData() {
 
   for (let i = 0; i < players.length; i++) {
     const player = players[i];
+
+    // ✅ Pull the live input handicap directly from the table
+    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
+
+    const pts = playerScores[i][currentRound - 1] || 0;
+    const adj = parseInt(lastAdj[i]) || 0;
+    const next = nextHcp[i] ?? hcp;
+
     const total = playerScores[i]
       .filter(v => v !== null)
-      .sort((a,b)=>b-a)
-      .slice(0,5)
-      .reduce((a,b)=>a+b,0);
-    const pts = playerScores[i][currentRound-1] || 0;
-    const adj = parseInt(lastAdj[i]) || 0;
-    const next = nextHcp[i] ?? currentHcp[i];
+      .sort((a, b) => b - a)
+      .slice(0, 5)
+      .reduce((a, b) => a + b, 0);
 
     updates.push({
       player,
       round: currentRound,
-      handicap: currentHcp[i],
+      handicap: hcp,
       points: pts,
       adj,
       next_handicap: next,
