@@ -372,8 +372,8 @@ function calculateHandicaps() {
   if (!unlocked) return alert("Unlock first");
 
   for (let i = 0; i < players.length; i++) {
-    // ✅ Always start from stored handicap, not input box
-    const hcp = currentHcp[i] ?? 0;
+    // ✅ Use entered handicap if present, otherwise stored one
+    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || currentHcp[i] || 0;
     const pts = parseInt(document.getElementById(`points_${i}`).value);
 
     // ✅ Skip players who didn’t play (blank or 0 points)
@@ -382,7 +382,6 @@ function calculateHandicaps() {
     const adj = stablefordAdj(pts);
     const next = Math.max(0, hcp + adj);
 
-    // Save everything for this player
     playerScores[i][currentRound - 1] = pts;
     lastAdj[i] = (adj > 0 ? "+" : "") + adj;
     currentHcp[i] = hcp;
