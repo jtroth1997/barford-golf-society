@@ -426,34 +426,8 @@ async function confirmReset() {
   document.body.style.cursor = "wait";
 
   try {
-    // Step 1: Delete all existing records (wait for completion)
-    const { error: delError } = await supabase.from("scores").delete().neq("id", -1);
-    if (delError) throw delError;
-
-    // Wait briefly to ensure Supabase processes the delete
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Step 2: Insert all default players fresh
-    const players = [
-      'Brad Davies','Will Lovell','Richard Jones','David Hardcastle','Tim Oliver','John Hawkes','Mike Cook','Colin Oliver',
-      'Gary Moyce','David Jordan','Nick Benbow','Simon Morgan','Wes Lacey','Chris Oliver','Burt Pickering','Chris Harris',
-      'Derek Lewis','Liz Oliver','Jack Troth','Lucie Byerley','David Pritchard','Robert Pocknell','John Close','Nick Wright',
-      'Matt Oliver','Vince Hall','Elliot Hobbs','Will Hunt','Martc Taylor','Simon Meade','Emma Saywell','Cam Tolley',
-      'John Blackwell','Bekim','Zac Lovell','Clive Irwin'
-    ];
-
-    const newRows = players.map(name => ({
-      player: name,
-      round: 1,
-      points: null,
-      handicap: null,
-      next_handicap: null,
-      adj: ''
-    }));
-
-    // Step 3: Insert safely
-    const { error: insError } = await supabase.from("scores").insert(newRows, { upsert: false });
-    if (insError) throw insError;
+    const { error } = await supabase.rpc('reset_scores');
+    if (error) throw error;
 
     alert("✅ League reset successfully!");
     currentRound = 1;
