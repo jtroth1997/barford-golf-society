@@ -124,52 +124,146 @@ button:hover{background:#0a6b34;}
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-const ADMIN_PASSWORD="westbrom1997";
-const SUPABASE_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const {createClient}=window.supabase;const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
+const ADMIN_PASSWORD = "westbrom1997";
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function toggleAdminAccess(){
- const panel=document.getElementById("adminPanel");const btn=document.getElementById("adminToggle");
- const isAdmin=localStorage.getItem("isAdmin")==="true";
- if(!isAdmin){const pass=prompt("Enter admin password:");if(pass===ADMIN_PASSWORD){localStorage.setItem("isAdmin","true");panel.classList.remove("hidden");btn.textContent="⬅️ Back to Events";alert("✅ Admin access granted");}else alert("❌ Incorrect password");}
- else{localStorage.removeItem("isAdmin");panel.classList.add("hidden");btn.textContent="🔐 Admin Access";}
+// ----------------------------
+// 🔒 Admin Access Toggle
+// ----------------------------
+function toggleAdminAccess() {
+  const panel = document.getElementById("adminPanel");
+  const btn = document.getElementById("adminToggle");
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+  if (!isAdmin) {
+    const pass = prompt("Enter admin password:");
+    if (pass === ADMIN_PASSWORD) {
+      localStorage.setItem("isAdmin", "true");
+      panel.classList.remove("hidden");
+      btn.textContent = "⬅️ Back to Events";
+      alert("✅ Admin access granted");
+      loadAdminTeeTimeEvents();
+    } else {
+      alert("❌ Incorrect password");
+    }
+  } else {
+    localStorage.removeItem("isAdmin");
+    panel.classList.add("hidden");
+    btn.textContent = "🔐 Admin Access";
+  }
 }
 
-window.onload=()=>{if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");document.getElementById("adminToggle").textContent="⬅️ Back to Events";}loadEvents();loadAdminTeeTimeEvents();
+// ----------------------------
+// 🚀 On Page Load
+// ----------------------------
+window.onload = () => {
+  if (localStorage.getItem("isAdmin") === "true") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("adminToggle").textContent = "⬅️ Back to Events";
+    loadAdminTeeTimeEvents();
+  }
+  loadEvents();
+};
 
-
-function previewImage(e){const file=e.target.files[0];const preview=document.getElementById("preview");if(file){preview.src=URL.createObjectURL(file);preview.classList.remove("hidden");}}
-function generateWeatherLink(location,date){if(!location||!date)return"";const clean=encodeURIComponent(location.trim());return`https://www.bbc.co.uk/weather/search?q=${clean}#${date}`;}
-
-async function submitEvent(e){e.preventDefault();const title=document.getElementById("title").value.trim();const location=document.getElementById("location").value.trim();const date=document.getElementById("date").value;const price=document.getElementById("price").value;const description=document.getElementById("description").value.trim();const course_link=document.getElementById("course_link").value.trim();const file=document.getElementById("image").files[0];const msg=document.getElementById("message");msg.innerHTML="";let image_url=null;if(file){const name=`${Date.now()}_${file.name}`;const {error:upErr}=await supabase.storage.from("event-images").upload(name,file);if(upErr){msg.innerHTML="❌ Image upload failed";return;}const {data:urlData}=supabase.storage.from("event-images").getPublicUrl(name);image_url=urlData.publicUrl;}
-const weather_link=generateWeatherLink(location,date);const {error}=await supabase.from("events").insert([{name:title,location,date,price,description,course_link,image_url,weather_link}]);if(error){console.error(error);msg.innerHTML="❌ Error saving event";return;}msg.innerHTML="✅ Event added successfully!";loadEvents();loadTeeTimeEvents();}
-
-async function loadEvents(){
- const {data:events,error}=await supabase.from("events").select("*").order("date",{ascending:true});
- const c=document.getElementById("eventList");
- if(error||!events?.length){c.innerHTML="<p>No events found.</p>";return;}
- c.innerHTML="";
- for(const ev of events){
-  const img=ev.image_url?`<img src='${ev.image_url}' class='event-image'>`:"";
-  const desc=ev.description?`<div class='event-description'>${ev.description}</div>`:"";
-  const links=`<div class='event-links'>
-    ${ev.course_link?`<a href='${ev.course_link}' target='_blank'>🌐 Course Website</a>`:""}
-    ${ev.weather_link?`<a href='${ev.weather_link}' target='_blank'>☀️ BBC Weather</a>`:""}
-  </div>`;
-  c.innerHTML+=`<div class='event-card'>
-    <div class='event-header'>
-      <div><div class='event-name'>${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
-      <div><strong>Price:</strong> £${ev.price||"-"}</div>
-    </div>${img}${desc}${links}
-    <div class='rsvp-section' id='rsvp_${ev.id}'></div>
-    <div class='tee-times' id='tee_${ev.id}'><em>Loading...</em></div>
-  </div>`;
-  loadRSVPs(ev.id);loadTeeTimes(ev.id);
- }
+// ----------------------------
+// 🖼️ Event Creation (Admin)
+// ----------------------------
+function previewImage(e) {
+  const file = e.target.files[0];
+  const preview = document.getElementById("preview");
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
+  }
 }
 
-// RSVP
+function generateWeatherLink(location, date) {
+  if (!location || !date) return "";
+  const clean = encodeURIComponent(location.trim());
+  return `https://www.bbc.co.uk/weather/search?q=${clean}#${date}`;
+}
+
+async function submitEvent(e) {
+  e.preventDefault();
+  const title = document.getElementById("title").value.trim();
+  const location = document.getElementById("location").value.trim();
+  const date = document.getElementById("date").value;
+  const price = document.getElementById("price").value;
+  const description = document.getElementById("description").value.trim();
+  const course_link = document.getElementById("course_link").value.trim();
+  const file = document.getElementById("image").files[0];
+  const msg = document.getElementById("message");
+  msg.innerHTML = "";
+
+  let image_url = null;
+  if (file) {
+    const name = `${Date.now()}_${file.name}`;
+    const { error: upErr } = await supabase.storage.from("event-images").upload(name, file);
+    if (upErr) {
+      msg.innerHTML = "❌ Image upload failed";
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(name);
+    image_url = urlData.publicUrl;
+  }
+
+  const weather_link = generateWeatherLink(location, date);
+  const { error } = await supabase
+    .from("events")
+    .insert([{ name: title, location, date, price, description, course_link, image_url, weather_link }]);
+
+  if (error) {
+    console.error(error);
+    msg.innerHTML = "❌ Error saving event";
+    return;
+  }
+
+  msg.innerHTML = "✅ Event added successfully!";
+  loadEvents();
+  loadAdminTeeTimeEvents();
+}
+
+// ----------------------------
+// 📅 Load Public Events
+// ----------------------------
+async function loadEvents() {
+  const { data: events, error } = await supabase.from("events").select("*").order("date", { ascending: true });
+  const c = document.getElementById("eventList");
+  if (error || !events?.length) {
+    c.innerHTML = "<p>No events found.</p>";
+    return;
+  }
+
+  c.innerHTML = "";
+  for (const ev of events) {
+    const img = ev.image_url ? `<img src='${ev.image_url}' class='event-image'>` : "";
+    const desc = ev.description ? `<div class='event-description'>${ev.description}</div>` : "";
+    const links = `<div class='event-links'>
+      ${ev.course_link ? `<a href='${ev.course_link}' target='_blank'>🌐 Course Website</a>` : ""}
+      ${ev.weather_link ? `<a href='${ev.weather_link}' target='_blank'>☀️ BBC Weather</a>` : ""}
+    </div>`;
+
+    c.innerHTML += `
+      <div class='event-card'>
+        <div class='event-header'>
+          <div><div class='event-name'>${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
+          <div><strong>Price:</strong> £${ev.price || "-"}</div>
+        </div>
+        ${img}${desc}${links}
+        <div class='rsvp-section' id='rsvp_${ev.id}'></div>
+        <div class='tee-times' id='tee_${ev.id}'><em>Loading...</em></div>
+      </div>`;
+    loadRSVPs(ev.id);
+    loadTeeTimes(ev.id);
+  }
+}
+
+// ----------------------------
+// ✅ RSVP System
+// ----------------------------
 async function loadRSVPs(eventId) {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const { data: tees } = await supabase.from("tee_times").select("event_id").eq("event_id", eventId);
@@ -216,17 +310,14 @@ async function loadRSVPs(eventId) {
   renderRSVPList(eventId);
 }
 
-// Toggle buggy-related fields
 function toggleBuggyFields(id) {
   const buggy = document.getElementById(`buggy_${id}`).value === "true";
   const buggyFields = document.getElementById(`buggyFields_${id}`);
   buggyFields.classList.toggle("hidden", !buggy);
 }
 
-// Handle RSVP submit
 async function submitRSVP(e, id) {
   e.preventDefault();
-
   const name = document.getElementById(`name_${id}`).value.trim();
   const email = document.getElementById(`email_${id}`).value.trim();
   const buggy = document.getElementById(`buggy_${id}`).value === "true";
@@ -263,7 +354,6 @@ async function submitRSVP(e, id) {
   renderRSVPList(id);
 }
 
-// Display RSVP list
 async function renderRSVPList(id) {
   const cont = document.getElementById(`rsvpList_${id}`);
   const { data: rsvps } = await supabase.from("rsvps").select("*").eq("event_id", id).eq("attending", true);
@@ -285,188 +375,32 @@ async function renderRSVPList(id) {
   cont.innerHTML = html;
 }
 
-// Tee Times
+// ----------------------------
+// 🕓 Tee Times Display
+// ----------------------------
 async function loadTeeTimes(eventId) {
   const c = document.getElementById(`tee_${eventId}`);
-  const { data: tees } = await supabase
-    .from("tee_times")
-    .select("*")
-    .eq("event_id", eventId)
-    .order("group_number", { ascending: true });
-
+  const { data: tees } = await supabase.from("tee_times").select("*").eq("event_id", eventId).order("group_number", { ascending: true });
   if (!tees || !tees.length) {
     c.innerHTML = "<em>No tee times yet.</em>";
     return;
   }
 
-  // Fetch RSVPs for buggy info + phone numbers
-  const { data: rsvps } = await supabase
-    .from("rsvps")
-    .select("name, buggy, phone")
-    .eq("event_id", eventId);
-
-  const findRSVP = (playerName) =>
-    rsvps?.find(r => r.name.trim().toLowerCase() === playerName.trim().toLowerCase());
-
   let html = "<h4>🕓 Official Tee Times</h4>";
-
-  tees.forEach((g) => {
-    // Match RSVP details to players
-    const playersWithRSVP = g.players.map(p => ({
-      name: p,
-      ...findRSVP(p)
-    }));
-
-    // Separate buggy + walking players
-    const buggyPlayers = playersWithRSVP.filter(p => p.buggy);
-    const walkers = playersWithRSVP.filter(p => !p.buggy);
-
-    html += `<div class='group'>
-      <strong>Group ${g.group_number} — ${g.tee_time}</strong>`;
-
-    // --- Buggy pairs ---
-    if (buggyPlayers.length > 0) {
-      html += `<div style="margin-top:6px;margin-left:10px;">
-        <strong>🛺 Buggy Pairs:</strong>
-        <ul>`;
-      for (let i = 0; i < buggyPlayers.length; i += 2) {
-        const pair = buggyPlayers.slice(i, i + 2);
-        if (pair.length === 2) {
-          html += `<li>🛺 Pair ${i / 2 + 1}: ${pair[0].name} (${pair[0].phone || 'no phone'}) & ${pair[1].name} (${pair[1].phone || 'no phone'})</li>`;
-        } else {
-          html += `<li>🛺 Single buggy: ${pair[0].name} (${pair[0].phone || 'no phone'}) <em>(pays full cost)</em></li>`;
-        }
-      }
-      html += `</ul></div>`;
-    }
-
-    // --- Walkers ---
-    if (walkers.length > 0) {
-      html += `<div style="margin-top:6px;margin-left:10px;">
-        <strong>🚶 Walkers:</strong>
-        <ul>
-          ${walkers.map(p => `<li>🚶 ${p.name}</li>`).join("")}
-        </ul>
-      </div>`;
-    }
-
-    html += `</div>`;
+  tees.forEach(g => {
+    html += `<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><ul>`;
+    g.players.forEach(p => {
+      const icon = p.type === "buggy" ? "🛺" : p.type === "walker" ? "🚶" : "😊";
+      html += `<li>${icon} ${p.name}${p.phone ? ` (${p.phone})` : ""}</li>`;
+    });
+    html += "</ul></div>";
   });
-
   c.innerHTML = html;
 }
 
-
-// Tee Time Generator
-async function loadTeeTimeEvents(){const {data:ev}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});const s=document.getElementById("teeEventSelect");if(!ev?.length){s.innerHTML="<option>No events</option>";return;}s.innerHTML=ev.map(e=>`<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");}
-function addMinutesToTime(start,mins){let [t,a]=start.toLowerCase().split(/(am|pm)/).filter(Boolean);let[h,m]=t.split(":").map(Number);if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;const d=new Date();d.setHours(h);d.setMinutes(m+mins);const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;}
-function shuffle(a){return a.map(v=>[Math.random(),v]).sort().map(p=>p[1]);}
-async function generateTeeTimes() {
-  const id = document.getElementById("teeEventSelect").value;
-  const start = document.getElementById("startTime").value.trim();
-  const gap = parseInt(document.getElementById("gapMins").value) || 7;
-  const out = document.getElementById("teeTimeOutput");
-
-  if (!id || !start) {
-    alert("Select event and start time");
-    return;
-  }
-
-  const { data: rsvps } = await supabase
-    .from("rsvps")
-    .select("name, buggy, flexibility")
-    .eq("event_id", id)
-    .eq("attending", true);
-
-  if (!rsvps?.length) {
-    out.innerHTML = "<p>No RSVPs.</p>";
-    return;
-  }
-
-  // Separate buggy and walking players
-  let buggy = rsvps.filter(r => r.buggy);
-  let walkers = rsvps.filter(r => !r.buggy);
-
-  // ✅ If buggy count is odd, move one flexible player to walkers
-  if (buggy.length % 2 !== 0) {
-    const flexPlayer = buggy.find(r =>
-      (r.flexibility || "").toLowerCase().includes("happy")
-    );
-    if (flexPlayer) {
-      walkers.push(flexPlayer);
-      buggy = buggy.filter(b => b.name !== flexPlayer.name);
-    }
-  }
-
-  // Randomize order for fairness
-  function shuffle(arr) {
-    return arr
-      .map(v => [Math.random(), v])
-      .sort((a, b) => a[0] - b[0])
-      .map(p => p[1]);
-  }
-
-  buggy = shuffle(buggy);
-  walkers = shuffle(walkers);
-
-  // ✅ Group players logically (buggy first)
-  const groups = [];
-  for (let i = 0; i < buggy.length; i += 4) {
-    groups.push(buggy.slice(i, i + 4));
-  }
-
-  // If remaining walkers create an odd count (like 3, 7, etc.), first group is a 3-ball
-  if (walkers.length % 4 === 3) {
-    groups.push(walkers.slice(0, 3));
-    walkers = walkers.slice(3);
-  }
-
-  for (let i = 0; i < walkers.length; i += 4) {
-    groups.push(walkers.slice(i, i + 4));
-  }
-
-  // 🕓 Assign tee times
-  function addMinutesToTime(start, mins) {
-    let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h, m] = t.split(":").map(Number);
-    if (a === "pm" && h < 12) h += 12;
-    if (a === "am" && h === 12) h = 0;
-    const d = new Date();
-    d.setHours(h);
-    d.setMinutes(m + mins);
-    const hr = d.getHours();
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    const sfx = hr >= 12 ? "pm" : "am";
-    const disp = ((hr + 11) % 12) + 1;
-    return `${disp}:${mi}${sfx}`;
-  }
-
-  const teeData = groups.map((g, i) => ({
-    group_number: i + 1,
-    tee_time: addMinutesToTime(start, i * gap),
-    players: g.map(p => p.name)
-  }));
-
-  renderTeeCards(teeData, id, start, gap);
-}
-
-function renderTeeCards(data,eventId,start,gap){const c=document.getElementById("teeTimeOutput");c.innerHTML="";const l=document.createElement("div");l.id="teeTimeList";c.appendChild(l);data.forEach(g=>{const card=document.createElement("div");card.className="tee-card";card.dataset.group=JSON.stringify(g);card.innerHTML=`<strong>Group ${g.group_number}</strong> — ${g.tee_time}<ul>${g.players.map(p=>`<li>${p}</li>`).join("")}</ul>`;l.appendChild(card);});new Sortable(l,{animation:150});c.dataset.eventId=eventId;c.dataset.start=start;c.dataset.gap=gap;}
-async function saveTeeTimes(){
- const list=document.getElementById("teeTimeList");if(!list)return;
- const eventId=document.getElementById("teeTimeOutput").dataset.eventId;
- const start=document.getElementById("teeTimeOutput").dataset.start;
- const gap=parseInt(document.getElementById("teeTimeOutput").dataset.gap);
- const cards=Array.from(list.children);
- const groups=cards.map((el,i)=>{const g=JSON.parse(el.dataset.group);g.group_number=i+1;g.tee_time=addMinutesToTime(start,i*gap);return g;});
- await supabase.from("tee_times").delete().eq("event_id",eventId);
- const {error}=await supabase.from("tee_times").insert(groups.map(g=>({event_id:eventId,group_number:g.group_number,tee_time:g.tee_time,players:g.players})));
- if(error){alert("Error saving tee times");console.error(error);return;}
- alert("✅ Tee times saved!");document.getElementById(`rsvp_${eventId}`).classList.add("hidden");loadTeeTimes(eventId);
-// =========================
+// ----------------------------
 // 🧩 Admin Tee Time Organiser
-// =========================
-
-// Load events into dropdown
+// ----------------------------
 async function loadAdminTeeTimeEvents() {
   const { data: events } = await supabase.from("events").select("id, name, date").order("date", { ascending: true });
   const select = document.getElementById("teeEventSelect");
@@ -477,19 +411,18 @@ async function loadAdminTeeTimeEvents() {
   select.innerHTML = events.map(e => `<option value='${e.id}'>${e.name} (${e.date})</option>`).join("");
 }
 
-// Load all RSVP players for selected event
 async function loadAdminPlayers() {
   const eventId = document.getElementById("teeEventSelect").value;
   const container = document.getElementById("playerPool");
   container.innerHTML = "<em>Loading players...</em>";
 
-  const { data: rsvps, error } = await supabase
+  const { data: rsvps } = await supabase
     .from("rsvps")
     .select("name, buggy, flexibility, phone")
     .eq("event_id", eventId)
     .eq("attending", true);
 
-  if (error || !rsvps?.length) {
+  if (!rsvps?.length) {
     container.innerHTML = "<em>No RSVPs found for this event.</em>";
     return;
   }
@@ -518,12 +451,7 @@ async function loadAdminPlayers() {
     list.appendChild(div);
   });
 
-  // Enable drag from pool to groups
-  new Sortable(list, {
-    group: "players",
-    animation: 150,
-    sort: false
-  });
+  new Sortable(list, { group: "players", animation: 150, sort: false });
 }
 
 function getIcon(type) {
@@ -538,7 +466,6 @@ function changePlayerType(sel) {
   card.querySelector(".icon").textContent = getIcon(sel.value);
 }
 
-// Add a new tee group
 function addTeeGroup() {
   const area = document.getElementById("teeGroups");
   const num = area.children.length + 1;
@@ -552,13 +479,9 @@ function addTeeGroup() {
     </div>`;
   area.appendChild(div);
 
-  new Sortable(div.querySelector(".groupList"), {
-    group: "players",
-    animation: 150
-  });
+  new Sortable(div.querySelector(".groupList"), { group: "players", animation: 150 });
 }
 
-// Save tee times into Supabase
 async function saveTeeTimes() {
   const eventId = document.getElementById("teeEventSelect").value;
   const start = document.getElementById("startTime").value.trim();
@@ -569,7 +492,6 @@ async function saveTeeTimes() {
     return;
   }
 
-  // Convert time
   function addMinutesToTime(start, mins) {
     let [t, a] = start.toLowerCase().split(/(am|pm)/).filter(Boolean);
     let [h, m] = t.split(":").map(Number);
@@ -599,7 +521,6 @@ async function saveTeeTimes() {
     };
   });
 
-  // Save to Supabase
   await supabase.from("tee_times").delete().eq("event_id", eventId);
   const { error } = await supabase.from("tee_times").insert(data);
   if (error) {
@@ -607,6 +528,7 @@ async function saveTeeTimes() {
     alert("Error saving tee times.");
     return;
   }
+
   alert("✅ Tee times saved!");
   loadTeeTimes(eventId);
 }
