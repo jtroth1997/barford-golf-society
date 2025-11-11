@@ -263,24 +263,36 @@ async function saveData() {
 
 
 // --- CALCULATE HANDICAPS ---
-function calculateHandicaps(){
-  if(!unlocked)return alert("Unlock first");
-  for(let i=0;i<players.length;i++){
-    const hStr=document.getElementById(`hcp_${i}`).value;
-    const ptsStr=document.getElementById(`points_${i}`).value;
-    if(hStr===""&&ptsStr==="")continue;
-    const h=hStr===""?(currentHcp[i]??0):parseFloat(hStr);
-    const pts=ptsStr===""?null:parseInt(ptsStr);
-    if(pts===null||isNaN(pts)||pts===0)continue;
-    const adj=stablefordAdj(pts);
-    const next=Math.max(0,h+adj);
-    playerScores[i][currentRound-1]=pts;
-    lastAdj[i]=(adj>0?"+":"")+adj;
-    nextHcp[i]=next;
+function calculateHandicaps() {
+  if (!unlocked) return alert("Unlock first");
+
+  for (let i = 0; i < players.length; i++) {
+    const hStr = document.getElementById(`hcp_${i}`).value;
+    const ptsStr = document.getElementById(`points_${i}`).value;
+
+    if (hStr === "" && ptsStr === "") continue;
+
+    const h = hStr === "" ? (currentHcp[i] ?? 0) : parseFloat(hStr);
+    const pts = ptsStr === "" ? null : parseInt(ptsStr);
+
+    if (pts === null || isNaN(pts) || pts === 0) continue;
+
+    const adj = stablefordAdj(pts);
+    const next = Math.max(0, h + adj);
+
+    playerScores[i][currentRound - 1] = pts;
+    lastAdj[i] = (adj > 0 ? "+" : "") + adj;
+    nextHcp[i] = next;
   }
+
+  // ✅ Add this console line — helps verify the handicaps being used
+  console.log("🏌️ New Handicaps:", nextHcp);
+
   renderLeaderboard();
   saveData();
+  drawChart(); // ✅ also ensures your chart stays up to date
 }
+
 
 // --- LEADERBOARD RENDER ---
 function calculateTotals(){
