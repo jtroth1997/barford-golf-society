@@ -358,25 +358,112 @@ document.getElementById("teeEventSelect").onchange=()=>{const id=document.getEle
 
 function generateTeeGroups(eventId){
   const area=document.getElementById("teeGroups");area.innerHTML="";
-  const start=document.getElementById("startTime").value.trim();const gap=parseInt(document.getElementById("gapMins").value)||7;
-  const all=window.currentPlayers||[];if(!all.length)return alert("No players");
+  const start=document.getElementById("startTime").value.trim();
+  const gap=parseInt(document.getElementById("gapMins").value)||7;
+  const all=window.currentPlayers||[];
+  if(!all.length)return alert("No players");
+
   let buggy=all.filter(r=>r.buggy),walkers=all.filter(r=>!r.buggy);
-  if(buggy.length%2!==0){const flex=buggy.find(r=>(r.flexibility||"").includes("happy"));if(flex){walkers.push(flex);buggy=buggy.filter(b=>b.name!==flex.name);}}
+  if(buggy.length%2!==0){
+    const flex=buggy.find(r=>(r.flexibility||"").includes("happy"));
+    if(flex){walkers.push(flex);buggy=buggy.filter(b=>b.name!==flex.name);}
+  }
+
   const sh=a=>a.sort(()=>Math.random()-0.5);buggy=sh(buggy);walkers=sh(walkers);
-  const groups=[];for(let i=0;i<buggy.length;i+=4)groups.push(buggy.slice(i,i+4));for(let i=0;i<walkers.length;i+=4)groups.push(walkers.slice(i,i+4));
-  const addTime=(s,m)=>{let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);let[h,mm]=t.split(":").map(Number);if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;const d=new Date();d.setHours(h);d.setMinutes(mm+m);const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;return`${disp}:${mi}${sfx}`;};
-  groups.forEach((g,i)=>{const tee=addTime(start,i*gap);const div=document.createElement("div");div.className="tee-group";div.dataset.time=tee;div.innerHTML=`<strong>Group ${i+1}</strong> — ${tee}<ul id='grp${i+1}' style='list-style:none;padding:0;'></ul>`;area.appendChild(div);const ul=div.querySelector("ul");g.forEach(p=>{const li=document.createElement("li");li.className="player-card";li.dataset.name=p.name;li.dataset.phone=p.phone||"";li.dataset.type=p.buggy?"buggy":"walker";li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name} <button onclick='toggleType(this)' style='float:right;'>🔄</button>`;ul.appendChild(li);});Sortable.create(ul,{group:"players",animation:150});});
-  alert("✅ Tee times generated. You can drag and reorder players before saving.");
+  const groups=[];
+  for(let i=0;i<buggy.length;i+=4)groups.push(buggy.slice(i,i+4));
+  for(let i=0;i<walkers.length;i+=4)groups.push(walkers.slice(i,i+4));
+
+  const addTime=(s,m)=>{
+    let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let[h,mm]=t.split(":").map(Number);
+    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
+    const d=new Date();d.setHours(h);d.setMinutes(mm+m);
+    const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
+    return`${disp}:${mi}${sfx}`;
+  };
+
+  groups.forEach((g,i)=>{
+    const tee=addTime(start,i*gap);
+    const div=document.createElement("div");
+    div.className="tee-group";
+    div.dataset.time=tee;
+    div.innerHTML=`<strong>Group ${i+1}</strong> — ${tee}
+      <ul id='grp${i+1}' style='list-style:none;padding:0;margin-top:8px;'></ul>
+      <div id='pairMsg_${i+1}' style='margin-top:5px;font-weight:600;color:#005a2b;'></div>`;
+    area.appendChild(div);
+
+    const ul=div.querySelector("ul");
+    g.forEach(p=>{
+      const li=document.createElement("li");
+      li.className="player-card";
+      li.dataset.name=p.name;
+      li.dataset.phone=p.phone||"";
+      li.dataset.type=p.buggy?"buggy":"walker";
+      li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name} ${p.phone?`(${p.phone})`:""}
+        <button onclick='toggleType(this)' style='float:right;font-size:11px;padding:2px 6px;'>🔄</button>`;
+      ul.appendChild(li);
+    });
+
+    // Initialise Sortable for each group with live pair check
+    Sortable.create(ul,{
+      group:"players",
+      animation:150,
+      onEnd:()=>checkPairs(i+1)
+    });
+
+    // Check initial pairs after rendering
+    checkPairs(i+1);
+  });
+
+  alert("✅ Tee times generated. Drag players to create buggy pairs before saving.");
 }
 
-function toggleType(btn){const li=btn.closest(".player-card");const is=li.dataset.type==="buggy";li.dataset.type=is?"walker":"buggy";li.innerHTML=li.innerHTML.replace(is?"🛺":"🚶",is?"🚶":"🛺");li.appendChild(btn);}
+// Detect and label buggy pairs
+function checkPairs(groupNum){
+  const ul=document.getElementById(`grp${groupNum}`);
+  const lis=ul.querySelectorAll(".player-card");
+  const msg=document.getElementById(`pairMsg_${groupNum}`);
+  msg.textContent="";
+  let pairCount=0;
+
+  for(let i=0;i<lis.length-1;i++){
+    const a=lis[i],b=lis[i+1];
+    if(a.dataset.type==="buggy"&&b.dataset.type==="buggy"){
+      pairCount++;
+      msg.innerHTML+=`🛺 Pair ${pairCount}: ${a.dataset.name} (${a.dataset.phone||"N/A"}) & ${b.dataset.name} (${b.dataset.phone||"N/A"})<br>`;
+    }
+  }
+  if(pairCount===0)msg.textContent="No buggy pairs yet.";
+}
+
+function toggleType(btn){
+  const li=btn.closest(".player-card");
+  const is=li.dataset.type==="buggy";
+  li.dataset.type=is?"walker":"buggy";
+  li.innerHTML=li.innerHTML.replace(is?"🛺":"🚶",is?"🚶":"🛺");
+  li.appendChild(btn);
+}
 
 async function saveTeeTimes(){
-  const id=document.getElementById("teeEventSelect").value;if(!id)return;
-  const grps=document.querySelectorAll(".tee-group");const data=Array.from(grps).map((g,i)=>({event_id:id,group_number:i+1,tee_time:g.dataset.time,players:Array.from(g.querySelectorAll(".player-card")).map(li=>({name:li.dataset.name,phone:li.dataset.phone,type:li.dataset.type}))}));
+  const id=document.getElementById("teeEventSelect").value;
+  if(!id)return;
+  const grps=document.querySelectorAll(".tee-group");
+  const data=Array.from(grps).map((g,i)=>({
+    event_id:id,
+    group_number:i+1,
+    tee_time:g.dataset.time,
+    players:Array.from(g.querySelectorAll(".player-card")).map(li=>({
+      name:li.dataset.name,
+      phone:li.dataset.phone,
+      type:li.dataset.type
+    }))
+  }));
   await supabase.from("tee_times").delete().eq("event_id",id);
   await supabase.from("tee_times").insert(data);
-  alert("✅ Tee times saved.");loadTeeTimes(id);
+  alert("✅ Tee times saved.");
+  loadTeeTimes(id);
 }
 </script>
 </body>
