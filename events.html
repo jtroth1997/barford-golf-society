@@ -178,16 +178,21 @@ function showTab(tab){
 
 // ------------------- EVENT LOAD -------------------
 async function loadEvents(){
-  const {data:events}=await supabase.from("events").select("*").order("date",{ascending:true});
+  const {data:events,error}=await supabase.from("events").select("*").order("date",{ascending:true});
   const list=document.getElementById("eventList");
+  if(error){console.error(error);return list.innerHTML="<p>Error loading events.</p>";}
   if(!events?.length)return list.innerHTML="<p>No events yet.</p>";
+  
   list.innerHTML="";
-  events.forEach(ev=>{
+  for(const ev of events){
     list.innerHTML+=`
     <div class="event-card">
       ${ev.cancelled?'<div class="cancelled-banner">Cancelled</div>':""}
       <div class="event-header">
-        <div><div class="event-name">${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
+        <div>
+          <div class="event-name">${ev.name}</div>
+          <div>${ev.location} — ${ev.date}</div>
+        </div>
         <div><strong>£${ev.price||"-"}</strong></div>
       </div>
       <div class="event-description">${ev.description||""}</div>
@@ -200,9 +205,9 @@ async function loadEvents(){
       <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
       <div id="teeTimes_${ev.id}"></div>
     </div>`;
-    loadRSVPList(ev.id);
-    loadTeeTimes(ev.id);
-  });
+    
+    await loadTeeTimes(ev.id); // load tee times for each event
+  }
 }
 
 // ------------------- RSVP SYSTEM -------------------
@@ -260,14 +265,51 @@ async function loadRSVPList(eventId){
 // ------------------- TEE TIMES -------------------
 async function loadTeeTimes(eventId){
   const area=document.getElementById(`teeTimes_${eventId}`);
-  const {data}=await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
-  if(!data?.length)return;
-  let html="<h4>⛳ Tee Times</h4>";
-  data.forEach(g=>{
-    html+=`<div><strong>Group ${g.group_number} — ${g.tee_time}</strong><br>`;
-    g.players.forEach(p=>{html+=`${p.type==="buggy"?"🛺":"🚶"} ${p.name} ${p.phone?"("+p.phone+")":""}<br>`});
+  const rsvpList=document.getElementById(`rsvpList_${eventId}`);
+  const {data,error}=await supabase
+    .from("tee_times")
+    .select("*")
+    .eq("event_id",eventId)
+    .order("group_number",{ascending:true});
+
+  if(error){console.error(error);return;}
+
+  // If no tee times exist yet, show RSVP list
+  if(!data?.length){
+    loadRSVPList(eventId);
+    return;
+  }
+
+  // Hide RSVP list and show final tee times
+  rsvpList.innerHTML="";
+  let html="<h4>⛳ Final Tee Times</h4>";
+
+  data.forEach(group=>{
+    html+=`<div style="margin-bottom:12px;padding:10px;background:#f9f9f9;border-radius:8px;">
+      <strong>Group ${group.group_number}</strong> — ${group.tee_time}<br>`;
+
+    // Buggy players (pair display)
+    const buggyPlayers=group.players.filter(p=>p.type==="buggy");
+    const walkers=group.players.filter(p=>p.type==="walker");
+
+    for(let i=0;i<buggyPlayers.length;i+=2){
+      const p1=buggyPlayers[i];
+      const p2=buggyPlayers[i+1];
+      if(p2){
+        html+=`🛺 <strong>Pair:</strong> ${p1.name} (${p1.phone||"N/A"}) & ${p2.name} (${p2.phone||"N/A"}) ✅<br>`;
+      }else{
+        html+=`🛺 ${p1.name} (${p1.phone||"N/A"}) — <em>No partner assigned</em><br>`;
+      }
+    }
+
+    // Walkers list
+    if(walkers.length){
+      html+=`<div style="margin-top:6px;">🚶 <strong>Walkers:</strong> ${walkers.map(w=>w.name).join(", ")}</div>`;
+    }
+
     html+="</div>";
   });
+
   area.innerHTML=html;
 }
 
