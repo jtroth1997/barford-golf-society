@@ -345,7 +345,7 @@ async function uncancelEvent(){
   }
 }
 
-// ------------------- TEE TIME GENERATOR (MANUAL PAIRS) -------------------
+// ------------------- TEE TIME GENERATOR (MANUAL BOX PAIRING) -------------------
 async function loadAdminPlayers(eventId){
   const pool=document.getElementById("playerPool");
   const {data}=await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
@@ -354,94 +354,109 @@ async function loadAdminPlayers(eventId){
   pool.innerHTML=`<strong>${data.length} Players</strong> <button onclick='generateTeeGroups(${eventId})'>⚙️ Generate</button>`;
 }
 
-document.getElementById("teeEventSelect").onchange=()=>{const id=document.getElementById("teeEventSelect").value;if(id)loadAdminPlayers(id);};
+document.getElementById("teeEventSelect").onchange=()=>{
+  const id=document.getElementById("teeEventSelect").value;
+  if(id)loadAdminPlayers(id);
+};
 
 function generateTeeGroups(eventId){
   const area=document.getElementById("teeGroups");
   area.innerHTML="";
   const start=document.getElementById("startTime").value.trim();
   const gap=parseInt(document.getElementById("gapMins").value)||7;
-  const all=window.currentPlayers||[];
-  if(!all.length)return alert("No players");
+  const players=window.currentPlayers||[];
+  if(!players.length)return alert("No players");
 
-  let buggy=all.filter(r=>r.buggy);
-  let walkers=all.filter(r=>!r.buggy);
-  if(buggy.length%2!==0){
-    const flex=buggy.find(r=>(r.flexibility||"").includes("happy"));
-    if(flex){walkers.push(flex);buggy=buggy.filter(b=>b.name!==flex.name);}
-  }
-
-  const shuffle=a=>a.sort(()=>Math.random()-0.5);
-  buggy=shuffle(buggy);walkers=shuffle(walkers);
-  const groups=[];
-  for(let i=0;i<buggy.length;i+=4)groups.push(buggy.slice(i,i+4));
-  for(let i=0;i<walkers.length;i+=4)groups.push(walkers.slice(i,i+4));
+  const buggy=players.filter(p=>p.buggy);
+  const walkers=players.filter(p=>!p.buggy);
 
   const addTime=(s,m)=>{
     let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);
     let[h,mm]=t.split(":").map(Number);
-    if(a==="pm"&&h<12)h+=12;
-    if(a==="am"&&h===12)h=0;
+    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
     const d=new Date();d.setHours(h);d.setMinutes(mm+m);
     const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";
-    const disp=((hr+11)%12)+1;
+    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
     return`${disp}:${mi}${sfx}`;
   };
 
-  groups.forEach((g,i)=>{
-    const tee=addTime(start,i*gap);
-    const div=document.createElement("div");
-    div.className="tee-group";
-    div.dataset.time=tee;
-    div.innerHTML=`<strong>Group ${i+1}</strong> — ${tee}
-      <ul id='grp${i+1}' style='list-style:none;padding:0;margin-top:8px;'></ul>
-      <div id='pairMsg_${i+1}' style='margin-top:8px;font-weight:600;color:#005a2b;'></div>`;
-    area.appendChild(div);
+  const totalGroups=Math.ceil(players.length/4);
+  for(let g=0;g<totalGroups;g++){
+    const tee=addTime(start,g*gap);
+    const groupDiv=document.createElement("div");
+    groupDiv.className="tee-group";
+    groupDiv.dataset.time=tee;
 
-    const ul=div.querySelector("ul");
-    g.forEach(p=>{
-      const li=document.createElement("li");
-      li.className="player-card";
-      li.dataset.name=p.name;
-      li.dataset.phone=p.phone||"";
-      li.dataset.type=p.buggy?"buggy":"walker";
-      li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name} ${p.phone?`(${p.phone})`:""}
-        <button onclick='toggleType(this)' style='float:right;font-size:11px;padding:2px 6px;'>🔄</button>`;
-      ul.appendChild(li);
-    });
+    // Group header
+    groupDiv.innerHTML=`<strong>Group ${g+1}</strong> — ${tee}
+      <div class="pair-container" id="pairs_${g+1}">
+        <div class="pair-box" id="pair_${g+1}_1"><h4>🛺 Buggy Pair 1</h4><div class="pair-slot"></div></div>
+        <div class="pair-box" id="pair_${g+1}_2"><h4>🛺 Buggy Pair 2</h4><div class="pair-slot"></div></div>
+      </div>
+      <div class="walkers-box" id="walkers_${g+1}"><h4>🚶 Walkers</h4><div class="walker-slot"></div></div>`;
 
-    // Make group sortable and pair-detecting
-    Sortable.create(ul,{
+    area.appendChild(groupDiv);
+  }
+
+  // Fill a draggable pool
+  const poolDiv=document.createElement("div");
+  poolDiv.className="tee-group";
+  poolDiv.innerHTML="<h4>Available Players</h4><ul id='playerPoolList' style='list-style:none;padding:0;'></ul>";
+  area.prepend(poolDiv);
+
+  const ul=poolDiv.querySelector("ul");
+  players.forEach(p=>{
+    const li=document.createElement("li");
+    li.className="player-card";
+    li.dataset.name=p.name;
+    li.dataset.phone=p.phone||"";
+    li.dataset.type=p.buggy?"buggy":"walker";
+    li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name} ${p.phone?`(${p.phone})`:""}
+      <button onclick='toggleType(this)' style='float:right;font-size:11px;padding:2px 6px;'>🔄</button>`;
+    ul.appendChild(li);
+  });
+
+  // Make everything draggable
+  enableDragDrop();
+  alert("✅ Groups generated. Drag buggy players into pairs and walkers into their section.");
+}
+
+function enableDragDrop(){
+  // Player pool
+  Sortable.create(document.getElementById("playerPoolList"),{
+    group:"players",
+    animation:150
+  });
+
+  // Pair boxes
+  document.querySelectorAll(".pair-slot").forEach(slot=>{
+    Sortable.create(slot,{
       group:"players",
       animation:150,
-      onEnd:()=>updatePairs(i+1)
+      onEnd:checkPairStatus
     });
   });
 
-  alert("✅ Tee times generated. Drag buggy players together to form pairs.");
+  // Walkers
+  document.querySelectorAll(".walker-slot").forEach(slot=>{
+    Sortable.create(slot,{
+      group:"players",
+      animation:150
+    });
+  });
 }
 
-// Update pairs when players are moved
-function updatePairs(groupNum){
-  const ul=document.getElementById(`grp${groupNum}`);
-  const lis=ul.querySelectorAll(".player-card");
-  const msg=document.getElementById(`pairMsg_${groupNum}`);
-  msg.innerHTML="";
-  let pairCounter=0;
-
-  for(let i=0;i<lis.length-1;i++){
-    const a=lis[i],b=lis[i+1];
-    if(a.dataset.type==="buggy" && b.dataset.type==="buggy"){
-      pairCounter++;
-      const p1Name=a.dataset.name, p2Name=b.dataset.name;
-      const p1Phone=a.dataset.phone||"N/A", p2Phone=b.dataset.phone||"N/A";
-      const pairLine=`🛺 Pair ${pairCounter}: ${p1Name} (${p1Phone}) & ${p2Name} (${p2Phone})<br>`;
-      msg.innerHTML+=pairLine;
+// Check each pair box and show "Pair Created"
+function checkPairStatus(){
+  document.querySelectorAll(".pair-box").forEach(box=>{
+    const players=box.querySelectorAll(".player-card");
+    if(players.length===2){
+      const names=[...players].map(p=>`${p.dataset.name} (${p.dataset.phone||"N/A"})`).join(" & ");
+      box.querySelector("h4").innerHTML=`🛺 Pair Created ✅<br><small>${names}</small>`;
+    } else {
+      box.querySelector("h4").innerHTML=`🛺 Buggy Pair`;
     }
-  }
-
-  if(pairCounter===0) msg.textContent="No buggy pairs yet.";
+  });
 }
 
 function toggleType(btn){
@@ -455,17 +470,24 @@ function toggleType(btn){
 async function saveTeeTimes(){
   const id=document.getElementById("teeEventSelect").value;
   if(!id)return;
-  const grps=document.querySelectorAll(".tee-group");
-  const data=Array.from(grps).map((g,i)=>({
-    event_id:id,
-    group_number:i+1,
-    tee_time:g.dataset.time,
-    players:Array.from(g.querySelectorAll(".player-card")).map(li=>({
+  const groups=document.querySelectorAll(".tee-group[data-time]");
+  const data=Array.from(groups).map((g,i)=>{
+    const allPlayers=[
+      ...g.querySelectorAll(".pair-slot .player-card"),
+      ...g.querySelectorAll(".walker-slot .player-card")
+    ].map(li=>({
       name:li.dataset.name,
       phone:li.dataset.phone,
       type:li.dataset.type
-    }))
-  }));
+    }));
+    return{
+      event_id:id,
+      group_number:i+1,
+      tee_time:g.dataset.time,
+      players:allPlayers
+    };
+  });
+
   await supabase.from("tee_times").delete().eq("event_id",id);
   await supabase.from("tee_times").insert(data);
   alert("✅ Tee times saved.");
