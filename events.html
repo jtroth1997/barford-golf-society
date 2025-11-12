@@ -345,7 +345,7 @@ async function uncancelEvent(){
   }
 }
 
-// ------------------- TEE TIME GEN -------------------
+// ------------------- TEE TIME GENERATOR (MANUAL PAIRS) -------------------
 async function loadAdminPlayers(eventId){
   const pool=document.getElementById("playerPool");
   const {data}=await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
@@ -357,19 +357,22 @@ async function loadAdminPlayers(eventId){
 document.getElementById("teeEventSelect").onchange=()=>{const id=document.getElementById("teeEventSelect").value;if(id)loadAdminPlayers(id);};
 
 function generateTeeGroups(eventId){
-  const area=document.getElementById("teeGroups");area.innerHTML="";
+  const area=document.getElementById("teeGroups");
+  area.innerHTML="";
   const start=document.getElementById("startTime").value.trim();
   const gap=parseInt(document.getElementById("gapMins").value)||7;
   const all=window.currentPlayers||[];
   if(!all.length)return alert("No players");
 
-  let buggy=all.filter(r=>r.buggy),walkers=all.filter(r=>!r.buggy);
+  let buggy=all.filter(r=>r.buggy);
+  let walkers=all.filter(r=>!r.buggy);
   if(buggy.length%2!==0){
     const flex=buggy.find(r=>(r.flexibility||"").includes("happy"));
     if(flex){walkers.push(flex);buggy=buggy.filter(b=>b.name!==flex.name);}
   }
 
-  const sh=a=>a.sort(()=>Math.random()-0.5);buggy=sh(buggy);walkers=sh(walkers);
+  const shuffle=a=>a.sort(()=>Math.random()-0.5);
+  buggy=shuffle(buggy);walkers=shuffle(walkers);
   const groups=[];
   for(let i=0;i<buggy.length;i+=4)groups.push(buggy.slice(i,i+4));
   for(let i=0;i<walkers.length;i+=4)groups.push(walkers.slice(i,i+4));
@@ -377,10 +380,12 @@ function generateTeeGroups(eventId){
   const addTime=(s,m)=>{
     let[t,a]=s.toLowerCase().split(/(am|pm)/).filter(Boolean);
     let[h,mm]=t.split(":").map(Number);
-    if(a==="pm"&&h<12)h+=12;if(a==="am"&&h===12)h=0;
+    if(a==="pm"&&h<12)h+=12;
+    if(a==="am"&&h===12)h=0;
     const d=new Date();d.setHours(h);d.setMinutes(mm+m);
     const hr=d.getHours();const mi=String(d.getMinutes()).padStart(2,"0");
-    const sfx=hr>=12?"pm":"am";const disp=((hr+11)%12)+1;
+    const sfx=hr>=12?"pm":"am";
+    const disp=((hr+11)%12)+1;
     return`${disp}:${mi}${sfx}`;
   };
 
@@ -391,7 +396,7 @@ function generateTeeGroups(eventId){
     div.dataset.time=tee;
     div.innerHTML=`<strong>Group ${i+1}</strong> — ${tee}
       <ul id='grp${i+1}' style='list-style:none;padding:0;margin-top:8px;'></ul>
-      <div id='pairMsg_${i+1}' style='margin-top:5px;font-weight:600;color:#005a2b;'></div>`;
+      <div id='pairMsg_${i+1}' style='margin-top:8px;font-weight:600;color:#005a2b;'></div>`;
     area.appendChild(div);
 
     const ul=div.querySelector("ul");
@@ -406,43 +411,44 @@ function generateTeeGroups(eventId){
       ul.appendChild(li);
     });
 
-    // Initialise Sortable for each group with live pair check
+    // Make group sortable and pair-detecting
     Sortable.create(ul,{
       group:"players",
       animation:150,
-      onEnd:()=>checkPairs(i+1)
+      onEnd:()=>updatePairs(i+1)
     });
-
-    // Check initial pairs after rendering
-    checkPairs(i+1);
   });
 
-  alert("✅ Tee times generated. Drag players to create buggy pairs before saving.");
+  alert("✅ Tee times generated. Drag buggy players together to form pairs.");
 }
 
-// Detect and label buggy pairs
-function checkPairs(groupNum){
+// Update pairs when players are moved
+function updatePairs(groupNum){
   const ul=document.getElementById(`grp${groupNum}`);
   const lis=ul.querySelectorAll(".player-card");
   const msg=document.getElementById(`pairMsg_${groupNum}`);
-  msg.textContent="";
-  let pairCount=0;
+  msg.innerHTML="";
+  let pairCounter=0;
 
   for(let i=0;i<lis.length-1;i++){
     const a=lis[i],b=lis[i+1];
-    if(a.dataset.type==="buggy"&&b.dataset.type==="buggy"){
-      pairCount++;
-      msg.innerHTML+=`🛺 Pair ${pairCount}: ${a.dataset.name} (${a.dataset.phone||"N/A"}) & ${b.dataset.name} (${b.dataset.phone||"N/A"})<br>`;
+    if(a.dataset.type==="buggy" && b.dataset.type==="buggy"){
+      pairCounter++;
+      const p1Name=a.dataset.name, p2Name=b.dataset.name;
+      const p1Phone=a.dataset.phone||"N/A", p2Phone=b.dataset.phone||"N/A";
+      const pairLine=`🛺 Pair ${pairCounter}: ${p1Name} (${p1Phone}) & ${p2Name} (${p2Phone})<br>`;
+      msg.innerHTML+=pairLine;
     }
   }
-  if(pairCount===0)msg.textContent="No buggy pairs yet.";
+
+  if(pairCounter===0) msg.textContent="No buggy pairs yet.";
 }
 
 function toggleType(btn){
   const li=btn.closest(".player-card");
-  const is=li.dataset.type==="buggy";
-  li.dataset.type=is?"walker":"buggy";
-  li.innerHTML=li.innerHTML.replace(is?"🛺":"🚶",is?"🚶":"🛺");
+  const isBuggy=li.dataset.type==="buggy";
+  li.dataset.type=isBuggy?"walker":"buggy";
+  li.innerHTML=li.innerHTML.replace(isBuggy?"🛺":"🚶",isBuggy?"🚶":"🛺");
   li.appendChild(btn);
 }
 
