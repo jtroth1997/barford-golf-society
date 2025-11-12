@@ -345,7 +345,7 @@ async function uncancelEvent(){
   }
 }
 
-// ------------------- TEE TIME GENERATOR (MANUAL PAIRING INSIDE GROUPS) -------------------
+// ------------------- TEE TIME GENERATOR (FULL MANUAL PAIRING) -------------------
 async function loadAdminPlayers(eventId){
   const pool=document.getElementById("playerPool");
   const {data}=await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
@@ -358,6 +358,8 @@ document.getElementById("teeEventSelect").onchange=()=>{
   const id=document.getElementById("teeEventSelect").value;
   if(id)loadAdminPlayers(id);
 };
+
+let currentPairSelection = []; // store selected players for pairing
 
 function generateTeeGroups(eventId){
   const area=document.getElementById("teeGroups");
@@ -392,7 +394,7 @@ function generateTeeGroups(eventId){
     return`${disp}:${mi}${sfx}`;
   };
 
-  // Build group containers
+  // Build groups
   groups.forEach((group,i)=>{
     const tee=addTime(start,i*gap);
     const div=document.createElement("div");
@@ -410,38 +412,19 @@ function generateTeeGroups(eventId){
       li.dataset.name=p.name;
       li.dataset.phone=p.phone||"";
       li.dataset.type=p.buggy?"buggy":"walker";
+      li.dataset.group=i+1;
       li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name} ${p.phone?`(${p.phone})`:""}
-        <button onclick='toggleType(this)' style='float:right;font-size:11px;padding:2px 6px;'>🔄</button>`;
+        <div style="float:right;">
+          <button onclick='toggleType(this)' style='font-size:11px;padding:2px 6px;'>🔄</button>
+          <button onclick='selectForPair(this)' style='font-size:11px;padding:2px 6px;'>➕</button>
+        </div>`;
       ul.appendChild(li);
     });
 
-    Sortable.create(ul,{
-      group:"players",
-      animation:150,
-      onEnd:()=>updatePairs(i+1)
-    });
+    Sortable.create(ul,{ group:"players", animation:150 });
   });
 
-  alert("✅ Tee times generated! Drag buggy players together to form pairs.");
-}
-
-// Detect when two buggy players are side by side
-function updatePairs(groupNum){
-  const ul=document.getElementById(`grp${groupNum}`);
-  const lis=ul.querySelectorAll(".player-card");
-  const msg=document.getElementById(`pairInfo_${groupNum}`);
-  msg.innerHTML="";
-  let pairCount=0;
-
-  for(let i=0;i<lis.length-1;i++){
-    const a=lis[i],b=lis[i+1];
-    if(a.dataset.type==="buggy" && b.dataset.type==="buggy"){
-      pairCount++;
-      msg.innerHTML+=`🛺 Pair ${pairCount}: ${a.dataset.name} (${a.dataset.phone||"N/A"}) & ${b.dataset.name} (${b.dataset.phone||"N/A"}) ✅<br>`;
-    }
-  }
-
-  if(pairCount===0) msg.textContent="No buggy pairs yet.";
+  alert("✅ Tee times generated! Click '➕' on two buggy players to create a pair.");
 }
 
 function toggleType(btn){
@@ -449,7 +432,38 @@ function toggleType(btn){
   const isBuggy=li.dataset.type==="buggy";
   li.dataset.type=isBuggy?"walker":"buggy";
   li.innerHTML=li.innerHTML.replace(isBuggy?"🛺":"🚶",isBuggy?"🚶":"🛺");
-  li.appendChild(btn);
+  li.appendChild(btn.parentElement);
+}
+
+function selectForPair(btn){
+  const li=btn.closest(".player-card");
+  const groupNum=li.dataset.group;
+
+  if(li.dataset.type!=="buggy") return alert("Only buggy players can form pairs.");
+
+  // highlight selection
+  li.style.border="2px solid #005a2b";
+
+  currentPairSelection.push({ name: li.dataset.name, phone: li.dataset.phone, group: groupNum, element: li });
+
+  if(currentPairSelection.length===2){
+    const [p1,p2]=currentPairSelection;
+    if(p1.group!==p2.group){
+      alert("Both players must be in the same group to pair.");
+      currentPairSelection.forEach(p=>p.element.style.border="1px solid #ddd");
+      currentPairSelection=[];
+      return;
+    }
+
+    const msg=document.getElementById(`pairInfo_${groupNum}`);
+    msg.innerHTML+=`🛺 Pair: ${p1.name} (${p1.phone||"N/A"}) & ${p2.name} (${p2.phone||"N/A"}) ✅<br>`;
+    p1.element.style.background="#e4ffe4";
+    p2.element.style.background="#e4ffe4";
+    p1.element.style.border="1px solid #ddd";
+    p2.element.style.border="1px solid #ddd";
+
+    currentPairSelection=[];
+  }
 }
 
 async function saveTeeTimes(){
