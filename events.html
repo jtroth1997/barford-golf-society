@@ -4,130 +4,54 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Barford Golf Society | Events</title>
-<link rel="icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  margin: 0;
-  padding: 0;
-  color: #222;
+:root {
+  --green:#005a2b;
+  --gold:#d4af37;
+  --light-bg:#f7f7f5;
 }
-header {
-  background: #004d25;
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-size: 1.5rem;
+body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
+header,footer{background:var(--green);color:#fff;text-align:center;padding:15px 0;}
+.container{max-width:1000px;margin:30px auto;padding:0 20px;}
+.admin-btn{background:var(--gold);color:#000;border:none;padding:8px 15px;border-radius:8px;font-weight:600;cursor:pointer;}
+.admin-btn:hover{background:#e0c35a;}
+.hidden{display:none;}
+.admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:25px;}
+.event-card{background:#fff;padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);position:relative;overflow:hidden;}
+.event-name{color:var(--green);font-size:1.4rem;font-weight:700;}
+.cancel-banner{
+  position:absolute;
+  top:40%;
+  left:-20%;
+  width:140%;
+  background:rgba(200,0,0,0.85);
+  color:#fff;
+  font-weight:800;
+  font-size:2rem;
+  text-align:center;
+  transform:rotate(-15deg);
+  z-index:2;
+  padding:10px 0;
 }
-footer {
-  background: #004d25;
-  color: white;
-  text-align: center;
-  padding: 10px;
-}
-.container {
-  max-width: 1000px;
-  margin: 20px auto;
-  padding: 10px;
-}
-.event-card {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
-}
-.event-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.event-name {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #004d25;
-}
-.cancel-banner {
-  position: absolute;
-  top: 40%;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  background: rgba(200, 0, 0, 0.85);
-  color: white;
-  font-weight: 800;
-  font-size: 1.8rem;
-  padding: 10px 0;
-  transform: rotate(-10deg);
-  z-index: 5;
-  letter-spacing: 2px;
-}
-.hidden { display: none; }
-.admin-panel {
-  background: #e6f2ea;
-  border: 2px solid #004d25;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-.admin-btn {
-  background: #004d25;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  margin-right: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-.admin-btn:hover { background: #007a3d; }
-.rsvp-form {
-  background: #f0f0f0;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-input, select, textarea {
-  padding: 6px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  width: 100%;
-  margin-bottom: 8px;
-}
-.tee-group {
-  background: #fefefe;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 8px;
-}
-.player-card {
-  padding: 6px;
-  margin: 3px 0;
-  background: #e8f5e9;
-  border-radius: 5px;
-  cursor: grab;
-}
-.pair-msg {
-  color: #007a3d;
-  font-weight: bold;
-  margin-top: 6px;
-}
+.rsvp-form{background:#f5f5f5;border-radius:10px;padding:15px;margin-top:10px;}
+.rsvp-form input,.rsvp-form select{width:100%;margin:5px 0;padding:8px;border:1px solid #ccc;border-radius:5px;}
+.rsvp-form button{background:var(--green);color:#fff;padding:8px 15px;border:none;border-radius:6px;cursor:pointer;}
+.rsvp-form button:hover{background:#007a3d;}
 </style>
 </head>
 <body>
 <header>Barford Golf Society Events</header>
 
 <div class="container">
-  <div style="text-align:center; margin-bottom:10px;">
+  <div style="text-align:center;margin-bottom:20px;">
     <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
   </div>
 
   <div id="adminPanel" class="admin-panel hidden">
-    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
+    <div style="text-align:center;margin-bottom:10px;">
       <button class="admin-btn" onclick="showCreateForm()">Create Event</button>
       <button class="admin-btn" onclick="showDeleteForm()">Delete Event</button>
       <button class="admin-btn" onclick="showCancelForm()">Cancel/Uncancel Event</button>
@@ -163,138 +87,163 @@ input, select, textarea {
 
 <footer>© 2025 Barford Golf Society</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const ADMIN_PASSWORD = "westbrom1997";
+const ADMIN_PASSWORD = "barfordadmin";
 
 const { createClient } = window.supabase;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Admin Access Toggle
-function toggleAdminAccess() {
-  const panel = document.getElementById("adminPanel");
-  const btn = document.getElementById("adminToggle");
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
-  if (!isAdmin) {
-    const pass = prompt("Enter admin password:");
-    if (pass === ADMIN_PASSWORD) {
-      localStorage.setItem("isAdmin", "true");
+window.onload = () => { loadEvents(); if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");}};
+
+// ---------------- ADMIN ACCESS ----------------
+function toggleAdminAccess(){
+  const panel=document.getElementById("adminPanel");
+  const isAdmin=localStorage.getItem("isAdmin")==="true";
+  if(!isAdmin){
+    const pass=prompt("Enter admin password:");
+    if(pass===ADMIN_PASSWORD){
+      localStorage.setItem("isAdmin","true");
       panel.classList.remove("hidden");
-      btn.textContent = "⬅️ Back to Events";
       loadDropdowns();
+      alert("✅ Admin access granted");
     } else alert("❌ Incorrect password");
   } else {
     localStorage.removeItem("isAdmin");
     panel.classList.add("hidden");
-    btn.textContent = "🔐 Admin Access";
   }
 }
 
-function showCreateForm() {
-  hideAll();
-  document.getElementById("createForm").classList.remove("hidden");
-}
-function showDeleteForm() {
-  hideAll();
-  document.getElementById("deleteForm").classList.remove("hidden");
-}
-function showCancelForm() {
-  hideAll();
-  document.getElementById("cancelForm").classList.remove("hidden");
-}
-function hideAll() {
-  ["createForm", "deleteForm", "cancelForm"].forEach(id => 
-    document.getElementById(id).classList.add("hidden")
-  );
-}
+function showCreateForm(){hideAll();document.getElementById("createForm").classList.remove("hidden");}
+function showDeleteForm(){hideAll();document.getElementById("deleteForm").classList.remove("hidden");}
+function showCancelForm(){hideAll();document.getElementById("cancelForm").classList.remove("hidden");}
+function hideAll(){["createForm","deleteForm","cancelForm"].forEach(id=>document.getElementById(id).classList.add("hidden"));}
 
-// Load Dropdown Options
-async function loadDropdowns() {
-  const { data } = await supabase.from("events").select("id,name,cancelled").order("date",{ascending:true});
-  const del = document.getElementById("deleteSelect");
-  const cancel = document.getElementById("cancelSelect");
-  del.innerHTML = cancel.innerHTML = "";
-  data.forEach(ev => {
-    del.innerHTML += `<option value="${ev.id}">${ev.name}</option>`;
-    cancel.innerHTML += `<option value="${ev.id}" data-cancelled="${ev.cancelled}">${ev.name} (${ev.cancelled?"Cancelled":"Active"})</option>`;
+async function loadDropdowns(){
+  const {data}=await supabase.from("events").select("id,name,cancelled").order("date",{ascending:true});
+  const del=document.getElementById("deleteSelect");
+  const cancel=document.getElementById("cancelSelect");
+  del.innerHTML=cancel.innerHTML="";
+  data.forEach(e=>{
+    del.innerHTML+=`<option value="${e.id}">${e.name}</option>`;
+    cancel.innerHTML+=`<option value="${e.id}" data-cancelled="${e.cancelled}">${e.name} (${e.cancelled?"Cancelled":"Active"})</option>`;
   });
 }
 
-// Create Event
-async function createEvent() {
-  const n = document.getElementById("newName").value.trim();
-  if (!n) return alert("Enter event name!");
-  const data = {
-    name: n,
-    location: document.getElementById("newLocation").value.trim(),
-    date: document.getElementById("newDate").value,
-    price: document.getElementById("newPrice").value,
-    description: document.getElementById("newDesc").value.trim(),
-    course_link: document.getElementById("newCourse").value.trim(),
-    weather_link: document.getElementById("newWeather").value.trim(),
-    cancelled: false
+// ---------------- CREATE EVENT ----------------
+async function createEvent(){
+  const name=document.getElementById("newName").value.trim();
+  if(!name)return alert("Enter name");
+  const data={
+    name,
+    location:document.getElementById("newLocation").value.trim(),
+    date:document.getElementById("newDate").value,
+    price:document.getElementById("newPrice").value,
+    description:document.getElementById("newDesc").value.trim(),
+    course_link:document.getElementById("newCourse").value.trim(),
+    weather_link:document.getElementById("newWeather").value.trim(),
+    cancelled:false
   };
-  const { error } = await supabase.from("events").insert([data]);
-  if (error) return alert("❌ Error creating event.");
-  alert("✅ Event created!");
-  loadEvents();
-  loadDropdowns();
+  const {error}=await supabase.from("events").insert([data]);
+  if(error)alert("❌ Error creating event");
+  else{alert("✅ Event created");loadEvents();loadDropdowns();}
 }
 
-// Delete Event
-async function deleteEvent() {
-  const id = document.getElementById("deleteSelect").value;
-  if (!id) return alert("Select event");
-  const pass = prompt("Confirm admin password:");
-  if (pass !== ADMIN_PASSWORD) return alert("❌ Incorrect password");
-  await supabase.from("events").delete().eq("id", id);
+// ---------------- DELETE EVENT ----------------
+async function deleteEvent(){
+  const id=document.getElementById("deleteSelect").value;
+  const pass=prompt("Confirm admin password:");
+  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
+  await supabase.from("events").delete().eq("id",id);
   alert("🗑️ Event deleted");
-  loadEvents();
-  loadDropdowns();
+  loadEvents();loadDropdowns();
 }
 
-// Cancel / Uncancel Event
-async function cancelOrUncancel() {
-  const sel = document.getElementById("cancelSelect");
-  const id = sel.value;
-  const current = sel.options[sel.selectedIndex].dataset.cancelled === "true";
-  const pass = prompt("Enter admin password:");
-  if (pass !== ADMIN_PASSWORD) return alert("❌ Incorrect password");
-  const { error } = await supabase.from("events").update({ cancelled: !current }).eq("id", id);
-  if (error) alert("❌ Error updating event");
-  else {
-    alert(!current ? "🚫 Event cancelled!" : "✅ Event restored!");
-    loadEvents();
-    loadDropdowns();
+// ---------------- CANCEL EVENT ----------------
+async function cancelOrUncancel(){
+  const sel=document.getElementById("cancelSelect");
+  const id=sel.value;
+  const cancelled=sel.options[sel.selectedIndex].dataset.cancelled==="true";
+  const pass=prompt("Enter admin password:");
+  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
+  const {error}=await supabase.from("events").update({cancelled:!cancelled}).eq("id",id);
+  if(error)alert("❌ Error");
+  else{
+    alert(!cancelled?"🚫 Event Cancelled!":"✅ Event Restored!");
+    loadEvents();loadDropdowns();
   }
 }
 
-// Load Events
-async function loadEvents() {
-  const { data, error } = await supabase.from("events").select("*").order("date",{ascending:true});
-  const list = document.getElementById("eventList");
-  if (error) return list.innerHTML = "<p>Error loading events</p>";
-  if (!data?.length) return list.innerHTML = "<p>No events yet</p>";
-  list.innerHTML = "";
-  data.forEach(ev => {
-    const banner = ev.cancelled ? `<div class="cancel-banner">🚫 EVENT CANCELLED</div>` : "";
-    list.innerHTML += `
-      <div class="event-card">
-        ${banner}
-        <div class="event-header">
-          <div><div class="event-name">${ev.name}</div><div>${ev.location} — ${ev.date}</div></div>
-          <div><strong>£${ev.price||""}</strong></div>
-        </div>
-        ${ev.description?`<p>${ev.description}</p>`:""}
-        ${ev.course_link?`<a href="${ev.course_link}" target="_blank">Course Info</a><br>`:""}
-        ${ev.weather_link?`<a href="${ev.weather_link}" target="_blank">Weather</a>`:""}
-      </div>`;
+// ---------------- LOAD EVENTS ----------------
+async function loadEvents(){
+  const {data,error}=await supabase.from("events").select("*").order("date",{ascending:true});
+  const list=document.getElementById("eventList");
+  if(error)return list.innerHTML="<p>Error loading events</p>";
+  if(!data?.length)return list.innerHTML="<p>No events yet</p>";
+  list.innerHTML="";
+  data.forEach(ev=>{
+    const banner=ev.cancelled?`<div class='cancel-banner'>🚫 EVENT CANCELLED</div>`:"";
+    list.innerHTML+=`
+    <div class="event-card">
+      ${banner}
+      <div class="event-name">${ev.name}</div>
+      <div>${ev.location} — ${ev.date} — £${ev.price||"-"}</div>
+      ${ev.description?`<p>${ev.description}</p>`:""}
+      ${ev.course_link?`<a href="${ev.course_link}" target="_blank">Course Info</a><br>`:""}
+      ${ev.weather_link?`<a href="${ev.weather_link}" target="_blank">Weather</a>`:""}
+      ${!ev.cancelled?`<button class="admin-btn" onclick="toggleRSVP(${ev.id})">📝 RSVP</button>
+      <div id="rsvpForm_${ev.id}" class="hidden"></div>`:""}
+    </div>`;
   });
 }
-loadEvents();
+
+// ---------------- RSVP FORM ----------------
+function toggleRSVP(eventId){
+  const form=document.getElementById(`rsvpForm_${eventId}`);
+  form.classList.toggle("hidden");
+  if(!form.classList.contains("hidden"))form.innerHTML=`
+  <form class='rsvp-form' onsubmit='submitRSVP(event,${eventId})'>
+    <input id='name_${eventId}' placeholder='Name*' required>
+    <select id='playing_${eventId}' required>
+      <option value=''>Playing?</option>
+      <option value='yes'>Yes</option>
+      <option value='no'>No</option>
+    </select>
+    <select id='buggy_${eventId}' onchange='toggleBuggy(${eventId})' required>
+      <option value=''>Need buggy?</option>
+      <option value='yes'>Yes</option>
+      <option value='no'>No</option>
+    </select>
+    <div id='buggyExtra_${eventId}' class='hidden'>
+      <select id='flex_${eventId}'>
+        <option value='need'>I need a buggy</option>
+        <option value='happy'>Happy to walk if odd</option>
+      </select>
+      <input id='phone_${eventId}' placeholder='Phone number'>
+    </div>
+    <button>Submit RSVP</button>
+    <div id='msg_${eventId}'></div>
+  </form>`;
+}
+
+function toggleBuggy(eventId){
+  const val=document.getElementById(`buggy_${eventId}`).value;
+  document.getElementById(`buggyExtra_${eventId}`).classList.toggle("hidden",val!=="yes");
+}
+
+async function submitRSVP(e,eventId){
+  e.preventDefault();
+  const name=document.getElementById(`name_${eventId}`).value.trim();
+  const playing=document.getElementById(`playing_${eventId}`).value;
+  const buggy=document.getElementById(`buggy_${eventId}`).value==="yes";
+  const flex=buggy?document.getElementById(`flex_${eventId}`).value:null;
+  const phone=buggy?document.getElementById(`phone_${eventId}`).value.trim():null;
+  const msg=document.getElementById(`msg_${eventId}`);
+  if(!name)return msg.textContent="⚠️ Enter name";
+  await supabase.from("rsvps").insert([{event_id:eventId,name,attending:playing==="yes",buggy,flexibility:flex,phone}]);
+  msg.textContent="✅ RSVP saved!";
+}
 </script>
 </body>
 </html>
