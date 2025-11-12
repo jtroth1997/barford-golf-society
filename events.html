@@ -66,7 +66,7 @@ header,footer{background:var(--green);color:#fff;text-align:center;padding:15px 
       <textarea id="newDesc" placeholder="Event Description"></textarea>
       <input id="newCourse" placeholder="Course Link">
       <input id="newWeather" placeholder="Weather Link">
-      <button class="admin-btn" onclick="createEvent()">Confirm Event</button>
+     <button class="admin-btn" onclick="window.createEvent()">Confirm Event</button>
     </div>
 
     <div id="deleteForm" class="hidden">
@@ -132,7 +132,7 @@ async function loadDropdowns(){
 }
 
 // ---------------- CREATE EVENT ----------------
-async function createEvent(){
+async function createNewEvent() {
   const name=document.getElementById("newName").value.trim();
   if(!name)return alert("Enter name");
   const data={
