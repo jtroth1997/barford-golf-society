@@ -27,16 +27,11 @@ header,footer{background:var(--green);color:#fff;padding:15px 0;}
 .event-card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);position:relative;}
 .event-card.cancelled::after{
   content:"CANCELLED";
-  position:absolute;
-  top:50%;
-  left:50%;
+  position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%) rotate(-20deg);
-  background:rgba(255,0,0,0.8);
-  color:#fff;
-  font-size:3rem;
-  font-weight:900;
-  padding:20px 60px;
-  border-radius:15px;
+  background:rgba(255,0,0,0.85);color:#fff;
+  font-size:3rem;font-weight:900;
+  padding:20px 60px;border-radius:15px;
   text-shadow:2px 2px 5px rgba(0,0,0,0.3);
 }
 .event-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
@@ -48,16 +43,18 @@ footer{text-align:center;color:var(--gold);border-top:4px solid var(--gold);marg
 .admin-btn:hover{background:#e0c35a;}
 .hidden{display:none;}
 .admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:30px;box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.admin-panel h3{color:var(--green);}
 .admin-tabs{display:flex;gap:10px;margin-bottom:20px;}
 .admin-tab{flex:1;text-align:center;padding:10px;background:var(--green);color:var(--gold);border:none;border-radius:6px;cursor:pointer;font-weight:600;}
 .admin-tab.active{background:var(--gold);color:var(--green);}
 input,select,textarea{width:100%;padding:6px;margin-bottom:10px;border:1px solid #ccc;border-radius:6px;font-family:inherit;}
-
 .rsvp-list{background:#fafafa;border:1px solid #ddd;padding:10px;border-radius:8px;margin-top:10px;}
 .player-card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:5px;margin:4px 0;cursor:move;font-size:0.95rem;position:relative;}
 .pair-tag{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--green);color:var(--gold);padding:2px 6px;border-radius:6px;font-size:0.75rem;font-weight:600;}
 .tee-group{background:#f9f9f9;padding:10px;border-radius:8px;margin-bottom:10px;}
+.tee-display{margin-top:10px;font-size:0.95rem;}
+.tee-display .group{margin-bottom:10px;}
+button[type=submit]{background:var(--green);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:600;}
+button[type=submit]:hover{background:#007a3a;}
 </style>
 </head>
 
@@ -83,7 +80,7 @@ input,select,textarea{width:100%;padding:6px;margin-bottom:10px;border:1px solid
     <div class="admin-tabs">
       <button class="admin-tab active" onclick="showAdminTab('createEvent')">Create Event</button>
       <button class="admin-tab" onclick="showAdminTab('deleteEvent')">Delete Event</button>
-      <button class="admin-tab" onclick="showAdminTab('cancelEvent')">Cancel / Un-cancel Event</button>
+      <button class="admin-tab" onclick="showAdminTab('cancelEvent')">Cancel / Un-cancel</button>
       <button class="admin-tab" onclick="showAdminTab('teeTimes')">Tee Times</button>
     </div>
 
@@ -108,7 +105,7 @@ input,select,textarea{width:100%;padding:6px;margin-bottom:10px;border:1px solid
     </div>
 
     <div id="cancelEvent" class="admin-section hidden">
-      <h3>Cancel or Un-cancel Events</h3>
+      <h3>Cancel / Un-cancel Events</h3>
       <div id="cancelList">Loading...</div>
     </div>
 
@@ -133,16 +130,14 @@ input,select,textarea{width:100%;padding:6px;margin-bottom:10px;border:1px solid
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
 <script>
-const ADMIN_PASSWORD = "westbrom1997";
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const ADMIN_PASSWORD="westbrom1997";
+const SUPABASE_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const { createClient }=window.supabase;
+const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// -------------------- PAGE LOAD --------------------
-window.onload = () => { loadEvents(); if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");loadAdminEventOptions();}};  
+window.onload=()=>{loadEvents();if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");loadAdminEventOptions();}};
 
-// -------------------- ADMIN ACCESS --------------------
 function toggleAdminAccess(){
   const panel=document.getElementById("adminPanel");
   const btn=document.getElementById("adminToggle");
@@ -150,31 +145,32 @@ function toggleAdminAccess(){
   else{const pass=prompt("Enter admin password:");if(pass===ADMIN_PASSWORD){localStorage.setItem("isAdmin","true");panel.classList.remove("hidden");btn.textContent="⬅️ Back to Events";loadAdminEventOptions();alert("✅ Admin access granted");}else alert("❌ Incorrect password");}
 }
 
-// -------------------- TAB SWITCHING --------------------
 function showAdminTab(id){
   document.querySelectorAll(".admin-tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".admin-section").forEach(s=>s.classList.add("hidden"));
   event.target.classList.add("active");
   document.getElementById(id).classList.remove("hidden");
-  if(id==="deleteEvent") loadDeleteDropdown();
-  if(id==="cancelEvent") loadCancelList();
-  if(id==="teeTimes") loadAdminEventOptions();
+  if(id==="deleteEvent")loadDeleteDropdown();
+  if(id==="cancelEvent")loadCancelList();
+  if(id==="teeTimes")loadAdminEventOptions();
 }
 
-// -------------------- CREATE EVENT --------------------
+// ---- CREATE EVENT ----
 async function createEvent(){
   const name=document.getElementById("newEventName").value.trim();
   const date=document.getElementById("newEventDate").value;
   const location=document.getElementById("newEventLocation").value.trim();
   const price=document.getElementById("newEventPrice").value.trim();
   const description=document.getElementById("newEventDescription").value.trim();
-  if(!name||!date||!location){return alert("Please fill required fields.");}
-  const {error}=await supabase.from("events").insert([{name,date,location,price,description,cancelled:false}]);
-  document.getElementById("createMsg").textContent=error?"❌ Failed to create event":"✅ Event created successfully!";
-  if(!error) loadEvents();
+  const course_link=document.getElementById("newEventCourse").value.trim();
+  const weather_link=document.getElementById("newEventWeather").value.trim();
+  if(!name||!date||!location)return alert("Please fill required fields.");
+  const {error}=await supabase.from("events").insert([{name,date,location,price,description,course_link,weather_link,cancelled:false}]);
+  document.getElementById("createMsg").textContent=error?"❌ Failed":"✅ Event created!";
+  if(!error)loadEvents();
 }
 
-// -------------------- DELETE EVENT --------------------
+// ---- DELETE EVENT ----
 async function loadDeleteDropdown(){
   const sel=document.getElementById("deleteEventSelect");
   const {data}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});
@@ -186,44 +182,123 @@ async function deleteEvent(){
   await supabase.from("tee_times").delete().eq("event_id",id);
   await supabase.from("rsvps").delete().eq("event_id",id);
   const {error}=await supabase.from("events").delete().eq("id",id);
-  document.getElementById("deleteMsg").textContent=error?"❌ Failed":"✅ Event deleted";
+  document.getElementById("deleteMsg").textContent=error?"❌ Failed":"✅ Deleted";
   loadEvents();
 }
 
-// -------------------- CANCEL / UN-CANCEL --------------------
+// ---- CANCEL / UN-CANCEL ----
 async function loadCancelList(){
   const area=document.getElementById("cancelList");
   const {data}=await supabase.from("events").select("id,name,date,cancelled").order("date",{ascending:true});
   area.innerHTML=data.map(e=>`
     <div style="margin-bottom:10px;">
       <strong>${e.name}</strong> (${e.date}) — <span style="color:${e.cancelled?'red':'green'};">${e.cancelled?'Cancelled':'Active'}</span>
-      <button class="admin-btn" onclick="toggleCancel(${e.id},${e.cancelled})">${e.cancelled?'Un-cancel':'Cancel'} Event</button>
+      <button class="admin-btn" onclick="toggleCancel(${e.id},${e.cancelled})">${e.cancelled?'Un-cancel':'Cancel'}</button>
     </div>`).join("");
 }
 async function toggleCancel(id,current){
-  const pass=prompt("Enter admin password to confirm:");
-  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
+  const pass=prompt("Enter admin password:");
+  if(pass!==ADMIN_PASSWORD)return alert("❌ Wrong password");
   await supabase.from("events").update({cancelled:!current}).eq("id",id);
-  alert(current?"✅ Event reactivated":"🚫 Event cancelled");
   loadCancelList();loadEvents();
 }
 
-// -------------------- LOAD EVENTS --------------------
+// ---- LOAD EVENTS ----
 async function loadEvents(){
   const {data:events}=await supabase.from("events").select("*").order("date",{ascending:true});
   const area=document.getElementById("eventList");
-  if(!events?.length){area.innerHTML="<p>No events found.</p>";return;}
-  area.innerHTML=events.map(e=>`
-    <div class="event-card ${e.cancelled?'cancelled':''}">
-      <div class="event-header">
-        <div><div class="event-name">${e.name}</div><div>${e.location} — ${e.date}</div></div>
-        <div><strong>Price:</strong> £${e.price||'-'}</div>
-      </div>
-      ${e.description?`<div class='event-description'>${e.description}</div>`:""}
-    </div>`).join("");
+  if(!events?.length)return area.innerHTML="<p>No events found.</p>";
+  area.innerHTML="";
+  for(const e of events){
+    area.innerHTML+=`
+      <div class="event-card ${e.cancelled?'cancelled':''}">
+        <div class="event-header">
+          <div><div class="event-name">${e.name}</div><div>${e.location} — ${e.date}</div></div>
+          <div><strong>Price:</strong> £${e.price||'-'}</div>
+        </div>
+        ${e.description?`<div class='event-description'>${e.description}</div>`:""}
+        <div class="event-links">
+          ${e.course_link?`<a href="${e.course_link}" target="_blank">Course Info</a>`:""}
+          ${e.weather_link?`<a href="${e.weather_link}" target="_blank">Weather</a>`:""}
+        </div>
+        <button class="admin-btn" id="rsvpBtn_${e.id}" onclick="showRSVPForm(${e.id})">📝 RSVP to this event</button>
+        <div id="rsvpForm_${e.id}" class="hidden"></div>
+        <div id="teeTimes_${e.id}" class="tee-display"></div>
+      </div>`;
+    loadTeeTimes(e.id);
+  }
 }
 
-// -------------------- TEE TIMES --------------------
+// ---- RSVP ----
+function showRSVPForm(id){
+  const f=document.getElementById(`rsvpForm_${id}`);
+  const b=document.getElementById(`rsvpBtn_${id}`);
+  if(!f.classList.contains("hidden")){f.classList.add("hidden");b.textContent="📝 RSVP to this event";return;}
+  f.classList.remove("hidden");b.textContent="⬆️ Hide RSVP Form";
+  f.innerHTML=`
+  <form onsubmit="submitRSVP(event,${id})" class="rsvp-list">
+    <label>Name*</label><input id="name_${id}" required>
+    <label>Playing?*</label><select id="playing_${id}" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    <label>Need a buggy?*</label><select id="buggy_${id}" onchange="handleBuggyChange(${id})" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    <div id="buggyOptions_${id}" class="hidden">
+      <label>Buggy preference</label><select id="flexibility_${id}"><option value="need">I need a buggy</option><option value="happy">Happy to walk if odd</option></select>
+      <label>Phone number*</label><input id="phone_${id}" placeholder="07123 456789">
+      <small>Your phone number will be visible to your buggy partner.</small>
+    </div>
+    <label>Preferred tee time</label><select id="pref_${id}"><option value="">No preference</option><option>First</option><option>Middle</option><option>End</option></select>
+    <button type="submit">Submit RSVP</button>
+    <div id="rsvpMsg_${id}" style="margin-top:10px;font-weight:600;"></div>
+  </form>
+  <div id="rsvpList_${id}" style="margin-top:20px;"></div>`;
+  loadRSVPList(id);
+}
+function handleBuggyChange(id){
+  const val=document.getElementById(`buggy_${id}`).value;
+  document.getElementById(`buggyOptions_${id}`).classList.toggle("hidden",val!=="yes");
+}
+async function submitRSVP(e,id){
+  e.preventDefault();
+  const name=document.getElementById(`name_${id}`).value.trim();
+  const playing=document.getElementById(`playing_${id}`).value;
+  const buggy=document.getElementById(`buggy_${id}`).value;
+  const flex=buggy==="yes"?document.getElementById(`flexibility_${id}`).value:null;
+  const phone=buggy==="yes"?document.getElementById(`phone_${id}`).value.trim():null;
+  const msg=document.getElementById(`rsvpMsg_${id}`);
+  if(!name||!playing||!buggy)return msg.textContent="⚠️ Fill required fields";
+  if(buggy==="yes"&&!phone)return msg.textContent="⚠️ Enter phone number";
+  const attending=playing==="yes";
+  await supabase.from("rsvps").insert([{event_id:id,name,attending,buggy:buggy==="yes",flexibility:flex,phone}]);
+  msg.textContent="✅ RSVP saved!";
+  loadRSVPList(id);
+}
+async function loadRSVPList(id){
+  const {data}=await supabase.from("rsvps").select("name,buggy,flexibility,attending").eq("event_id",id).eq("attending",true);
+  const div=document.getElementById(`rsvpList_${id}`);
+  if(!data?.length)return div.innerHTML="<em>No RSVPs yet.</em>";
+  div.innerHTML="<h4>Players Attending</h4>"+data.map(p=>`<div>${p.buggy?"🛺":"🚶"} ${p.name} ${p.flexibility==="happy"?"(Happy)":""}</div>`).join("");
+}
+
+// ---- PUBLIC TEE TIMES ----
+async function loadTeeTimes(id){
+  const a=document.getElementById(`teeTimes_${id}`);
+  const {data}=await supabase.from("tee_times").select("*").eq("event_id",id).order("group_number",{ascending:true});
+  if(!data?.length)return a.innerHTML="";
+  let html="<h4>⛳ Tee Times</h4>";
+  data.forEach(g=>{
+    html+=`<div class='group'><strong>Group ${g.group_number} — ${g.tee_time}</strong><br>`;
+    const buggy=g.players.filter(p=>p.type==="buggy");
+    const walkers=g.players.filter(p=>p.type==="walker");
+    for(let i=0;i<buggy.length;i+=2){
+      const p1=buggy[i],p2=buggy[i+1];
+      html+=`🛺 Pair ${(i/2)+1}: ${p1.name} (${p1.phone||""})${p2?" & "+p2.name+" ("+(p2.phone||"")+")":""}<br>`;
+    }
+    walkers.forEach(w=>html+=`🚶 ${w.name}<br>`);
+    html+="</div>";
+  });
+  a.innerHTML=html;
+}
+
+// ---- ADMIN TEETIMES ----
 async function loadAdminEventOptions(){
   const sel=document.getElementById("teeEventSelect");
   const {data}=await supabase.from("events").select("id,name,date").order("date",{ascending:true});
@@ -240,22 +315,42 @@ async function loadAdminPlayers(id){
 function generateTeeGroups(id){
   const area=document.getElementById("teeGroups");area.innerHTML="";
   const all=[...window.currentPlayers];
-  const div=document.createElement("div");const ul=document.createElement("ul");ul.style.listStyle="none";ul.style.padding="0";
-  all.forEach(p=>{const li=document.createElement("li");li.className="player-card";li.dataset.name=p.name;li.dataset.phone=p.phone||"";li.dataset.type=p.buggy?"buggy":"walker";li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name}${p.buggy?" ("+(p.phone||"no phone")+")":""}`;ul.appendChild(li);});
+  const div=document.createElement("div");
+  const ul=document.createElement("ul");
+  ul.style.listStyle="none";ul.style.padding="0";
+  all.forEach(p=>{
+    const li=document.createElement("li");
+    li.className="player-card";
+    li.dataset.name=p.name;
+    li.dataset.phone=p.phone||"";
+    li.dataset.type=p.buggy?"buggy":"walker";
+    li.innerHTML=`${p.buggy?"🛺":"🚶"} ${p.name}${p.buggy?" ("+(p.phone||"")+")":""}`;
+    ul.appendChild(li);
+  });
   div.appendChild(ul);area.appendChild(div);
   Sortable.create(ul,{animation:150,onEnd:()=>updatePairs(ul)});updatePairs(ul);
 }
 function updatePairs(ul){
-  const players=ul.querySelectorAll(".player-card");players.forEach(p=>p.querySelector(".pair-tag")?.remove());
-  for(let i=0;i<players.length-1;i++){const a=players[i],b=players[i+1];if(a.dataset.type==="buggy"&&b.dataset.type==="buggy"){a.insertAdjacentHTML("beforeend","<span class='pair-tag'>🛺 Pair Created</span>");b.insertAdjacentHTML("beforeend","<span class='pair-tag'>🛺 Pair Created</span>");}}
+  const players=ul.querySelectorAll(".player-card");
+  players.forEach(p=>p.querySelector(".pair-tag")?.remove());
+  for(let i=0;i<players.length-1;i++){
+    const a=players[i],b=players[i+1];
+    if(a.dataset.type==="buggy"&&b.dataset.type==="buggy"){
+      a.insertAdjacentHTML("beforeend","<span class='pair-tag'>🛺 Pair Created</span>");
+      b.insertAdjacentHTML("beforeend","<span class='pair-tag'>🛺 Pair Created</span>");
+    }
+  }
 }
 async function saveTeeTimes(){
-  const id=document.getElementById("teeEventSelect").value;if(!id)return alert("Select event first");
-  const ul=document.querySelector("#teeGroups ul");if(!ul)return alert("Generate tee times first");
+  const id=document.getElementById("teeEventSelect").value;
+  if(!id)return alert("Select event first");
+  const ul=document.querySelector("#teeGroups ul");
+  if(!ul)return alert("Generate tee times first");
   const players=[...ul.querySelectorAll(".player-card")].map(li=>({name:li.dataset.name,phone:li.dataset.phone||null,type:li.dataset.type}));
   await supabase.from("tee_times").delete().eq("event_id",id);
   const {error}=await supabase.from("tee_times").insert([{event_id:id,group_number:1,tee_time:"9:00am",players}]);
-  alert(error?"❌ Error saving tee times":"✅ Tee times saved!");loadEvents();
+  alert(error?"❌ Error saving":"✅ Tee times saved!");
+  loadEvents();
 }
 </script>
 </body>
