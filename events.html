@@ -277,7 +277,6 @@ async function loadTeeTimes(eventId){
   const area=document.getElementById(`teeTimes_${eventId}`);
   const {data}=await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
   if(!data?.length)return area.innerHTML="";
-  let html="<h4>
   let html="<h4>⛳ Tee Times</h4>";
   data.forEach(g=>{
     const buggy=g.players.filter(p=>p.type==="buggy");
