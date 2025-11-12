@@ -266,45 +266,69 @@
     }
 
     async function loadData() {
-      document.body.style.cursor = "wait";
-      const { data, error } = await supabase.from("scores").select("*").order("player", { ascending: true });
-      document.body.style.cursor = "default";
-      if (error) { console.error(error); return; }
+  document.body.style.cursor = "wait";
+  // Fetch all rounds for all players
+  const { data, error } = await supabase
+    .from("scores")
+    .select("*")
+    .order("player", { ascending: true })
+    .order("round", { ascending: true });  // ensure sorted by player & round
+  document.body.style.cursor = "default";
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-      if (!data.length) {
-        players = ["Brad Davies", "Will Lovell", "Richard Jones", "David Hardcastle", "Tim Oliver"];
-        currentHcp = new Array(players.length).fill(0);
-        nextHcp = new Array(players.length).fill(null);
-        playerScores = players.map(() => Array(maxRounds).fill(null));
-        lastAdj = new Array(players.length).fill("");
-        trophies = new Array(players.length).fill(0);
-      } else {
-        const latestByPlayer = {};
-        data.forEach(r => {
-          if (!latestByPlayer[r.player] || r.round > latestByPlayer[r.player].round)
-            latestByPlayer[r.player] = r;
-        });
-        players = Object.keys(latestByPlayer);
-        currentHcp = players.map(p => latestByPlayer[p].handicap || 0);
-        nextHcp = players.map(p => latestByPlayer[p].next_handicap || 0);
-        playerScores = players.map(p => {
-          const rounds = data.filter(r => r.player === p);
-          const arr = Array(maxRounds).fill(null);
-          rounds.forEach(r => { arr[r.round - 1] = r.points; });
-          return arr;
-        });
-        lastAdj = players.map(p => {
-          const r = latestByPlayer[p];
-          return r.adj ? (r.adj > 0 ? `+${r.adj}` : r.adj) : "";
-        });
-        trophies = players.map(p => {
-          const wins = data.filter(r => r.player === p && r.mvp === true).length;
-          return wins;
-        });
+  // Build distinct player list
+  const playerSet = new Set(data.map(r => r.player));
+  players = Array.from(playerSet);
+
+  // Initialize arrays
+  currentHcp = players.map(() => 0);
+  nextHcp = players.map(() => null);
+  trophies = players.map(() => 0);
+  lastAdj = players.map(() => "");
+  playerScores = players.map(() => Array(maxRounds).fill(null));
+
+  // Fill data per player
+  players.forEach((playerName, i) => {
+    const rounds = data.filter(r => r.player === playerName);
+    rounds.forEach(r => {
+      const idx = r.round - 1;  // zero‑based index
+      playerScores[i][idx] = r.points;
+      if (r.next_handicap != null) {
+        nextHcp[i] = r.next_handicap;
       }
-      renderLeaderboard();
-      renderStatsGrid();
-      subscribeRealtime();
+      if (r.handicap != null) {
+        currentHcp[i] = r.handicap;
+      }
+      if (r.adj != null) {
+        lastAdj[i] = (r.adj > 0 ? "+" : "") + r.adj;
+      }
+      // we could track additional meta if needed
+    });
+  });
+
+  // Determine MVP per round and count trophies
+  for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
+    let maxPts = -Infinity;
+    let winnerIdx = -1;
+    players.forEach((_, i) => {
+      const pts = playerScores[i][roundNum - 1];
+      if (pts != null && pts > maxPts) {
+        maxPts = pts;
+        winnerIdx = i;
+      }
+    });
+    if (winnerIdx >= 0) {
+      trophies[winnerIdx] += 1;
+    }
+  }
+
+  renderLeaderboard();
+  renderStatsGrid();
+  subscribeRealtime();
+}
     }
 
     function subscribeRealtime() {
