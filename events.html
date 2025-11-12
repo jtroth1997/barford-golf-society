@@ -1,250 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barford Golf Society | Events</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barford Golf Society Events</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
 
-<style>
-:root {
-  --green:#005a2b;
-  --gold:#d4af37;
-  --light-bg:#f7f7f5;
-}
-body{font-family:"Inter",sans-serif;margin:0;background:var(--light-bg);color:#1b1b1b;}
-header,footer{background:var(--green);color:#fff;text-align:center;padding:15px 0;}
-.container{max-width:1000px;margin:30px auto;padding:0 20px;}
-.admin-btn{background:var(--gold);color:#000;border:none;padding:8px 15px;border-radius:8px;font-weight:600;cursor:pointer;}
-.admin-btn:hover{background:#e0c35a;}
-.hidden{display:none;}
-.admin-panel{background:#fff;border:2px solid var(--gold);border-radius:10px;padding:20px;margin-bottom:25px;}
-.event-card{background:#fff;padding:20px;border-radius:10px;margin-bottom:25px;box-shadow:0 3px 8px rgba(0,0,0,0.1);position:relative;overflow:hidden;}
-.event-name{color:var(--green);font-size:1.4rem;font-weight:700;}
-.cancel-banner{
-  position:absolute;
-  top:40%;
-  left:-20%;
-  width:140%;
-  background:rgba(200,0,0,0.85);
-  color:#fff;
-  font-weight:800;
-  font-size:2rem;
-  text-align:center;
-  transform:rotate(-15deg);
-  z-index:2;
-  padding:10px 0;
-}
-.rsvp-form{background:#f5f5f5;border-radius:10px;padding:15px;margin-top:10px;}
-.rsvp-form input,.rsvp-form select{width:100%;margin:5px 0;padding:8px;border:1px solid #ccc;border-radius:5px;}
-.rsvp-form button{background:var(--green);color:#fff;padding:8px 15px;border:none;border-radius:6px;cursor:pointer;}
-.rsvp-form button:hover{background:#007a3d;}
-</style>
+    header {
+      background: #004d1a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #004d1a;
+      color: white;
+      margin-top: 2rem;
+    }
+
+    .event-card {
+      background: white;
+      margin: 1.5rem auto;
+      padding: 1rem;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .event-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #004d1a;
+    }
+
+    .event-links a {
+      color: #004d1a;
+      text-decoration: none;
+      margin-right: 10px;
+      font-weight: 600;
+    }
+
+    .admin-btn {
+      background: #004d1a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .admin-btn:hover {
+      background: #00732c;
+    }
+
+    .rsvp-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .rsvp-form input,
+    .rsvp-form select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .cancel-banner {
+      position: absolute;
+      top: 40%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      background: rgba(200, 0, 0, 0.85);
+      color: white;
+      font-weight: 800;
+      font-size: 1.8rem;
+      padding: 10px 0;
+      transform: rotate(-10deg);
+      z-index: 5;
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-<header>Barford Golf Society Events</header>
 
-<div class="container">
-  <div style="text-align:center;margin-bottom:20px;">
-    <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
-  </div>
+<header>
+  <h1>Barford Golf Society - Events</h1>
+</header>
 
-  <div id="adminPanel" class="admin-panel hidden">
-    <div style="text-align:center;margin-bottom:10px;">
-      <button class="admin-btn" onclick="showCreateForm()">Create Event</button>
-      <button class="admin-btn" onclick="showDeleteForm()">Delete Event</button>
-      <button class="admin-btn" onclick="showCancelForm()">Cancel/Uncancel Event</button>
-    </div>
-
-    <div id="createForm" class="hidden">
-      <h3>Create New Event</h3>
-      <input id="newName" placeholder="Event Name">
-      <input id="newLocation" placeholder="Location">
-      <input id="newDate" type="date">
-      <input id="newPrice" type="number" step="0.01" placeholder="Price (£)">
-      <textarea id="newDesc" placeholder="Event Description"></textarea>
-      <input id="newCourse" placeholder="Course Link">
-      <input id="newWeather" placeholder="Weather Link">
-    <button class="admin-btn" onclick="createNewEvent()">Confirm Event</button>
-    </div>
-
-    <div id="deleteForm" class="hidden">
-      <h3>Delete Event</h3>
-      <select id="deleteSelect"></select>
-      <button class="admin-btn" onclick="deleteEvent()">Delete</button>
-    </div>
-
-    <div id="cancelForm" class="hidden">
-      <h3>Cancel/Uncancel Event</h3>
-      <select id="cancelSelect"></select>
-      <button class="admin-btn" onclick="cancelOrUncancel()">Toggle Cancel</button>
-    </div>
-  </div>
-
-  <div id="eventList">Loading events...</div>
-</div>
+<div id="eventList">Loading events...</div>
 
 <footer>© 2025 Barford Golf Society</footer>
 
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 const ADMIN_PASSWORD = "westbrom1997";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ================== LOAD EVENTS ===================
+async function loadEvents() {
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("*")
+    .order("date", { ascending: true });
 
-window.onload = () => { loadEvents(); if(localStorage.getItem("isAdmin")==="true"){document.getElementById("adminPanel").classList.remove("hidden");}};
+  const container = document.getElementById("eventList");
+  if (error) {
+    console.error(error);
+    container.innerHTML = "<p>❌ Error loading events.</p>";
+    return;
+  }
 
-// ---------------- ADMIN ACCESS ----------------
-function toggleAdminAccess(){
-  const panel=document.getElementById("adminPanel");
-  const isAdmin=localStorage.getItem("isAdmin")==="true";
-  if(!isAdmin){
-    const pass=prompt("Enter admin password:");
-    if(pass===ADMIN_PASSWORD){
-      localStorage.setItem("isAdmin","true");
-      panel.classList.remove("hidden");
-      loadDropdowns();
-      alert("✅ Admin access granted");
-    } else alert("❌ Incorrect password");
-  } else {
-    localStorage.removeItem("isAdmin");
-    panel.classList.add("hidden");
+  if (!events?.length) {
+    container.innerHTML = "<p>No events found.</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  for (const ev of events) {
+    const cancelledBanner = ev.cancelled
+      ? `<div class="cancel-banner">🚫 EVENT CANCELLED</div>`
+      : "";
+
+    const cancelButton = `
+      <button class="admin-btn" onclick="toggleCancelEvent(${ev.id}, ${!!ev.cancelled})">
+        ${ev.cancelled ? "♻️ Uncancel Event" : "🚫 Cancel Event"}
+      </button>`;
+
+    container.innerHTML += `
+      <div class="event-card" style="position:relative;">
+        ${cancelledBanner}
+        <div class="event-header">
+          <div>
+            <div class="event-name">${ev.name}</div>
+            <div>${ev.location} — ${ev.date}</div>
+          </div>
+          <div><strong>Price:</strong> £${ev.price || "-"}</div>
+        </div>
+        ${ev.description ? `<div class='event-description'>${ev.description}</div>` : ""}
+        ${ev.course_link ? `<div class="event-links"><a href="${ev.course_link}" target="_blank">Course Info</a></div>` : ""}
+        ${ev.weather_link ? `<div class="event-links"><a href="${ev.weather_link}" target="_blank">Weather</a></div>` : ""}
+        <button class="admin-btn" id="rsvpBtn_${ev.id}" onclick="showRSVPForm(${ev.id})">📝 RSVP to this event</button>
+        ${cancelButton}
+        <div id="rsvpForm_${ev.id}" class="hidden"></div>
+      </div>`;
   }
 }
 
-function showCreateForm(){hideAll();document.getElementById("createForm").classList.remove("hidden");}
-function showDeleteForm(){hideAll();document.getElementById("deleteForm").classList.remove("hidden");}
-function showCancelForm(){hideAll();document.getElementById("cancelForm").classList.remove("hidden");}
-function hideAll(){["createForm","deleteForm","cancelForm"].forEach(id=>document.getElementById(id).classList.add("hidden"));}
-
-async function loadDropdowns(){
-  const {data}=await supabase.from("events").select("id,name,cancelled").order("date",{ascending:true});
-  const del=document.getElementById("deleteSelect");
-  const cancel=document.getElementById("cancelSelect");
-  del.innerHTML=cancel.innerHTML="";
-  data.forEach(e=>{
-    del.innerHTML+=`<option value="${e.id}">${e.name}</option>`;
-    cancel.innerHTML+=`<option value="${e.id}" data-cancelled="${e.cancelled}">${e.name} (${e.cancelled?"Cancelled":"Active"})</option>`;
-  });
-}
-
-// ---------------- CREATE EVENT ----------------
-async function createNewEvent() {
-  const name=document.getElementById("newName").value.trim();
-  if(!name)return alert("Enter name");
-  const data={
-    name,
-    location:document.getElementById("newLocation").value.trim(),
-    date:document.getElementById("newDate").value,
-    price:document.getElementById("newPrice").value,
-    description:document.getElementById("newDesc").value.trim(),
-    course_link:document.getElementById("newCourse").value.trim(),
-    weather_link:document.getElementById("newWeather").value.trim(),
-    cancelled:false
-  };
-  const {error}=await supabase.from("events").insert([data]);
-  if(error)alert("❌ Error creating event");
-  else{alert("✅ Event created");loadEvents();loadDropdowns();}
-}
-
-// ---------------- DELETE EVENT ----------------
-async function deleteEvent(){
-  const id=document.getElementById("deleteSelect").value;
-  const pass=prompt("Confirm admin password:");
-  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
-  await supabase.from("events").delete().eq("id",id);
-  alert("🗑️ Event deleted");
-  loadEvents();loadDropdowns();
-}
-
-// ---------------- CANCEL EVENT ----------------
-async function cancelOrUncancel(){
-  const sel=document.getElementById("cancelSelect");
-  const id=sel.value;
-  const cancelled=sel.options[sel.selectedIndex].dataset.cancelled==="true";
-  const pass=prompt("Enter admin password:");
-  if(pass!==ADMIN_PASSWORD)return alert("❌ Incorrect password");
-  const {error}=await supabase.from("events").update({cancelled:!cancelled}).eq("id",id);
-  if(error)alert("❌ Error");
-  else{
-    alert(!cancelled?"🚫 Event Cancelled!":"✅ Event Restored!");
-    loadEvents();loadDropdowns();
+// ================== RSVP FORM ===================
+function showRSVPForm(eventId) {
+  const form = document.getElementById(`rsvpForm_${eventId}`);
+  if (!form.classList.contains("hidden")) {
+    form.classList.add("hidden");
+    return;
   }
-}
-
-// ---------------- LOAD EVENTS ----------------
-async function loadEvents(){
-  const {data,error}=await supabase.from("events").select("*").order("date",{ascending:true});
-  const list=document.getElementById("eventList");
-  if(error)return list.innerHTML="<p>Error loading events</p>";
-  if(!data?.length)return list.innerHTML="<p>No events yet</p>";
-  list.innerHTML="";
-  data.forEach(ev=>{
-    const banner=ev.cancelled?`<div class='cancel-banner'>🚫 EVENT CANCELLED</div>`:"";
-    list.innerHTML+=`
-    <div class="event-card">
-      ${banner}
-      <div class="event-name">${ev.name}</div>
-      <div>${ev.location} — ${ev.date} — £${ev.price||"-"}</div>
-      ${ev.description?`<p>${ev.description}</p>`:""}
-      ${ev.course_link?`<a href="${ev.course_link}" target="_blank">Course Info</a><br>`:""}
-      ${ev.weather_link?`<a href="${ev.weather_link}" target="_blank">Weather</a>`:""}
-      ${!ev.cancelled?`<button class="admin-btn" onclick="toggleRSVP(${ev.id})">📝 RSVP</button>
-      <div id="rsvpForm_${ev.id}" class="hidden"></div>`:""}
-    </div>`;
-  });
-}
-
-// ---------------- RSVP FORM ----------------
-function toggleRSVP(eventId){
-  const form=document.getElementById(`rsvpForm_${eventId}`);
-  form.classList.toggle("hidden");
-  if(!form.classList.contains("hidden"))form.innerHTML=`
-  <form class='rsvp-form' onsubmit='submitRSVP(event,${eventId})'>
-    <input id='name_${eventId}' placeholder='Name*' required>
-    <select id='playing_${eventId}' required>
-      <option value=''>Playing?</option>
-      <option value='yes'>Yes</option>
-      <option value='no'>No</option>
-    </select>
-    <select id='buggy_${eventId}' onchange='toggleBuggy(${eventId})' required>
-      <option value=''>Need buggy?</option>
-      <option value='yes'>Yes</option>
-      <option value='no'>No</option>
-    </select>
-    <div id='buggyExtra_${eventId}' class='hidden'>
-      <select id='flex_${eventId}'>
-        <option value='need'>I need a buggy</option>
-        <option value='happy'>Happy to walk if odd</option>
+  form.classList.remove("hidden");
+  form.innerHTML = `
+    <div class="rsvp-form">
+      <input type="text" id="rsvp_name_${eventId}" placeholder="Your Name" required />
+      <input type="text" id="rsvp_phone_${eventId}" placeholder="Phone Number" />
+      <label><input type="checkbox" id="rsvp_buggy_${eventId}" /> Require Buggy</label>
+      <select id="rsvp_flex_${eventId}">
+        <option value="">Flexibility</option>
+        <option value="happy">Happy to walk if odd</option>
+        <option value="needs">Needs buggy</option>
       </select>
-      <input id='phone_${eventId}' placeholder='Phone number'>
-    </div>
-    <button>Submit RSVP</button>
-    <div id='msg_${eventId}'></div>
-  </form>`;
+      <button onclick="submitRSVP(${eventId})">Submit RSVP</button>
+    </div>`;
 }
 
-function toggleBuggy(eventId){
-  const val=document.getElementById(`buggy_${eventId}`).value;
-  document.getElementById(`buggyExtra_${eventId}`).classList.toggle("hidden",val!=="yes");
+async function submitRSVP(eventId) {
+  const name = document.getElementById(`rsvp_name_${eventId}`).value.trim();
+  const phone = document.getElementById(`rsvp_phone_${eventId}`).value.trim();
+  const buggy = document.getElementById(`rsvp_buggy_${eventId}`).checked;
+  const flexibility = document.getElementById(`rsvp_flex_${eventId}`).value;
+
+  if (!name) return alert("Please enter your name.");
+
+  const { error } = await supabase.from("rsvps").insert([
+    {
+      event_id: eventId,
+      name,
+      phone,
+      buggy,
+      flexibility,
+      attending: true
+    }
+  ]);
+
+  if (error) {
+    console.error(error);
+    alert("❌ Error submitting RSVP");
+  } else {
+    alert("✅ RSVP submitted successfully!");
+    loadEvents();
+  }
 }
 
-async function submitRSVP(e,eventId){
-  e.preventDefault();
-  const name=document.getElementById(`name_${eventId}`).value.trim();
-  const playing=document.getElementById(`playing_${eventId}`).value;
-  const buggy=document.getElementById(`buggy_${eventId}`).value==="yes";
-  const flex=buggy?document.getElementById(`flex_${eventId}`).value:null;
-  const phone=buggy?document.getElementById(`phone_${eventId}`).value.trim():null;
-  const msg=document.getElementById(`msg_${eventId}`);
-  if(!name)return msg.textContent="⚠️ Enter name";
-  await supabase.from("rsvps").insert([{event_id:eventId,name,attending:playing==="yes",buggy,flexibility:flex,phone}]);
-  msg.textContent="✅ RSVP saved!";
+// ================== CANCEL / UN-CANCEL EVENT ===================
+async function toggleCancelEvent(eventId, currentState) {
+  const pass = prompt("Enter admin password to confirm:");
+  if (pass !== ADMIN_PASSWORD) {
+    alert("❌ Incorrect password");
+    return;
+  }
+
+  const newState = !currentState;
+  const { error } = await supabase
+    .from("events")
+    .update({ cancelled: newState })
+    .eq("id", eventId);
+
+  if (error) {
+    console.error(error);
+    alert("❌ Failed to update event status.");
+  } else {
+    alert(newState ? "🚫 Event cancelled!" : "✅ Event restored!");
+    loadEvents(); // Refresh events to show banner
+  }
 }
-  window.createNewEvent = createNewEvent;
+
+document.addEventListener("DOMContentLoaded", loadEvents);
 </script>
 </body>
 </html>
