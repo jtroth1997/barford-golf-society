@@ -277,8 +277,18 @@
         return;
       }
 
-      const playerSet = new Set(data.map(r => r.player));
-      players = Array.from(playerSet);
+     const { data: playerData, error: playerErr } = await supabase
+  .from("players")
+  .select("name")
+  .order("name", { ascending: true });
+
+if (playerErr) {
+  console.error("Error loading players:", playerErr);
+  return;
+}
+
+players = playerData.map(p => p.name);
+
 
       currentHcp = players.map(() => 0);
       nextHcp = players.map(() => null);
