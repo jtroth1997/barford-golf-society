@@ -265,73 +265,70 @@
     }
 
     async function loadData() {
-      document.body.style.cursor = "wait";
-      const { data, error } = await supabase
-        .from("scores")
-        .select("*")
-        .order("player", { ascending: true })
-        .order("round", { ascending: true });
-      document.body.style.cursor = "default";
-      if (error) {
-        console.error(error);
-        return;
+  document.body.style.cursor = "wait";
+
+  // 1. Pull roster
+  const { data: playerData, error: playerErr } =
+    await supabase.from("players").select("name").order("name", { ascending: true });
+  if (playerErr) {
+    console.error("Error loading players:", playerErr);
+    document.body.style.cursor = "default";
+    return;
+  }
+  players = playerData.map(p => p.name);
+
+  // 2. Pull all score data
+  const { data, error } = await supabase
+    .from("scores")
+    .select("*")
+    .order("player", { ascending: true })
+    .order("round", { ascending: true });
+  if (error) {
+    console.error("Error loading scores:", error);
+    document.body.style.cursor = "default";
+    return;
+  }
+
+  // Initialize arrays based on full roster
+  currentHcp = players.map(() => 0);
+  nextHcp    = players.map(() => null);
+  trophies   = players.map(() => 0);
+  lastAdj    = players.map(() => "");
+  playerScores = players.map(() => Array(maxRounds).fill(null));
+
+  // Populate from score rows
+  players.forEach((playerName, i) => {
+    const rounds = data.filter(r => r.player === playerName);
+    rounds.forEach(r => {
+      const idx = r.round - 1;
+      playerScores[i][idx] = r.points;
+      if (r.next_handicap != null) nextHcp[i] = r.next_handicap;
+      if (r.handicap != null)    currentHcp[i] = r.handicap;
+      if (r.adj != null)         lastAdj[i] = (r.adj > 0 ? "+" : "") + r.adj;
+    });
+  });
+
+  // Determine trophies
+  for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
+    let maxPts = -Infinity;
+    let winnerIdx = -1;
+    players.forEach((_, i) => {
+      const pts = playerScores[i][roundNum - 1];
+      if (pts != null && pts > maxPts) {
+        maxPts = pts;
+        winnerIdx = i;
       }
-
-     const { data: playerData, error: playerErr } = await supabase
-  .from("players")
-  .select("name")
-  .order("name", { ascending: true });
-
-if (playerErr) {
-  console.error("Error loading players:", playerErr);
-  return;
-}
-
-players = playerData.map(p => p.name);
-
-
-      currentHcp = players.map(() => 0);
-      nextHcp = players.map(() => null);
-      trophies = players.map(() => 0);
-      lastAdj = players.map(() => "");
-      playerScores = players.map(() => Array(maxRounds).fill(null));
-
-      players.forEach((playerName, i) => {
-        const rounds = data.filter(r => r.player === playerName);
-        rounds.forEach(r => {
-          const idx = r.round - 1;
-          playerScores[i][idx] = r.points;
-          if (r.next_handicap != null) {
-            nextHcp[i] = r.next_handicap;
-          }
-          if (r.handicap != null) {
-            currentHcp[i] = r.handicap;
-          }
-          if (r.adj != null) {
-            lastAdj[i] = (r.adj > 0 ? "+" : "") + r.adj;
-          }
-        });
-      });
-
-      for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
-        let maxPts = -Infinity;
-        let winnerIdx = -1;
-        players.forEach((_, i) => {
-          const pts = playerScores[i][roundNum - 1];
-          if (pts != null && pts > maxPts) {
-            maxPts = pts;
-            winnerIdx = i;
-          }
-        });
-        if (winnerIdx >= 0) {
-          trophies[winnerIdx] += 1;
-        }
-      }
-
-      renderLeaderboard();
-      renderStatsGrid();
-      subscribeRealtime();
+    });
+    if (winnerIdx >= 0) {
+      trophies[winnerIdx]++;
     }
+  }
+
+  renderLeaderboard();
+  renderStatsGrid();
+  subscribeRealtime();
+  document.body.style.cursor = "default";
+}
 
     function subscribeRealtime() {
       if (realtimeChannel) supabase.removeChannel(realtimeChannel);
