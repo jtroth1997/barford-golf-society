@@ -54,7 +54,6 @@
     .navbar a:hover {
       color: var(--gold);
     }
-    /* Dark Mode Styles */
     .dark-mode { background: #121212; color: var(--gold); }
     .dark-mode header { background: #000; color: var(--gold); }
     .dark-mode .navbar { background: #000; }
@@ -113,7 +112,7 @@
     .btn-lock { background: var(--green); color: var(--white); }
     .btn-calc { background: #ffcc00; color: var(--dark); }
     .btn-next, .btn-prev { background: #ddd; color: var(--dark); }
-    .btn-reset { background: var(--b22222); color: var(--white); }
+    .btn-reset { background: #b22222; color: var(--white); }
     .btn-add { background: var(--silver); color: var(--dark); }
     .btn-pass { background: var(--bronze); color: var(--white); }
     .btn-export { background: var(--gold); color: var(--dark); }
@@ -132,43 +131,43 @@
     .dark-mode #chartContainer{background:#1f1f1f;}
     #toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);padding:10px 20px;border-radius:8px;opacity:0;transition:opacity 0.4s;}
     .table-secret { position: relative; }
-    .table-secret .secret-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
-    .table-secret tbody { filter: blur(6px); pointer-events: none; user-select: none; }
-    .table-secret tbody input { color: transparent; text-shadow: 0 0 8px rgba(0,0,0,0.2); }
+    .table-secret .secret-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z‑index: 10; pointer‑events: none; }
+    .table-secret tbody { filter: blur(6px); pointer‑events: none; user‑select: none; }
+    .table-secret tbody input { color: transparent; text‑shadow: 0 0 8px rgba(0,0,0,0.2); }
 
     #secretNotice { text-align: center; padding: 8px; color: #b22222; font-weight: 700; display: none; }
 
     /* avatar initials */
-    .player‐avatar {
-      display: inline‑flex;
+    .player-avatar {
+      display: inline-flex;
       width: 32px;
       height: 32px;
-      margin‑right: 8px;
+      margin-right: 8px;
       background: var(--silver);
-      border‑radius: 50%;
-      align‑items: center;
-      justify‑content: center;
-      font‑weight: 600;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
       color: var(--dark);
-      font‑size: 0.9rem;
-      vertical‑align: middle;
+      font-size: 0.9rem;
+      vertical-align: middle;
     }
 
     /* Stats grid */
-    .stats‐grid {
+    .stats-grid {
       display: grid;
-      grid‑template-columns: repeat(auto‑fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 16px;
-      margin‑top: 40px;
+      margin-top: 40px;
     }
-    .stats‐card {
+    .stats-card {
       background: var(--white);
       padding:16px;
-      border‑radius:12px;
-      box‑shadow:0 4px 14px rgba(0,0,0,0.1);
+      border-radius:12px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.1);
       transition:background 0.3s, color 0.3s;
     }
-    .dark‑mode .stats‐card { background:#1f1f1f; color:var(--gold); }
+    .dark-mode .stats-card { background:#1f1f1f; color:var(--gold); }
 
     @media (max-width: 900px) {
       .topbar { flex-wrap: wrap; }
@@ -231,13 +230,13 @@
     </div>
 
     <!-- Player Stats Grid -->
-    <div id="statsGrid" class="stats‐grid"></div>
+    <div id="statsGrid" class="stats-grid"></div>
 
   </main>
   <div id="toast"></div>
   <script>
     const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImF4RmR5Iiwicm9sZWIiwiaWF0IjoxNzYyNDM2OTgwLCJleHAiOjIwNzgwMTI5ODB9.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZWIiLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
     const PASSWORD_DEFAULT = "westbrom1997";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -266,69 +265,62 @@
     }
 
     async function loadData() {
-  document.body.style.cursor = "wait";
-  // Fetch all rounds for all players
-  const { data, error } = await supabase
-    .from("scores")
-    .select("*")
-    .order("player", { ascending: true })
-    .order("round", { ascending: true });  // ensure sorted by player & round
-  document.body.style.cursor = "default";
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  // Build distinct player list
-  const playerSet = new Set(data.map(r => r.player));
-  players = Array.from(playerSet);
-
-  // Initialize arrays
-  currentHcp = players.map(() => 0);
-  nextHcp = players.map(() => null);
-  trophies = players.map(() => 0);
-  lastAdj = players.map(() => "");
-  playerScores = players.map(() => Array(maxRounds).fill(null));
-
-  // Fill data per player
-  players.forEach((playerName, i) => {
-    const rounds = data.filter(r => r.player === playerName);
-    rounds.forEach(r => {
-      const idx = r.round - 1;  // zero‑based index
-      playerScores[i][idx] = r.points;
-      if (r.next_handicap != null) {
-        nextHcp[i] = r.next_handicap;
+      document.body.style.cursor = "wait";
+      const { data, error } = await supabase
+        .from("scores")
+        .select("*")
+        .order("player", { ascending: true })
+        .order("round", { ascending: true });
+      document.body.style.cursor = "default";
+      if (error) {
+        console.error(error);
+        return;
       }
-      if (r.handicap != null) {
-        currentHcp[i] = r.handicap;
-      }
-      if (r.adj != null) {
-        lastAdj[i] = (r.adj > 0 ? "+" : "") + r.adj;
-      }
-      // we could track additional meta if needed
-    });
-  });
 
-  // Determine MVP per round and count trophies
-  for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
-    let maxPts = -Infinity;
-    let winnerIdx = -1;
-    players.forEach((_, i) => {
-      const pts = playerScores[i][roundNum - 1];
-      if (pts != null && pts > maxPts) {
-        maxPts = pts;
-        winnerIdx = i;
-      }
-    });
-    if (winnerIdx >= 0) {
-      trophies[winnerIdx] += 1;
-    }
-  }
+      const playerSet = new Set(data.map(r => r.player));
+      players = Array.from(playerSet);
 
-  renderLeaderboard();
-  renderStatsGrid();
-  subscribeRealtime();
-}
+      currentHcp = players.map(() => 0);
+      nextHcp = players.map(() => null);
+      trophies = players.map(() => 0);
+      lastAdj = players.map(() => "");
+      playerScores = players.map(() => Array(maxRounds).fill(null));
+
+      players.forEach((playerName, i) => {
+        const rounds = data.filter(r => r.player === playerName);
+        rounds.forEach(r => {
+          const idx = r.round - 1;
+          playerScores[i][idx] = r.points;
+          if (r.next_handicap != null) {
+            nextHcp[i] = r.next_handicap;
+          }
+          if (r.handicap != null) {
+            currentHcp[i] = r.handicap;
+          }
+          if (r.adj != null) {
+            lastAdj[i] = (r.adj > 0 ? "+" : "") + r.adj;
+          }
+        });
+      });
+
+      for (let roundNum = 1; roundNum <= maxRounds; roundNum++) {
+        let maxPts = -Infinity;
+        let winnerIdx = -1;
+        players.forEach((_, i) => {
+          const pts = playerScores[i][roundNum - 1];
+          if (pts != null && pts > maxPts) {
+            maxPts = pts;
+            winnerIdx = i;
+          }
+        });
+        if (winnerIdx >= 0) {
+          trophies[winnerIdx] += 1;
+        }
+      }
+
+      renderLeaderboard();
+      renderStatsGrid();
+      subscribeRealtime();
     }
 
     function subscribeRealtime() {
@@ -356,7 +348,7 @@
         const pts = playerScores[i][currentRound - 1] ?? 0;
         const adj = parseInt(lastAdj[i]) || 0;
         const next = nextHcp[i] ?? currentHcp[i];
-        const mvp = false;  // will update later
+        const mvpFlag = false; // Optionally set true for round winner
         updates.push({
           player,
           round: currentRound,
@@ -365,8 +357,8 @@
           adj: adj,
           next_handicap: next,
           total,
+          mvp: mvpFlag,
           trophies: trophies[i],
-          mvp,
           updated_at: new Date().toISOString()
         });
       }
@@ -392,14 +384,13 @@
         currentHcp[i] = hcp;
         nextHcp[i] = next;
       }
-      // Determine MVP of this round: highest points
-      const roundPts = players.map((_, i) => playerScores[i][currentRound-1] ?? -1);
+
+      const roundPts = players.map((_, i) => playerScores[i][currentRound - 1] ?? -1);
       const maxPts = Math.max(...roundPts);
-      const winners = roundPts.map((p,i) => p === maxPts ? i : -1).filter(i => i>=0);
+      const winners = roundPts.map((p,i) => p === maxPts ? i : -1).filter(i => i >= 0);
       if (winners.length === 1) {
         trophies[winners[0]] += 1;
       }
-      // Mark mvp in DB update: will overwrite later in saveData.
 
       renderLeaderboard();
       renderStatsGrid();
@@ -408,7 +399,7 @@
     }
 
     function calculateTotals() {
-      return players.map((n,i) => {
+      return players.map((n, i) => {
         const s = playerScores[i].filter(v => v !== null);
         const total = s.sort((a,b) => b - a).slice(0,5).reduce((a,b) => a + b, 0);
         return { i, name: n, total };
@@ -422,7 +413,7 @@
       totals.forEach((p, rank) => {
         const i = p.i;
         const initials = players[i].split(" ").map(w => w.charAt(0)).join("");
-        const avatarHTML = `<span class="player‐avatar">${initials}</span>`;
+        const avatarHTML = `<span class="player-avatar">${initials}</span>`;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":rank+1}</td>
@@ -440,19 +431,19 @@
       document.getElementById("roundHeader").textContent = `Round ${currentRound} of ${maxRounds}`;
       document.getElementById("progressFill").style.width = (currentRound / maxRounds * 100) + "%";
       document.getElementById("chartContainer").style.display = unlocked ? "block" : "none";
-      document.getElementById("exportLeaderboardBtn").style.display = unlocked ? "inline-block" : "none";
-      document.getElementById("exportAllBtn").style.display = unlocked ? "inline-block" : "none";
-      document.getElementById("exportStatsBtn").style.display = unlocked ? "inline-block" : "none";
-      document.getElementById("clearLeagueBtn").style.display = unlocked ? "inline-block" : "none";
+      document.getElementById("exportLeaderboardBtn").style.display = unlocked ? "inline‑block" : "none";
+      document.getElementById("exportAllBtn").style.display = unlocked ? "inline‑block" : "none";
+      document.getElementById("exportStatsBtn").style.display = unlocked ? "inline‑block" : "none";
+      document.getElementById("clearLeagueBtn").style.display = unlocked ? "inline‑block" : "none";
 
       const wrap = document.getElementById("playersTableWrap");
       const secretNotice = document.getElementById("secretNotice");
       if ((currentRound === 6 || currentRound === 7) && !unlocked) {
-        wrap.classList.add("table-secret");
+        wrap.classList.add("table‑secret");
         wrap.classList.remove("unlocked");
         secretNotice.style.display = "block";
       } else {
-        wrap.classList.remove("table-secret");
+        wrap.classList.remove("table‑secret");
         wrap.classList.add("unlocked");
         secretNotice.style.display = "none";
       }
@@ -461,16 +452,16 @@
     function nextRound() {
       if (!unlocked) return alert("Unlock first");
       if (currentRound < maxRounds) {
-        // Carry over nextHcp to currentHcp for next round
         for (let i = 0; i < players.length; i++) {
           currentHcp[i] = nextHcp[i] ?? currentHcp[i];
           lastAdj[i] = "";
         }
         currentRound++;
-        calculateHandicaps();  // **auto trigger** when advancing
+        calculateHandicaps();
         renderLeaderboard();
       }
     }
+
     function prevRound() {
       if (!unlocked) return alert("Unlock first");
       if (currentRound > 1) {
@@ -486,6 +477,7 @@
       renderLeaderboard();
       showToast("Unlocked");
     }
+
     function lockInputs() {
       unlocked = false;
       renderLeaderboard();
@@ -578,9 +570,9 @@
         const worst = rounds.length ? Math.min(...rounds) : "-";
         const played = rounds.length;
         const card = document.createElement("div");
-        card.classList.add("stats‐card");
+        card.classList.add("stats-card");
         card.innerHTML = `<h4>${name}</h4>
-          <p>Rounds: ${played}</p>
+          <p>Rounds Played: ${played}</p>
           <p>Average Points: ${avg}</p>
           <p>Best Round: ${best}</p>
           <p>Worst Round: ${worst}</p>
@@ -590,8 +582,8 @@
     }
 
     function exportStatsCSV() {
-      const rows = players.map((name,i) => {
-        const rounds = playerScores[i].filter(v=>v!==null);
+      const rows = players.map((name, i) => {
+        const rounds = playerScores[i].filter(v => v!==null);
         const avg = rounds.length ? (rounds.reduce((a,b)=>a+b,0)/rounds.length).toFixed(1) : "";
         const best = rounds.length ? Math.max(...rounds) : "";
         const worst = rounds.length ? Math.min(...rounds) : "";
@@ -615,7 +607,6 @@
       const datasets = players.map((p,i) => ({
         label: p,
         data: playerScores[i].map((pts, r) => {
-          // show the nextHcp after that round if available, else current
           return r < currentRound ? (nextHcp[i] ?? currentHcp[i]) : null;
         }),
         borderWidth: 2,
