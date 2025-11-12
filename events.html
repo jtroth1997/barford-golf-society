@@ -304,21 +304,45 @@ async function deleteEvent(){
 }
 
 async function cancelEvent(){
-  const id=document.getElementById("cancelSelect").value;if(!id)return;
+  const id=document.getElementById("cancelSelect").value;
+  if(!id)return;
   const pass=prompt("Enter admin password to confirm cancel:");
   if(pass!==ADMIN_PASSWORD)return alert("❌ Wrong password");
-  await supabase.from("events").update({cancelled:true}).eq("id",id);
+
+  const { error } = await supabase.from("events").update({cancelled:true}).eq("id",id);
+  if(error) return alert("❌ Error cancelling event.");
+
   document.getElementById("cancelMsg").textContent="❌ Event cancelled.";
-  loadEvents();
+  alert("🚫 Event cancelled — members will now see this marked as Cancelled.");
+
+  // Update UI immediately
+  const card=document.querySelector(`.event-card:has(button[onclick="toggleRSVP(${id})"])`);
+  if(card && !card.querySelector(".cancelled-banner")){
+    const banner=document.createElement("div");
+    banner.className="cancelled-banner";
+    banner.textContent="Cancelled";
+    card.appendChild(banner);
+  }
 }
 
 async function uncancelEvent(){
-  const id=document.getElementById("cancelSelect").value;if(!id)return;
+  const id=document.getElementById("cancelSelect").value;
+  if(!id)return;
   const pass=prompt("Enter admin password to uncancel:");
   if(pass!==ADMIN_PASSWORD)return alert("❌ Wrong password");
-  await supabase.from("events").update({cancelled:false}).eq("id",id);
+
+  const { error } = await supabase.from("events").update({cancelled:false}).eq("id",id);
+  if(error) return alert("❌ Error uncancelling event.");
+
   document.getElementById("cancelMsg").textContent="✅ Event reinstated.";
-  loadEvents();
+  alert("✅ Event reinstated — banner removed for members.");
+
+  // Remove banner instantly
+  const card=document.querySelector(`.event-card:has(button[onclick="toggleRSVP(${id})"])`);
+  if(card){
+    const banner=card.querySelector(".cancelled-banner");
+    if(banner) banner.remove();
+  }
 }
 
 // ------------------- TEE TIME GEN -------------------
