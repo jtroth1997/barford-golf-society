@@ -156,18 +156,52 @@ function showAdminTab(id){
 }
 
 // ---- CREATE EVENT ----
-async function createEvent(){
-  const name=document.getElementById("newEventName").value.trim();
-  const date=document.getElementById("newEventDate").value;
-  const location=document.getElementById("newEventLocation").value.trim();
-  const price=document.getElementById("newEventPrice").value.trim();
-  const description=document.getElementById("newEventDescription").value.trim();
-  const course_link=document.getElementById("newEventCourse").value.trim();
-  const weather_link=document.getElementById("newEventWeather").value.trim();
-  if(!name||!date||!location)return alert("Please fill required fields.");
-  const {error}=await supabase.from("events").insert([{name,date,location,price,description,course_link,weather_link,cancelled:false}]);
-  document.getElementById("createMsg").textContent=error?"❌ Failed":"✅ Event created!";
-  if(!error)loadEvents();
+async function createEvent() {
+  const name = document.getElementById("newEventName").value.trim();
+  const date = document.getElementById("newEventDate").value;
+  const location = document.getElementById("newEventLocation").value.trim();
+  const price = document.getElementById("newEventPrice").value.trim() || null;
+  const description = document.getElementById("newEventDescription").value.trim() || null;
+  const course_link = document.getElementById("newEventCourse").value.trim() || null;
+  const weather_link = document.getElementById("newEventWeather").value.trim() || null;
+  const msg = document.getElementById("createMsg");
+
+  if (!name || !date || !location) {
+    msg.textContent = "⚠️ Please fill all required fields.";
+    return;
+  }
+
+  const { error } = await supabase
+    .from("events")
+    .insert([
+      {
+        name,
+        date,
+        location,
+        price,
+        description,
+        course_link,
+        weather_link,
+        cancelled: false,
+      },
+    ]);
+
+  if (error) {
+    console.error(error);
+    msg.textContent = "❌ Error creating event: " + error.message;
+  } else {
+    msg.textContent = "✅ Event created successfully!";
+    // Clear form
+    document.getElementById("newEventName").value = "";
+    document.getElementById("newEventDate").value = "";
+    document.getElementById("newEventLocation").value = "";
+    document.getElementById("newEventPrice").value = "";
+    document.getElementById("newEventDescription").value = "";
+    document.getElementById("newEventCourse").value = "";
+    document.getElementById("newEventWeather").value = "";
+    // Reload event list
+    loadEvents();
+  }
 }
 
 // ---- DELETE EVENT ----
