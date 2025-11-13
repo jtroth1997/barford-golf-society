@@ -537,13 +537,13 @@
         const adj = stablefordAdj(ptsVal);
         lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
         nextHcp[i] = Math.max(0, hcpVal + adj);
-        playerScores[i][currentRound‑1] = ptsVal;
+        playerScores[i][currentRound-1] = ptsVal;
         currentHcp[i] = hcpVal;
       }
     }
 
     const updates = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b‑a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b - a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
       return {
         player: name,
