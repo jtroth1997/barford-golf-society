@@ -319,29 +319,39 @@
     document.getElementById("progressFill").style.width = `${(currentRound/maxRounds)*100}%`;
   }
 
-  function unlockInputs(){
-    const pwEl = document.getElementById("pwInput");
-    if(!pwEl){
-      console.error("Unlock error: password field not found");
-      alert("Internal error: password field missing");
-      return;
-    }
-    const pw = pwEl.value.trim();
-    console.log("Unlock attempt with:", pw);
-    if(pw !== PASSWORD){
-      alert("Wrong password");
-      return;
-    }
-    unlocked = true;
-    console.log("Unlock succeeded. unlocked =", unlocked);
-    renderLeaderboard();
-    const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
-    adminBtns.forEach(id=>{
-      const btn = document.getElementById(id);
-      if(btn) btn.style.display = "inline‑block";
-    });
-    showToast("✅ Admin unlocked");
+ function unlockInputs() {
+  const pwInputEl = document.getElementById("pwInput");
+  if (!pwInputEl) {
+    console.error("Unlock error: password input field (pwInput) not found");
+    return alert("Internal error: cannot find password field");
   }
+  const pw = pwInputEl.value.trim();
+  console.log("Unlock attempt with password:", pw);
+  if (pw !== PASSWORD) {
+    alert("Wrong password");
+    return;
+  }
+
+  unlocked = true;
+  console.log("✅ Unlock successful. unlocked =", unlocked);
+
+  renderLeaderboard(); // Trigger table update
+
+  // Explicitly show admin buttons and log their status
+  const adminBtns = ["exportLeaderboardBtn", "exportAllBtn", "exportStatsBtn", "clearLeagueBtn", "removePlayerBtn"];
+  adminBtns.forEach(id => {
+    const btn = document.getElementById(id);
+    console.log(`Checking button #${id}`, btn);
+    if (btn) {
+      btn.style.display = "inline-block";
+      console.log(`Button "${id}" is now visible`);
+    } else {
+      console.warn(`⚠️ Button "${id}" not found in DOM`);
+    }
+  });
+
+  showToast("✅ Admin unlocked");
+}
 
   function lockInputs(){
     unlocked = false;
