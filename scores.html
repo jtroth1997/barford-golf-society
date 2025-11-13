@@ -304,48 +304,75 @@
     return +3;
   }
 
-  async function loadData(){
-    document.body.style.cursor = "wait";
-    const { data: roster, error: rErr } = await supabase.from("players").select("name").order("name",{ascending:true});
-    if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor="default"; return; }
-    players = roster.map(r => r.name);
+ async function loadData(){
+  console.log("Loading players...");
+  document.body.style.cursor = "wait";
 
-    currentHcp   = players.map(()=>0);
-    nextHcp      = players.map(()=>null);
-    trophies     = players.map(()=>0);
-    lastAdj      = players.map(()=> "");
-    playerScores = players.map(()=> Array(maxRounds).fill(null));
+  // Load players
+  const { data: roster, error: rErr } = await supabase
+    .from("players")
+    .select("name")
+    .order("name", { ascending: true });
 
-    const { data: scores, error: sErr } = await supabase.from("scores").select("*");
-    if(sErr){ console.error("Error loading scores:", sErr); document.body.style.cursor="default"; return; }
+  console.log("roster data:", roster, "error:", rErr);
 
-    players.forEach((name,i)=>{
-      const rows = scores.filter(r => r.player === name);
-      rows.forEach(r=>{
-        const idx = r.round - 1;
-        playerScores[i][idx] = r.points;
-        if(r.handicap      != null) currentHcp[i]   = r.handicap;
-        if(r.next_handicap != null) nextHcp[i]       = r.next_handicap;
-        if(r.adj            != null) lastAdj[i]        = (r.adj>0?"+" : "") + r.adj;
-      });
-    });
-
-    trophies = players.map(()=>0);
-    for(let rn=1; rn<=currentRound; rn++){
-      let top=-Infinity, winIdx=-1;
-      players.forEach((_, i)=>{
-        const pts = playerScores[i][rn-1];
-        if(pts != null && pts > top){
-          top = pts; winIdx = i;
-        }
-      });
-      if(winIdx >= 0) trophies[winIdx]++;
-    }
-
-    renderLeaderboard();
-    renderStatsGrid();
+  if (rErr){
+    alert("Error loading players: " + rErr.message);
     document.body.style.cursor = "default";
+    return;
   }
+
+  players = roster.map(r => r.name);
+  console.log("Players array:", players);
+
+  // Prepare arrays
+  currentHcp   = players.map(()=>0);
+  nextHcp      = players.map(()=>null);
+  trophies     = players.map(()=>0);
+  lastAdj      = players.map(()=> "");
+  playerScores = players.map(()=> Array(maxRounds).fill(null));
+
+  // Load scores
+  const { data: scores, error: sErr } = await supabase
+    .from("scores")
+    .select("*");
+
+  if (sErr){
+    console.error("Error loading scores:", sErr);
+    document.body.style.cursor="default";
+    return;
+  }
+
+  // Populate scores + handicaps
+  players.forEach((name, i)=>{
+    const rows = scores.filter(r => r.player === name);
+    rows.forEach(r=>{
+      const idx = r.round - 1;
+      playerScores[i][idx] = r.points;
+      if(r.handicap      != null) currentHcp[i]   = r.handicap;
+      if(r.next_handicap != null) nextHcp[i]      = r.next_handicap;
+      if(r.adj           != null) lastAdj[i]      = (r.adj>0? "+" : "") + r.adj;
+    });
+  });
+
+  // Trophy counts
+  trophies = players.map(()=>0);
+  for(let rn=1; rn<=currentRound; rn++){
+    let top = -Infinity, winIdx = -1;
+    players.forEach((_, i)=>{
+      const pts = playerScores[i][rn-1];
+      if(pts != null && pts > top){
+        top = pts;
+        winIdx = i;
+      }
+    });
+    if(winIdx >= 0) trophies[winIdx]++;
+  }
+
+  renderLeaderboard();
+  renderStatsGrid();
+  document.body.style.cursor = "default";
+}
 
   function renderLeaderboard(){
     console.log("renderLeaderboard → unlocked =", unlocked);
