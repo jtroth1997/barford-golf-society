@@ -316,12 +316,18 @@
         console.error('Error listing storage objects:', error);
         return;
       }
-      gallery = objects.filter(obj => !obj.name.endsWith('/')).map(obj => ({
-        path: UPLOAD_PATH + obj.name,
-        url: supabase.storage.from(BUCKET).getPublicUrl(UPLOAD_PATH + obj.name).data.publicUrl
-      }));
-      renderBanner();
-      renderGrid();
+      gallery = objects
+  .filter(obj =>
+    !obj.name.endsWith('/') &&
+    !obj.name.startsWith('.')   // 👈 prevents .emptyFolderPlaceholder from showing
+  )
+  .map(obj => ({
+    path: UPLOAD_PATH + obj.name,
+    url: supabase.storage.from(BUCKET).getPublicUrl(UPLOAD_PATH + obj.name).data.publicUrl
+  }));
+
+renderBanner();
+renderGrid();
     }
 
     function renderBanner() {
