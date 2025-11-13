@@ -519,14 +519,15 @@
     const div = document.getElementById(`rsvpList_${eventId}`);
     if(!data?.length) return div.innerHTML = "<em>No RSVPs yet.</em>";
     div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
+  let phone = p.phone ? ` (${p.phone})` : "";
   if (p.buggy) {
     if (p.flexibility === "happy") {
-      return `🛺 ${p.name} (Happy to walk if no pair)`;
+      return `🛺 ${p.name}${phone} (Happy to walk if no pair)`;
     } else {
-      return `🛺 ${p.name} (Needs buggy)`;
+      return `🛺 ${p.name}${phone} (Needs buggy)`;
     }
   } else {
-    return `🚶 ${p.name}`;
+    return `🚶 ${p.name}`; // no phone for walkers
   }
 }).join("<br>");
   }
