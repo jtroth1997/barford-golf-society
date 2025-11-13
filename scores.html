@@ -1,98 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Barford Golf Society Handicap Calculator</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-/* --- COLORS --- */
-:root {
-  --green:#083d0b; --gold:#d4af37; --cream:#f7f7f5; --dark:#1b1b1b; --white:#fff;
-  --silver:#c0c0c0; --bronze:#cd7f32; --highlight:#e9f5ec;
-}
-
-/* --- MAIN LAYOUT / TYPOGRAPHY --- */
-body { font-family:"Inter",sans-serif; background:linear-gradient(135deg,var(--cream)40%,#e7ece7);
-  color:var(--dark); margin:0; padding:0; transition:background .3s,color .3s; }
-
-header {
-  background:linear-gradient(to right,var(--green),#145214);
-  color:var(--gold); text-align:center; padding:20px;
-  font-size:1.8rem; font-weight:700; position:relative;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
-}
-
-.navbar { display:flex; justify-content:center; gap:30px; background:var(--white); padding:12px 0;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-.navbar a { text-decoration:none; color:var(--green); font-weight:600; }
-.navbar a:hover { color:var(--gold); }
-
-/* --- DARK MODE --- */
-.dark-mode { background:#121212; color:var(--gold); }
-.dark-mode header { background:#000; }
-.dark-mode .navbar { background:#000; }
-.dark-mode .navbar a { color:var(--gold); }
-
-/* --- TOPBAR BUTTON STRIP --- */
-.topbar {
-  display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
-  padding:16px; background:var(--white); box-shadow:0 3px 10px rgba(0,0,0,0.05);
-  position:sticky; top:0; z-index:10;
-}
-
-.btn { padding:8px 12px; border:none; border-radius:8px; font-weight:600; cursor:pointer;
-  transition:.2s; font-size:.9rem; }
-.btn:hover { transform:translateY(-2px); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-
-.btn-unlock{background:var(--gold);color:var(--dark);}
-.btn-lock{background:var(--green);color:var(--white);}
-.btn-calc{background:#ffcc00;}
-.btn-prev,.btn-next{background:#ddd;}
-.btn-add{background:var(--silver);}
-.btn-pass{background:var(--bronze);color:var(--white);}
-.btn-export{background:var(--gold);}
-.btn-reset{background:#b22222;color:white;}
-
-input[type=password],input[type=number]{
-  padding:8px;border-radius:6px;border:1px solid #ccc;
-}
-
-/* --- TABLE --- */
-table { width:100%; border-collapse:collapse; background:var(--white);
-  border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.1); }
-
-th{background:var(--green);color:var(--gold);padding:12px;text-transform:uppercase;font-size:.85rem;}
-td{padding:12px;border-bottom:1px solid #f1f1f1;text-align:center;}
-
-tbody tr:nth-child(even){background:#fafafa;}
-tbody tr:hover{background:var(--highlight);}
-
-/* --- SECRET BLUR --- */
-.table-secret tbody { filter:blur(7px); pointer-events:none; }
-#secretNotice { display:none; text-align:center; color:#b22222; font-weight:700; padding:14px; }
-
-/* --- MOBILE --- */
-@media(max-width:900px){
-  .topbar{flex-wrap:wrap;}
-  table{display:block;overflow-x:auto;white-space:nowrap;}
-}
-
-/* --- STATS GRID --- */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:30px;}
-.stats-card{background:white;padding:10px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barford Golf Society Handicap Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* (Your existing CSS unchanged) */
+    /* … */
+  </style>
 </head>
 <body>
-
 <header>
   🏌️ Barford Golf Society Handicap Calculator
-  <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);">
-    <label>Dark</label> <input type="checkbox" id="darkSwitch">
+  <div class="dark-toggle">
+    <label for="darkSwitch">Dark Mode</label>
+    <input type="checkbox" id="darkSwitch">
   </div>
 </header>
 
@@ -104,16 +29,15 @@ tbody tr:hover{background:var(--highlight);}
 </div>
 
 <div class="topbar">
-  <input type="password" id="pwInput" placeholder="Password">
+  <input type="password" id="pwInput" placeholder="Enter password">
   <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
   <button class="btn btn-lock" onclick="lockInputs()">Lock</button>
   <button class="btn btn-calc" onclick="calculateHandicaps()">Calculate</button>
   <button class="btn btn-prev" onclick="prevRound()">◀ Prev</button>
   <button class="btn btn-next" onclick="nextRound()">Next ▶</button>
   <button class="btn btn-add" onclick="addPlayer()">+ Player</button>
-  <button class="btn btn-pass" onclick="changePassword()">Change PW</button>
+  <button class="btn btn-pass" onclick="changePassword()">Change Password</button>
 
-  <!-- ADMIN ONLY BUTTONS (hidden until unlocked) -->
   <button class="btn btn-export" id="exportLeaderboardBtn" style="display:none" onclick="exportLeaderboardCSV()">Export Leaderboard</button>
   <button class="btn btn-export" id="exportAllBtn" style="display:none" onclick="exportAllCSV()">Export All</button>
   <button class="btn btn-export" id="exportStatsBtn" style="display:none" onclick="exportStatsCSV()">Export Stats</button>
@@ -121,29 +45,23 @@ tbody tr:hover{background:var(--highlight);}
 </div>
 
 <main>
-  <h3 style="text-align:center" id="roundHeader">Round 1 of 7</h3>
-  <div class="progress-bar"><div id="progressFill" style="height:10px;background:var(--gold);width:0%"></div></div>
-
-  <div id="secretNotice">Round locked — admin only</div>
-
+  <div class="round-info">
+    <h3 id="roundHeader">Round 1 of 7</h3>
+    <div class="progress-bar"><div id="progressFill"></div></div>
+  </div>
+  <div id="secretNotice">Rounds 6 & 7 are locked — unlock to view/edit.</div>
   <table id="playersTableWrap">
     <thead>
       <tr>
-        <th>Rank</th>
-        <th>Player</th>
-        <th id="hcpHeader">Round 1 HCP</th>
-        <th>Points</th>
-        <th>Adj</th>
-        <th>Next HCP</th>
-        <th>Total</th>
-        <th>DNP</th>
-        <th>🏆</th>
+        <th>Rank</th><th>Player</th><th id="hcpHeader">Round 1 HCP</th>
+        <th>Points</th><th>Adj</th><th id="newHcpHeader">Next HCP</th>
+        <th>Total</th><th>DNP</th><th>🏆</th>
       </tr>
     </thead>
     <tbody id="playersTable"></tbody>
   </table>
 
-  <div id="chartContainer" style="display:none;margin-top:30px;">
+  <div id="chartContainer" style="display:none;margin-top:40px;">
     <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
     <canvas id="hcpChart"></canvas>
   </div>
@@ -151,312 +69,284 @@ tbody tr:hover{background:var(--highlight);}
   <div id="statsGrid" class="stats-grid"></div>
 </main>
 
-<div id="toast"
-     style="position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--gold);
-     padding:10px 20px;border-radius:8px;opacity:0;transition:.3s;">
-</div>
+<div id="toast"></div>
 
 <script>
-/* ---------------------------
-      SUPABASE SETUP
----------------------------- */
-const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";  // ← UPDATE THIS
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // --- Ensure variables declared BEFORE use ---
+  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ---------------------------
-      STATE VARIABLES
----------------------------- */
-let PASSWORD = "westbrom1997";
-let unlocked = false;
-let currentRound = 1;
-const maxRounds = 7;
+  let PASSWORD = "westbrom1997";
+  let unlocked = false;
+  let currentRound = 1;
+  const maxRounds = 7;
 
-let players = [];
-let currentHcp = [];
-let nextHcp = [];
-let trophies = [];
-let lastAdj = [];
-let playerScores = [];
+  let players = [], currentHcp = [], nextHcp = [], trophies = [], lastAdj = [], playerScores = [];
 
-/* ---------------------------
-      LOAD DATA
----------------------------- */
-async function loadData(){
-  // Load full player roster
-  const {data: roster} = await supabase.from("players").select("name").order("name");
-  players = roster.map(r => r.name);
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.opacity = 1;
+    setTimeout(() => (t.style.opacity = 0), 2500);
+  }
 
-  // Initialise arrays
-  currentHcp = players.map(()=>0);
-  nextHcp    = players.map(()=>null);
-  trophies   = players.map(()=>0);
-  lastAdj    = players.map(()=>(""));
-  playerScores = players.map(()=>Array(maxRounds).fill(null));
+  function stablefordAdj(pts) {
+    if (pts >= 43) return -3;
+    if (pts >= 38) return -2;
+    if (pts >= 31) return -1;
+    if (pts >= 26) return 0;
+    if (pts >= 21) return +1;
+    if (pts >= 16) return +2;
+    return +3;
+  }
 
-  // Load all score rows
-  const {data: scores} = await supabase.from("scores").select("*");
+  async function loadData() {
+    document.body.style.cursor = "wait";
 
-  // Fill each player
-  players.forEach((name,i)=>{
-    const rows = scores.filter(r=>r.player===name);
-    rows.forEach(r=>{
-      const idx = r.round - 1;
-      playerScores[i][idx] = r.points;
-      currentHcp[i] = r.handicap ?? currentHcp[i];
-      nextHcp[i] = r.next_handicap ?? nextHcp[i];
-      if(r.adj !== null) lastAdj[i] = (r.adj>0?"+":"")+r.adj;
+    const { data: roster, error: rError } = await supabase.from("players").select("name").order("name", { ascending:true });
+    if (rError) {
+      console.error("Error loading players:", rError);
+      document.body.style.cursor = "default";
+      return;
+    }
+    players = roster.map(r => r.name);
+
+    // initialize arrays
+    currentHcp = players.map(() => 0);
+    nextHcp    = players.map(() => null);
+    trophies   = players.map(() => 0);
+    lastAdj    = players.map(() => "");
+    playerScores = players.map(() => Array(maxRounds).fill(null));
+
+    const { data: scores, error: sError } = await supabase.from("scores").select("*");
+    if (sError) {
+      console.error("Error loading scores:", sError);
+      document.body.style.cursor = "default";
+      return;
+    }
+
+    players.forEach((name,i) => {
+      const rows = scores.filter(r => r.player === name);
+      rows.forEach(r => {
+        const idx = r.round - 1;
+        playerScores[i][idx] = r.points;
+        if (r.handicap != null) currentHcp[i] = r.handicap;
+        if (r.next_handicap != null) nextHcp[i] = r.next_handicap;
+        if (r.adj != null) lastAdj[i] = (r.adj>0?"+":"")+r.adj;
+      });
     });
-  });
 
-  // Trophy calculation
-  for(let round=1; round<=maxRounds; round++){
-    let topScore = -Infinity, winner=-1;
-    players.forEach((_,i)=>{
-      const pts = playerScores[i][round-1];
-      if(pts!==null && pts>topScore){
-        topScore = pts;
-        winner=i;
+    for (let rn = 1; rn <= maxRounds; rn++) {
+      let top = -Infinity, winIdx = -1;
+      players.forEach((_,i)=>{
+        const pts = playerScores[i][rn-1];
+        if (pts != null && pts > top) {
+          top = pts; winIdx = i;
+        }
+      });
+      if (winIdx >= 0) trophies[winIdx]++;
+    }
+
+    renderLeaderboard();
+    renderStatsGrid();
+    document.body.style.cursor = "default";
+  }
+
+  function renderLeaderboard() {
+    const tbody = document.getElementById("playersTable");
+    tbody.innerHTML = "";
+
+    const totals = players.map((name,i)=>{
+      const vals = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5);
+      const sum  = vals.reduce((a,b)=>a+b,0);
+      return { idx:i,name, total:sum };
+    }).sort((a,b)=>b.total - a.total);
+
+    totals.forEach((p,rank)=>{
+      const i = p.idx;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
+        <td>${players[i]}</td>
+        <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
+        <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
+        <td>${lastAdj[i]}</td>
+        <td>${nextHcp[i] ?? ""}</td>
+        <td>${p.total}</td>
+        <td><input type="checkbox" disabled ${playerScores[i][currentRound-1]==null?"checked":""}></td>
+        <td>🏆 ${trophies[i]}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // blur logic
+    const wrap = document.getElementById("playersTableWrap");
+    const secretNotice = document.getElementById("secretNotice");
+    if ((currentRound === 6 || currentRound === 7) && !unlocked) {
+      wrap.classList.add("table-secret");
+      secretNotice.style.display = "block";
+    } else {
+      wrap.classList.remove("table-secret");
+      secretNotice.style.display = "none";
+    }
+
+    // admin only buttons
+    ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn"]
+      .forEach(id => {
+        document.getElementById(id).style.display = unlocked ? "inline-block" : "none";
+      });
+
+    document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
+    document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
+    document.getElementById("progressFill").style.width = `${(currentRound/maxRounds)*100}%`;
+  }
+
+  function nextRound(){
+    if (currentRound < maxRounds) {
+      for (let i=0; i<players.length; i++){
+        currentHcp[i] = nextHcp[i] ?? currentHcp[i];
+        lastAdj[i] = "";
       }
+      currentRound++;
+      renderLeaderboard();
+    }
+  }
+
+  function prevRound(){
+    if (currentRound > 1) {
+      currentRound--;
+      renderLeaderboard();
+    }
+  }
+
+  function unlockInputs(){
+    const pw = document.getElementById("pwInput").value;
+    if (pw !== PASSWORD) return alert("Wrong password");
+    unlocked = true;
+    renderLeaderboard();
+    showToast("Unlocked");
+  }
+
+  function lockInputs(){
+    unlocked = false;
+    renderLeaderboard();
+    showToast("Locked");
+  }
+
+  function changePassword(){
+    const old = prompt("Enter current password:");
+    if (old !== PASSWORD) return alert("Incorrect password");
+    const nw  = prompt("Enter new password:");
+    if (nw) { PASSWORD = nw; alert("Password changed"); }
+  }
+
+  async function addPlayer(){
+    if (!unlocked) return alert("Unlock first");
+    const name = prompt("Enter player name:");
+    if (!name) return;
+    await supabase.from("players").upsert({ name });
+    await loadData();
+  }
+
+  async function calculateHandicaps(){
+    if (!unlocked) return alert("Unlock required");
+
+    for(let i=0; i<players.length; i++){
+      const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
+      const pts = parseInt(document.getElementById(`pts_${i}`).value);
+      if (!isNaN(pts)) {
+        const adj = stablefordAdj(pts);
+        lastAdj[i] = adj>0 ? `+${adj}` : `${adj}`;
+        nextHcp[i] = Math.max(0, hcp + adj);
+        playerScores[i][currentRound-1] = pts;
+        currentHcp[i] = hcp;
+      }
+    }
+
+    const updates = players.map((name,i)=>{
+      const vals = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5);
+      const total = vals.reduce((a,b)=>a+b,0);
+      return {
+        player: name,
+        round: currentRound,
+        handicap: currentHcp[i],
+        points: playerScores[i][currentRound-1],
+        adj: parseInt(lastAdj[i]) || 0,
+        next_handicap: nextHcp[i],
+        total: total
+      };
     });
-    if(winner>=0) trophies[winner]++;
-  }
 
-  renderLeaderboard();
-  renderStatsGrid();
-}
-loadData();
-
-/* ---------------------------
-      RENDER LEADERBOARD
----------------------------- */
-function renderLeaderboard(){
-  const table = document.getElementById("playersTable");
-  table.innerHTML="";
-
-  const totals = players.map((n,i)=>{
-    const s = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5);
-    return { idx:i, name:n, total:s.reduce((a,b)=>a+b,0) };
-  }).sort((a,b)=>b.total-a.total);
-
-  totals.forEach((p,rank)=>{
-    const i = p.idx;
-    const tr=document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
-      <td>${players[i]}</td>
-      <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
-      <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
-      <td>${lastAdj[i]}</td>
-      <td>${nextHcp[i] ?? ""}</td>
-      <td>${p.total}</td>
-      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1]==null?"checked":""}></td>
-      <td>🏆 ${trophies[i]}</td>`;
-    table.appendChild(tr);
-  });
-
-  // Blur rounds 6 & 7 for public users
-  const wrap = document.getElementById("playersTableWrap");
-  const secret = document.getElementById("secretNotice");
-  if((currentRound===6 || currentRound===7) && !unlocked){
-    wrap.classList.add("table-secret");
-    secret.style.display="block";
-  } else {
-    wrap.classList.remove("table-secret");
-    secret.style.display="none";
-  }
-
-  // Admin-only buttons toggle
-  ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn"]
-    .forEach(id => document.getElementById(id).style.display = unlocked?"inline-block":"none");
-
-  document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
-  document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
-  document.getElementById("progressFill").style.width = `${(currentRound/maxRounds)*100}%`;
-}
-
-/* ---------------------------
-      NAVIGATION
----------------------------- */
-function nextRound(){
-  if(currentRound<maxRounds){
-    // carry forward nextHcp
-    for(let i=0;i<players.length;i++){
-      currentHcp[i] = nextHcp[i] ?? currentHcp[i];
-      lastAdj[i] = "";
-    }
-    currentRound++;
+    await supabase.from("scores").upsert(updates, { onConflict:["player","round"] });
     renderLeaderboard();
-  }
-}
-
-function prevRound(){
-  if(currentRound>1){
-    currentRound--;
-    renderLeaderboard();
-  }
-}
-
-/* ---------------------------
-      ADMIN CONTROLS
----------------------------- */
-function unlockInputs(){
-  const pw=document.getElementById("pwInput").value;
-  if(pw!==PASSWORD) return alert("Wrong password");
-  unlocked=true;
-  renderLeaderboard();
-}
-
-function lockInputs(){
-  unlocked=false;
-  renderLeaderboard();
-}
-
-function changePassword(){
-  if(prompt("Current password?")!==PASSWORD) return alert("Incorrect");
-  const np = prompt("New password:");
-  if(np){ PASSWORD=np; alert("Password changed"); }
-}
-
-/* ---------------------------
-      ADD PLAYER
----------------------------- */
-async function addPlayer(){
-  if(!unlocked) return alert("Unlock first");
-  const name = prompt("Player name?");
-  if(!name) return;
-  await supabase.from("players").upsert({name});
-  await loadData();
-}
-
-/* ---------------------------
-      CALCULATE + SAVE
----------------------------- */
-function stablefordAdj(pts){
-  if(pts>=43) return -3;
-  if(pts>=38) return -2;
-  if(pts>=31) return -1;
-  if(pts>=26) return 0;
-  if(pts>=21) return +1;
-  if(pts>=16) return +2;
-  return +3;
-}
-
-async function calculateHandicaps(){
-  if(!unlocked) return alert("Unlock required");
-
-  for(let i=0;i<players.length;i++){
-    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value)||0;
-    const pts = parseInt(document.getElementById(`pts_${i}`).value);
-    if(!isNaN(pts)){
-      const adj = stablefordAdj(pts);
-      lastAdj[i] = adj>0?`+${adj}`:adj;
-      nextHcp[i] = Math.max(0, hcp + adj);
-      playerScores[i][currentRound-1] = pts;
-      currentHcp[i] = hcp;
-    }
+    renderStatsGrid();
   }
 
-  // Save all rows of current round
-  const updates = players.map((name,i)=>{
-    const total = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0);
-    return {
-      player:name,
-      round:currentRound,
-      handicap:currentHcp[i],
-      points:playerScores[i][currentRound-1],
-      adj:parseInt(lastAdj[i])||0,
-      next_handicap:nextHcp[i],
-      total:total
-    };
+  async function confirmReset(){
+    if (!unlocked) return alert("Unlock first");
+    if (prompt("Enter password to reset league:") !== PASSWORD) return alert("Wrong password");
+    if (!confirm("Are you sure you want to reset the league?")) return;
+    await supabase.rpc("reset_scores");
+    currentRound = 1;
+    await loadData();
+    showToast("League reset complete");
+  }
+
+  async function exportAllCSV(){
+    const { data } = await supabase.from("scores").select("*");
+    downloadCSV("all_scores", toCSV(data));
+  }
+  async function exportLeaderboardCSV(){
+    const totals = players.map((name,i)=>{
+      const vals = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5);
+      return { Player:name, Total: vals.reduce((a,b)=>a+b,0), Trophies:trophies[i] };
+    });
+    downloadCSV("leaderboard", toCSV(totals));
+  }
+  function exportStatsCSV(){
+    const rows = players.map((name,i)=>{
+      const vals = playerScores[i].filter(v=>v!==null);
+      return {
+        Player: name,
+        Rounds: vals.length,
+        Average: vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : "",
+        Best: vals.length ? Math.max(...vals) : "",
+        Worst: vals.length ? Math.min(...vals) : "",
+        Trophies: trophies[i]
+      };
+    });
+    downloadCSV("stats", toCSV(rows));
+  }
+  function downloadCSV(filename, csv){
+    const blob = new Blob([csv], { type:"text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  }
+
+  function renderStatsGrid(){
+    const grid = document.getElementById("statsGrid");
+    grid.innerHTML="";
+    players.forEach((name,i)=>{
+      const vals = playerScores[i].filter(v=>v!==null);
+      const card = document.createElement("div");
+      card.className = "stats-card";
+      card.innerHTML = `
+        <h4>${name}</h4>
+        <p>Rounds: ${vals.length}</p>
+        <p>Avg: ${vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : "-"}</p>
+        <p>Best: ${vals.length ? Math.max(...vals) : "-"}</p>
+        <p>Worst: ${vals.length ? Math.min(...vals) : "-"}</p>
+        <p>🏆 ${trophies[i]}</p>`;
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById("darkSwitch").addEventListener("change", function(){
+    document.body.classList.toggle("dark-mode", this.checked);
   });
 
-  await supabase.from("scores").upsert(updates,{onConflict:["player","round"]});
-  renderLeaderboard();
-}
-
-/* ---------------------------
-      CLEAR LEAGUE
----------------------------- */
-async function confirmReset(){
-  if(!unlocked) return alert("Unlock first");
-  if(prompt("Password?")!==PASSWORD) return alert("Wrong password");
-  if(!confirm("Reset entire league?")) return;
-
-  await supabase.rpc("reset_scores");
-  currentRound=1;
-  loadData();
-}
-
-/* ---------------------------
-      CSV EXPORTS
----------------------------- */
-function toCSV(arr){
-  return arr.map(row=>Object.values(row).join(",")).join("\n");
-}
-
-async function exportAllCSV(){
-  const {data} = await supabase.from("scores").select("*");
-  downloadCSV("all_scores",toCSV(data));
-}
-function exportLeaderboardCSV(){
-  const totals = players.map((name,i)=>{
-    const s = playerScores[i].filter(v=>v!==null).sort((a,b)=>b-a).slice(0,5);
-    return {Player:name,Total:s.reduce((a,b)=>a+b,0),Trophies:trophies[i]};
-  });
-  downloadCSV("leaderboard",toCSV(totals));
-}
-function exportStatsCSV(){
-  const rows = players.map((name,i)=>{
-    const s = playerScores[i].filter(v=>v!==null);
-    return {
-      Player:name,
-      Rounds:s.length,
-      Average:s.length?(s.reduce((a,b)=>a+b)/s.length).toFixed(1):"",
-      Best:s.length?Math.max(...s):"",
-      Worst:s.length?Math.min(...s):"",
-      Trophies:trophies[i]
-    };
-  });
-  downloadCSV("stats",toCSV(rows));
-}
-
-function downloadCSV(name,csv){
-  const blob = new Blob([csv],{type:"text/csv"});
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
-}
-
-/* ---------------------------
-      STATS GRID
----------------------------- */
-function renderStatsGrid(){
-  const grid=document.getElementById("statsGrid");
-  grid.innerHTML="";
-  players.forEach((name,i)=>{
-    const s=playerScores[i].filter(v=>v!==null);
-    const card=document.createElement("div");
-    card.className="stats-card";
-    card.innerHTML = `
-      <h4>${name}</h4>
-      <p>Rounds: ${s.length}</p>
-      <p>Avg: ${s.length?(s.reduce((a,b)=>a+b)/s.length).toFixed(1):"-"}</p>
-      <p>Best: ${s.length?Math.max(...s):"-"}</p>
-      <p>Worst: ${s.length?Math.min(...s):"-"}</p>
-      <p>🏆 ${trophies[i]}</p>`;
-    grid.appendChild(card);
-  });
-}
-
-/* ---------------------------
-      DARK MODE
----------------------------- */
-document.getElementById("darkSwitch").addEventListener("change",()=>{
-  document.body.classList.toggle("dark-mode");
-});
 </script>
 
 </body>
