@@ -472,44 +472,39 @@ async function calculateHandicaps(){
   renderStatsGrid();
 }
 
-async function confirmReset(){
-  if(!unlocked) return alert("Unlock first");
-  if(prompt("Enter password to reset league:") !== PASSWORD) return alert("Wrong password");
-  if(!confirm("Are you sure you want to reset the league?")) return;
+async function confirmReset() {
+  if (!unlocked) return alert("Unlock first");
+  const pw = prompt("Enter password to reset league:");
+  if (pw !== PASSWORD) return alert("Wrong password");
+  if (!confirm("Are you sure you want to reset the league? This cannot be undone.")) return;
 
-  await supabase.rpc("reset_scores");
-  currentRound = 1;
-  loadData();
-  showToast("League reset complete");
+  document.body.style.cursor = "wait";
+  try {
+    const { data, error } = await supabase.rpc("reset_scores");
+    if (error) {
+      console.error("Reset error:", error);
+      alert("⚠️ Reset failed: " + error.message);
+    } else {
+      alert("✅ League reset successfully!");
+      currentRound = 1;
+      // Clear local state
+      players = [];
+      currentHcp = [];
+      nextHcp = [];
+      trophies = [];
+      lastAdj = [];
+      playerScores = [];
+      // Reload from scratch
+      await loadData();
+      showToast("League reset complete");
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("❌ Unexpected error during reset.");
+  } finally {
+    document.body.style.cursor = "default";
+  }
 }
-
-function toCSV(arr){
-  return arr.map(r=>Object.values(r).join(",")).join("\n");
-}
-
-async function exportAllCSV(){
-  const {data} = await supabase.from("scores").select("*");
-  downloadCSV("all_scores", toCSV(data));
-}
-async function exportLeaderboardCSV(){
-  const rows = players.map((name,i)=>{
-    const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
-    return { Player:name, Total: vals.reduce((a,b)=>a+b,0), Trophies:trophies[i] };
-  });
-  downloadCSV("leaderboard", toCSV(rows));
-}
-function exportStatsCSV(){
-  const rows = players.map((name,i)=>{
-    const vals = playerScores[i].filter(v=>v!=null);
-    return {
-      Player: name,
-      Rounds: vals.length,
-      Average: vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : "",
-      Best: vals.length ? Math.max(...vals) : "",
-      Worst: vals.length ? Math.min(...vals) : "",
-      Trophies: trophies[i]
-    };
-  });
   downloadCSV("stats", toCSV(rows));
 }
 function downloadCSV(name, csv){
