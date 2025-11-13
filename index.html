@@ -16,25 +16,25 @@
       --transition: all .3s ease-in-out;
     }
     *, *::before, *::after {
-      box‑sizing: border‑box;
+      box-sizing: border-box;
     }
     body {
       margin: 0;
       font-family: "Inter", sans-serif;
       color: var(--white);
       background: var(--dark);
-      line‑height: 1.6;
+      line-height: 1.6;
     }
     .site-header {
       background: var(--charcoal);
       padding: 18px 24px;
       position: sticky;
       top: 0;
-      z‑index: 1000;
-      box‑shadow: 0 2px 10px rgba(0,0,0,.50);
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,.50);
     }
     .header-container {
-      max‑width: 1200px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -70,6 +70,7 @@
       height: 75vh;
       min-height: 450px;
       overflow: hidden;
+      background: var(--dark);
     }
     .hero img {
       width: 100%;
@@ -78,9 +79,9 @@
       position: absolute;
       top: 0;
       left: 0;
-      opacity: 0.15;
-      filter: blur(4px) brightness(50%);
-      transition: opacity 1s ease‑in-out;
+      opacity: 0;
+      filter: brightness(50%);
+      transition: opacity 1s ease-in-out;
     }
     .hero img.active {
       opacity: 0.25;
@@ -92,10 +93,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.45);
       text-align: center;
       padding: 0 20px;
-      z‑index: 2;
+      z-index: 2;
     }
     .hero-overlay h2 {
       font-size: 3rem;
@@ -124,7 +124,7 @@
     }
 
     .container {
-      max‑width: 1100px;
+      max-width: 1100px;
       margin: 60px auto;
       padding: 0 20px;
     }
@@ -239,15 +239,15 @@
         <p>Join like‑minded members and enjoy regular fixtures across premium courses.</p>
       </div>
       <div class="highlight">
-        <h4>Fair Formats</h4>
-        <p>Handicap‑adjusted competitions so everyone has a shot.</p>
+        <h4>Engaging Formats</h4>
+        <p>Competition formats that keep things fun and fair.</p>
       </div>
       <div class="highlight">
         <h4>Member Gallery</h4>
         <p>Browse our collection of member photographs capturing memorable moments.</p>
       </div>
       <div class="highlight">
-        <h4>Stay Connected</h4>
+        <h4>Live Info</h4>
         <p>Stay updated with events, results and social nights in real time.</p>
       </div>
     </div>
@@ -259,10 +259,10 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // replace with your anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // Replace with your actual anon key
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const BUCKET = 'gallery-images';
-    const PATH = 'uploads/'; // change this if your files are stored at root or another folder
+    const PATH = 'uploads/'; // ensure this matches where your images are stored
 
     async function fetchGalleryUrls() {
       const { data: files, error } = await supabase.storage.from(BUCKET).list(PATH, {
