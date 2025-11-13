@@ -73,18 +73,18 @@
       background: var(--dark);
     }
     .hero img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
       position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: auto;
+      transform: translate(-50%, -50%);
+      opacity: 0.15;
       filter: brightness(50%);
       transition: opacity 1s ease-in-out;
     }
     .hero img.active {
-      opacity: 0.25;
+      opacity: 0.3;
     }
     .hero-overlay {
       position: absolute;
@@ -262,7 +262,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // Replace with your actual anon key
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const BUCKET = 'gallery-images';
-    const PATH = 'uploads/'; // ensure this matches where your images are stored
+    const PATH = 'uploads/'; // Ensure this matches your storage folder
 
     async function fetchGalleryUrls() {
       const { data: files, error } = await supabase.storage.from(BUCKET).list(PATH, {
