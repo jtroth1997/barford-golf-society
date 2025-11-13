@@ -147,7 +147,7 @@
     th, td {
       padding:12px;
       text-align:center;
-      border‑bottom:1px solid #f1f1f1;
+      border-bottom:1px solid #f1f1f1;
     }
     th {
       background: var(--green);
@@ -162,11 +162,11 @@
     .dark-mode th { background:#000; color:var(--gold); }
     #chartContainer {
       display: none;
-      margin‑top:40px;
+      margin-top:40px;
       padding:20px;
       background: var(--white);
       border-radius:12px;
-      box‑shadow:0 4px 14px rgba(0,0,0,0.1);
+      box-shadow:0 4px 14px rgba(0,0,0,0.1);
     }
     .dark-mode #chartContainer { background:#1f1f1f; }
     #toast {
@@ -181,17 +181,17 @@
       transition: opacity .4s;
     }
     .table-secret { position: relative; }
-    .table-secret tbody { filter: blur(6px); pointer‑events: none; user‑select: none; }
+    .table-secret tbody { filter: blur(6px); pointer-events: none; user-select: none; }
     #secretNotice {
       text-align: center;
       padding: 8px;
       color:#b22222;
-      font‑weight:700;
+      font-weight:700;
       display: none;
     }
     @media (max-width:900px){
       .topbar { flex-wrap: wrap; }
-      table { display:block; overflow‑x:auto; white‑space:nowrap; }
+      table { display:block; overflow-x:auto; white-space:nowrap; }
     }
     @media (max-width:700px){
       th, td { font-size:12px; padding:8px; }
@@ -253,7 +253,7 @@
   </div>
 
   <div id="chartContainer">
-    <h3 style="text‑align:center;color:var(--green)">Handicap Progression</h3>
+    <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
     <canvas id="hcpChart"></canvas>
   </div>
 
@@ -478,7 +478,7 @@
     ];
     adminBtns.forEach(id=>{
       const btn = document.getElementById(id);
-      if(btn) btn.style.display = "inline‑block";
+      if(btn) btn.style.display = "inline-block";
     });
     showToast("✅ Admin unlocked");
   }
@@ -617,7 +617,7 @@
   }
   async function exportLeaderboardCSV(){
     const rows = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b‑a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
       return { Player: name, Total: vals.reduce((a,b)=>a+b,0), Trophies: trophies[i] };
     });
     downloadCSV("leaderboard", toCSV(rows));
