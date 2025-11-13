@@ -16,14 +16,14 @@
       --transition: all .3s ease-in-out;
     }
     *, *::before, *::after {
-      box-sizing: border‑box;
+      box‑sizing: border‑box;
     }
     body {
       margin: 0;
       font-family: "Inter", sans-serif;
       color: var(--white);
       background: var(--dark);
-      line-height: 1.6;
+      line‑height: 1.6;
     }
     .site-header {
       background: var(--charcoal);
@@ -31,7 +31,7 @@
       position: sticky;
       top: 0;
       z‑index: 1000;
-      box-shadow: 0 2px 10px rgba(0,0,0,.50);
+      box‑shadow: 0 2px 10px rgba(0,0,0,.50);
     }
     .header-container {
       max‑width: 1200px;
@@ -78,11 +78,12 @@
       position: absolute;
       top: 0;
       left: 0;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
+      opacity: 0.15;
+      filter: blur(4px) brightness(50%);
+      transition: opacity 1s ease‑in-out;
     }
     .hero img.active {
-      opacity: 1;
+      opacity: 0.25;
     }
     .hero-overlay {
       position: absolute;
@@ -98,12 +99,12 @@
     }
     .hero-overlay h2 {
       font-size: 3rem;
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-weight: 700;
       color: var(--white);
     }
     .hero-overlay p {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       margin: 0 0 24px;
       color: rgba(255,255,255,0.9);
     }
@@ -123,7 +124,7 @@
     }
 
     .container {
-      max-width: 1100px;
+      max‑width: 1100px;
       margin: 60px auto;
       padding: 0 20px;
     }
@@ -210,10 +211,11 @@
 
   <div class="hero" id="heroSlideshow">
     <div class="hero-overlay">
-      <h2>Members of Barford Golf Society</h2>
-      <p>Experience our community, view our upcoming event & explore moments captured.</p>
-      <a class="btn" href="events.html">View Next Event</a>
-      <a class="btn" href="gallery.html">Browse Gallery</a>
+      <h2>Welcome to Barford Golf Society</h2>
+      <p>Great golf. Great company. A season‑long journey across fantastic courses.</p>
+      <a class="btn" href="events.html">View Events</a>
+      <a class="btn" href="scores.html">Enter Scores</a>
+      <a class="btn" href="gallery.html">Member Gallery</a>
     </div>
   </div>
 
@@ -234,19 +236,19 @@
     <div class="highlights">
       <div class="highlight">
         <h4>Exclusive Community</h4>
-        <p>Join fellow golf enthusiasts and enjoy premium fixtures.</p>
+        <p>Join like‑minded members and enjoy regular fixtures across premium courses.</p>
       </div>
       <div class="highlight">
-        <h4>Engaging Formats</h4>
-        <p>Competition formats that keep things fun and fair.</p>
+        <h4>Fair Formats</h4>
+        <p>Handicap‑adjusted competitions so everyone has a shot.</p>
       </div>
       <div class="highlight">
-        <h4>Captured Memories</h4>
-        <p>See our members in action through our gallery photos.</p>
+        <h4>Member Gallery</h4>
+        <p>Browse our collection of member photographs capturing memorable moments.</p>
       </div>
       <div class="highlight">
-        <h4>Stay Updated</h4>
-        <p>Upcoming event notices, social nights and results.</p>
+        <h4>Stay Connected</h4>
+        <p>Stay updated with events, results and social nights in real time.</p>
       </div>
     </div>
   </div>
@@ -257,29 +259,22 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
-
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // replace with your anon key
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const BUCKET = 'gallery-images';
-    const PATH = 'uploads/'; // adjust this if your gallery uses a folder under the bucket
+    const PATH = 'uploads/'; // change this if your files are stored at root or another folder
 
     async function fetchGalleryUrls() {
-      const { data: files, error } = await supabase
-        .storage
-        .from(BUCKET)
-        .list(PATH, {
-          limit: 50,
-          sortBy: { column: 'name', order: 'desc' }
-        });
-
+      const { data: files, error } = await supabase.storage.from(BUCKET).list(PATH, {
+        limit: 50,
+        sortBy: { column: 'name', order: 'desc' }
+      });
       if (error) {
         console.error('Error listing gallery files:', error.message);
         return [];
       }
-
       const urls = await Promise.all(files.map(async file => {
-        const { data: urlData, error: urlError } = await supabase
-          .storage
+        const { data: urlData, error: urlError } = await supabase.storage
           .from(BUCKET)
           .getPublicUrl(`${PATH}${file.name}`);
         if (urlError) {
@@ -288,7 +283,6 @@
         }
         return urlData.publicUrl;
       }));
-
       return urls.filter(u => u);
     }
 
@@ -315,7 +309,6 @@
         console.warn('No gallery images found for hero slideshow.');
       }
 
-      // Next event logic (same as earlier)
       const events = JSON.parse(localStorage.getItem('bgsEvents') || '[]');
       const future = events.filter(e => new Date(e.date) >= new Date());
       if (future.length) {
