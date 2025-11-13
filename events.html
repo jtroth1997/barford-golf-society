@@ -518,7 +518,17 @@
     const {data} = await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
     const div = document.getElementById(`rsvpList_${eventId}`);
     if(!data?.length) return div.innerHTML = "<em>No RSVPs yet.</em>";
-    div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => `${p.buggy ? "🛺" : "🚶"} ${p.name} ${p.flexibility === "happy" ? "(Happy)" : ""}`).join("<br>");
+    div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
+  if (p.buggy) {
+    if (p.flexibility === "happy") {
+      return `🛺 ${p.name} (Happy to walk if no pair)`;
+    } else {
+      return `🛺 ${p.name} (Needs buggy)`;
+    }
+  } else {
+    return `🚶 ${p.name}`;
+  }
+}).join("<br>");
   }
 
   async function loadTeeTimes(eventId){
