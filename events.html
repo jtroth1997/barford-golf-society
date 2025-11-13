@@ -578,6 +578,33 @@
     return;
   }
 
+  try {
+    const { error } = await supabase.from("events").insert([{
+      name,
+      date,
+      location,
+      price,
+      description: desc,
+      course_link: course,
+      weather_link: weather,
+      cancelled: false
+    }]);
+
+    if (error) {
+      console.error("❌ Supabase insert error:", error); // visible in DevTools console
+      msg.textContent = "❌ Could not create event.";
+      return;
+    }
+
+    msg.textContent = "✅ Event created!";
+    loadEvents();
+    loadAdminSelects();
+  } catch (err) {
+    console.error("⚠️ JS exception in createEvent:", err);
+    msg.textContent = "❌ JS error — check console.";
+  }
+}
+
   const { data, error } = await supabase.from("events").insert([{
     name,
     date,
