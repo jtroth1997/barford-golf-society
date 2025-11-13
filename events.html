@@ -521,9 +521,9 @@
     div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
   if (p.buggy) {
     if (p.flexibility === "happy") {
-      return `🛺 ${p.name}${phone} (Happy to walk if no pair)`;
+      return `🛺 ${p.name} (Happy to walk if no pair)`;
     } else {
-      return `🛺 ${p.name}${phone} (Needs buggy)`;
+      return `🛺 ${p.name} (Needs buggy)`;
     }
   } else {
     return `🚶 ${p.name}`;
