@@ -290,7 +290,7 @@
       <h2>Upload Your Golf Photos</h2>
       <input type="file" id="fileInput" accept="image/*" multiple>
       <div class="preview" id="preview"></div>
-      <button id="approveBtn" class="btn" style="display: none;">Approve Uploads</button>
+     <button id="approveBtn" class="btn" style="display:none">Approve Uploads</button>
     </div>
 
     <h3 style="color: var(--green); text-align: center; margin-top: 32px;">Gallery</h3>
@@ -538,7 +538,7 @@
     alert('⚠️ Upload error. Please try again.');
   }
 }
-
+ approveBtn.addEventListener("click", approveUploads);
     // Initialization
     loadGallery();
 
