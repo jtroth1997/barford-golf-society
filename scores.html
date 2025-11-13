@@ -147,7 +147,7 @@
     th, td {
       padding:12px;
       text-align:center;
-      border-bottom:1px solid #f1f1f1;
+      border‑bottom:1px solid #f1f1f1;
     }
     th {
       background: var(--green);
@@ -158,15 +158,15 @@
     }
     tbody tr:nth-child(even){ background:#f8f8f8; }
     tbody tr:hover { background:var(--highlight); }
-    .dark-mode table { background:#1f1f1f; color: var(--gold); }
-    .dark-mode th { background:#000; color: var(--gold); }
+    .dark-mode table { background:#1f1f1f; color:var(--gold); }
+    .dark-mode th { background:#000; color:var(--gold); }
     #chartContainer {
       display: none;
-      margin-top: 40px;
-      padding: 20px;
+      margin‑top:40px;
+      padding:20px;
       background: var(--white);
       border-radius:12px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      box‑shadow:0 4px 14px rgba(0,0,0,0.1);
     }
     .dark-mode #chartContainer { background:#1f1f1f; }
     #toast {
@@ -181,21 +181,21 @@
       transition: opacity .4s;
     }
     .table-secret { position: relative; }
-    .table-secret tbody { filter: blur(6px); pointer-events: none; user-select: none; }
+    .table-secret tbody { filter: blur(6px); pointer‑events: none; user‑select: none; }
     #secretNotice {
       text-align: center;
       padding: 8px;
-      color: #b22222;
-      font-weight: 700;
+      color:#b22222;
+      font‑weight:700;
       display: none;
     }
     @media (max-width:900px){
       .topbar { flex-wrap: wrap; }
-      table { display: block; overflow-x: auto; white-space: nowrap; }
+      table { display:block; overflow‑x:auto; white‑space:nowrap; }
     }
     @media (max-width:700px){
       th, td { font-size:12px; padding:8px; }
-      .btn { font-size:0.8rem; padding: 6px 10px; }
+      .btn { font-size:0.8rem; padding:6px 10px; }
     }
   </style>
 </head>
@@ -203,7 +203,7 @@
 <body>
 
 <header>
-  🏌️ Barford Golf Society Handicap Calculator
+  🏌️ Barford Golf Society Handicap Calculator
   <div class="dark-toggle">
     <label for="darkSwitch">Dark Mode</label>
     <input type="checkbox" id="darkSwitch">
@@ -253,7 +253,7 @@
   </div>
 
   <div id="chartContainer">
-    <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
+    <h3 style="text‑align:center;color:var(--green)">Handicap Progression</h3>
     <canvas id="hcpChart"></canvas>
   </div>
 
@@ -289,7 +289,7 @@
   function toCSV(arr){
     return arr.map(obj =>
       Object.values(obj)
-        .map(v => `"${(v ?? "").toString().replace(/"/g, '""')}"`)
+        .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`)
         .join(",")
     ).join("\n");
   }
@@ -306,22 +306,17 @@
 
   async function loadData(){
     document.body.style.cursor = "wait";
-    const { data: roster, error: rErr } = await supabase
-      .from("players")
-      .select("name")
-      .order("name", { ascending: true });
+    const { data: roster, error: rErr } = await supabase.from("players").select("name").order("name",{ascending:true});
     if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor="default"; return; }
     players = roster.map(r => r.name);
 
     currentHcp   = players.map(()=>0);
     nextHcp      = players.map(()=>null);
     trophies     = players.map(()=>0);
-    lastAdj      = players.map(()=>"");
+    lastAdj      = players.map(()=> "");
     playerScores = players.map(()=> Array(maxRounds).fill(null));
 
-    const { data: scores, error: sErr } = await supabase
-      .from("scores")
-      .select("*");
+    const { data: scores, error: sErr } = await supabase.from("scores").select("*");
     if(sErr){ console.error("Error loading scores:", sErr); document.body.style.cursor="default"; return; }
 
     players.forEach((name,i)=>{
@@ -337,7 +332,7 @@
 
     trophies = players.map(()=>0);
     for(let rn=1; rn<=currentRound; rn++){
-      let top=-Infinity, winIdx = -1;
+      let top=-Infinity, winIdx=-1;
       players.forEach((_, i)=>{
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
@@ -354,7 +349,13 @@
 
   function renderLeaderboard(){
     console.log("renderLeaderboard → unlocked =", unlocked);
-    const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
+    const adminBtns = [
+      "exportLeaderboardBtn",
+      "exportAllBtn",
+      "exportStatsBtn",
+      "clearLeagueBtn",
+      "removePlayerBtn"
+    ];
     adminBtns.forEach(id=>{
       const btn = document.getElementById(id);
       console.log(`Button "${id}": element=`, btn, " style.display=", btn?.style.display);
@@ -441,10 +442,16 @@
     unlocked = true;
     console.log("Unlock succeeded, unlocked =", unlocked);
     renderLeaderboard();
-    const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
+    const adminBtns = [
+      "exportLeaderboardBtn",
+      "exportAllBtn",
+      "exportStatsBtn",
+      "clearLeagueBtn",
+      "removePlayerBtn"
+    ];
     adminBtns.forEach(id=>{
       const btn = document.getElementById(id);
-      if(btn) btn.style.display = "inline-block";
+      if(btn) btn.style.display = "inline‑block";
     });
     showToast("✅ Admin unlocked");
   }
@@ -497,6 +504,28 @@
     }
   }
 
+  async function confirmReset(){
+    console.log("Clear League button clicked");
+    if(!unlocked) return alert("Unlock first");
+    const pw = prompt("Enter password to reset league:");
+    if(pw !== PASSWORD) return alert("Incorrect password");
+    if(!confirm("This will erase ALL rounds and reset the league. Continue?")) return;
+
+    document.body.style.cursor = "wait";
+    try {
+      const { error } = await supabase.rpc("reset_scores");
+      if(error) throw error;
+      showToast("✅ League reset successful!");
+      currentRound = 1;
+      await loadData();
+    } catch(err){
+      console.error("Reset error:", err);
+      alert("⚠️ Reset failed: " + err.message);
+    } finally {
+      document.body.style.cursor = "default";
+    }
+  }
+
   async function calculateHandicaps(){
     if(!unlocked) return alert("Unlock required");
     console.log("=== CalculateHandicaps Round", currentRound);
@@ -508,19 +537,19 @@
         const adj = stablefordAdj(ptsVal);
         lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
         nextHcp[i] = Math.max(0, hcpVal + adj);
-        playerScores[i][currentRound-1] = ptsVal;
+        playerScores[i][currentRound‑1] = ptsVal;
         currentHcp[i] = hcpVal;
       }
     }
 
     const updates = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b‑a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
       return {
         player: name,
         round: currentRound,
         handicap: currentHcp[i],
-        points: playerScores[i][currentRound-1],
+        points: playerScores[i][currentRound‑1],
         adj: parseInt(lastAdj[i]) || 0,
         next_handicap: nextHcp[i],
         total: total
@@ -531,7 +560,7 @@
     const { data, error } = await supabase.from("scores").upsert(updates, { onConflict:["player","round"] });
     if(error){
       console.error("Upsert error:", error);
-      alert("⚠️ Error saving data: " + error.message);
+      alert("⚠️ Error saving data: " + err.message);
     } else {
       console.log("Upsert success:", data);
       showToast("✅ Scores & handicaps updated");
@@ -541,7 +570,7 @@
     for(let rn=1; rn<=currentRound; rn++){
       let top=-Infinity, winIdx=-1;
       players.forEach((_,i)=>{
-        const pts = playerScores[i][rn-1];
+        const pts = playerScores[i][rn‑1];
         if(pts != null && pts > top){
           top = pts; winIdx = i;
         }
@@ -561,14 +590,14 @@
   }
   async function exportLeaderboardCSV(){
     const rows = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b‑a).slice(0,5);
       return { Player: name, Total: vals.reduce((a,b)=>a+b,0), Trophies: trophies[i] };
     });
     downloadCSV("leaderboard", toCSV(rows));
   }
   function exportStatsCSV(){
     const rows = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null);
+      const vals = playerScores[i].filter(v => v!=null);
       return {
         Player: name,
         Rounds: vals.length,
