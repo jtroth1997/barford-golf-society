@@ -502,33 +502,42 @@
 
     // Approve uploads: resize (optional) & upload to Supabase
     async function approveUploads() {
-      if (!previewFiles.length) return alert('No photos selected.');
-      try {
-        for (const file of previewFiles) {
-          // Optionally you can do resizing here like your old code
-          const filePath = UPLOAD_PATH + Date.now() + '_' + file.name;
-          const { data, error } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(filePath, file, { contentType: file.type });
-          if (error) {
-            console.error('Upload error:', error);
-            alert('⚠️ Upload error. Please try again.');
-            return;
-          }
-          const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
-          gallery.push({ url: urlData.publicUrl, path: filePath });
-        }
-        previewFiles = [];
-        previewEl.innerHTML = '';
-        approveBtn.style.display = 'none';
-        renderBanner();
-        renderGrid();
-        alert('✅ Photos uploaded!');
-      } catch(err) {
-        console.error(err);
+  if (!previewFiles.length) return alert('No photos selected.');
+  try {
+    for (const file of previewFiles) {
+      const filePath = UPLOAD_PATH + Date.now() + '_' + file.name;
+      console.log('Uploading', file.name, 'to path', filePath);
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, file, { contentType: file.type });
+      if (error) {
+        console.error('Upload error for file', file.name, error);
         alert('⚠️ Upload error. Please try again.');
+        return;
       }
+      console.log('Uploaded data', data);
+      const { data: urlData, error: urlError } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(filePath);
+      if (urlError) {
+        console.error('Public URL error for file', file.name, urlError);
+        alert('⚠️ Upload error (URL). Please try again.');
+        return;
+      }
+      console.log('PublicUrl', urlData.publicUrl);
+      gallery.push({ url: urlData.publicUrl, path: filePath });
     }
+    previewFiles = [];
+    previewEl.innerHTML = '';
+    approveBtn.style.display = 'none';
+    renderBanner();
+    renderGrid();
+    alert('✅ Photos uploaded!');
+  } catch (err) {
+    console.error('Unexpected error in approveUploads', err);
+    alert('⚠️ Upload error. Please try again.');
+  }
+}
 
     // Initialization
     loadGallery();
