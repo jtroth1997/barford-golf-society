@@ -355,7 +355,7 @@
       <label>Description</label><textarea id="newDescription" rows="3"></textarea>
       <label>Course Link</label><input id="newCourseLink" type="text">
       <label>Weather Link</label><input id="newWeatherLink" type="text">
-     <button onclick="handleCreateEvent()">Create Event</button>
+      <button onclick="createGolfEvent()">Create Event</button>
       <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
@@ -563,7 +563,7 @@
     data.forEach(e => [del,can,tee].forEach(s => s.innerHTML += `<option value='${e.id}'>${e.name} (${e.date})</option>`));
   }
 
-async function handleCreateEvent() {
+async function createGolfEvent() {
   const name = document.getElementById("newName").value.trim();
   const date = document.getElementById("newDate").value;
   const location = document.getElementById("newLocation").value.trim();
