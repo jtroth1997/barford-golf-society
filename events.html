@@ -563,20 +563,44 @@
     data.forEach(e => [del,can,tee].forEach(s => s.innerHTML += `<option value='${e.id}'>${e.name} (${e.date})</option>`));
   }
 
-  async function createEvent(){
-    const name = document.getElementById("newName").value.trim();
-    const date = document.getElementById("newDate").value;
-    const location = document.getElementById("newLocation").value.trim();
-    const price = document.getElementById("newPrice").value;
-    const desc = document.getElementById("newDescription").value.trim();
-    const course = document.getElementById("newCourseLink").value.trim();
-    const weather = document.getElementById("newWeatherLink").value.trim();
-    const msg = document.getElementById("createMsg");
-    if(!name || !date) return msg.textContent = "⚠️ Fill required fields.";
-    await supabase.from("events").insert([{name,date,location,price,description:desc,course_link:course,weather_link:weather,cancelled:false}]);
-    msg.textContent = "✅ Event created!";
-    loadEvents();
-    loadAdminSelects();
+  async function createEvent() {
+  const name = document.getElementById("newName").value.trim();
+  const date = document.getElementById("newDate").value;
+  const location = document.getElementById("newLocation").value.trim();
+  const price = document.getElementById("newPrice").value;
+  const desc = document.getElementById("newDescription").value.trim();
+  const course = document.getElementById("newCourseLink").value.trim();
+  const weather = document.getElementById("newWeatherLink").value.trim();
+  const msg = document.getElementById("createMsg");
+
+  if (!name || !date) {
+    msg.textContent = "⚠️ Fill required fields.";
+    return;
+  }
+
+  const { data, error } = await supabase.from("events").insert([{
+    name,
+    date,
+    location,
+    price,
+    description: desc,
+    course_link: course,
+    weather_link: weather,
+    cancelled: false
+  }]);
+
+  console.log("Insert result:", data);
+  console.error("Insert error:", error);
+
+  if (error) {
+    msg.textContent = `❌ Error: ${error.message}`;
+    return;
+  }
+
+  msg.textContent = "✅ Event created!";
+  loadEvents();
+  loadAdminSelects();
+}
   }
 
   async function deleteEvent(){
