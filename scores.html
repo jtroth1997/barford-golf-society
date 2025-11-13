@@ -9,123 +9,112 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --green: #083d0b; --gold: #d4af37; --cream: #f7f7f5; --dark: #1b1b1b;
-      --white: #ffffff; --silver: #c0c0c0; --bronze: #cd7f32; --highlight: #e9f5ec;
+      --green:#083d0b; --gold:#d4af37; --cream:#f7f7f5; --dark:#1b1b1b;
+      --white:#ffffff; --silver:#c0c0c0; --bronze:#cd7f32; --highlight:#e9f5ec;
     }
     body {
-      font-family: "Inter", sans-serif;
-      background: linear-gradient(135deg, var(--cream) 40%, #e7ece7);
-      color: var(--dark);
-      margin: 0; padding: 0;
-      transition: background .3s, color .3s;
+      font-family:"Inter",sans-serif;
+      background:linear-gradient(135deg,var(--cream)40%,#e7ece7);
+      color:var(--dark);
+      margin:0; padding:0;
+      transition:background .3s,color .3s;
     }
     header {
-      background: linear-gradient(to right, var(--green), #145214);
-      color: var(--gold); text-align: center; padding: 20px;
+      background:linear-gradient(to right,var(--green),#145214);
+      color:var(--gold); text-align:center; padding:20px;
       font-size:1.8rem; font-weight:700; letter-spacing:0.5px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative;
+      box-shadow:0 4px 12px rgba(0,0,0,0.2); position:relative;
     }
     .navbar {
       display:flex; justify-content:center; gap:30px;
-      background: var(--white); padding:12px 0;
+      background:var(--white); padding:12px 0;
       box-shadow:0 2px 6px rgba(0,0,0,0.1);
     }
     .navbar a {
-      color: var(--green); text-decoration:none; font-weight:600;
-      transition: color .3s;
+      color:var(--green); text-decoration:none; font-weight:600;
+      transition:color .3s;
     }
-    .navbar a:hover { color: var(--gold); }
-    .dark-mode { background:#121212; color: var(--gold); }
+    .navbar a:hover { color:var(--gold); }
+    .dark-mode { background:#121212; color:var(--gold); }
     .dark-mode header { background:#000; }
     .dark-mode .navbar { background:#000; }
-    .dark-mode .navbar a { color: var(--gold); }
+    .dark-mode .navbar a { color:var(--gold); }
     .dark-toggle {
-      position:absolute; right:20px; top:50%; transform: translateY(-50%);
+      position:absolute; right:20px; top:50%; transform:translateY(-50%);
       display:flex; align-items:center; gap:6px;
     }
     .dark-toggle input { width:18px; height:18px; cursor:pointer; }
     .topbar {
       display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
-      padding:16px; background: var(--white);
+      padding:16px; background:var(--white);
       box-shadow:0 3px 10px rgba(0,0,0,0.05);
-      position: sticky; top:0; z-index:10;
+      position:sticky; top:0; z-index:10;
     }
     input[type=password], input[type=number] {
       font-family:inherit; border-radius:6px; border:1px solid #ccc; padding:8px;
-      transition: border .2s, box-shadow .2s;
+      transition:border .2s, box-shadow .2s;
     }
     input[type=password]:focus, input[type=number]:focus {
-      border-color: var(--gold); box-shadow: 0 0 5px rgba(212,175,55,0.4); outline:none;
+      border-color:var(--gold); box-shadow:0 0 5px rgba(212,175,55,0.4); outline:none;
     }
     .btn {
       padding:8px 12px; border:none; border-radius:8px;
-      font-weight:600; cursor:pointer; transition: all .25s; font-size:.9rem;
+      font-weight:600; cursor:pointer; transition:all .25s; font-size:.9rem;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-    .btn:active { transform: scale(0.98); }
-    .btn-unlock { background: var(--gold); color: var(--dark); }
-    .btn-lock   { background: var(--green); color: var(--white); }
-    .btn-calc   { background: #ffcc00; color: var(--dark); }
-    .btn-next, .btn-prev { background: #ddd; color: var(--dark); }
-    .btn-reset  { background: #b22222; color: var(--white); }
-    .btn-add    { background: var(--silver); color: var(--dark); }
-    .btn-pass   { background: var(--bronze); color: var(--white); }
-    .btn-export { background: var(--gold); color: var(--dark); }
-    main {
-      padding:20px; max-width:1100px; margin:auto;
-      transition: color .3s, background .3s;
-    }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+    .btn:active { transform:scale(0.98); }
+    .btn-unlock { background:var(--gold); color:var(--dark); }
+    .btn-lock   { background:var(--green); color:var(--white); }
+    .btn-calc   { background:#ffcc00; color:var(--dark); }
+    .btn-next, .btn-prev { background:#ddd; color:var(--dark); }
+    .btn-reset  { background:#b22222; color:#fff; }
+    .btn-add    { background:var(--silver); color:var(--dark); }
+    .btn-pass   { background:var(--bronze); color:var(--white); }
+    .btn-export { background:var(--gold); color:var(--dark); }
+    main { padding:20px; max-width:1100px; margin:auto; transition:color .3s,background .3s; }
     .round-info { text-align:center; margin-bottom:15px; font-weight:600; color:var(--green); }
     .progress-bar {
-      width:80%; height:10px; background:#ddd;
-      border-radius:10px; margin:8px auto 20px; overflow:hidden;
+      width:80%; height:10px; background:#ddd; border-radius:10px; margin:8px auto 20px; overflow:hidden;
     }
     .progress-bar div { height:100%; width:0%; background:var(--gold); transition: width .5s ease; }
     table {
-      width:100%; border-collapse:collapse; background: var(--white);
-      border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.1);
-      transition: background .3s, color .3s;
+      width:100%; border-collapse:collapse; background:var(--white);
+      border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.1); transition:background .3s,color .3s;
     }
-    th, td { padding:12px; text-align:center; border-bottom:1px solid #f1f1f1; }
+    th,td { padding:12px; text-align:center; border-bottom:1px solid #f1f1f1; }
     th {
-      background: var(--green); color: var(--gold);
-      text-transform: uppercase; letter-spacing:0.5px; font-size:.9rem;
+      background:var(--green); color:var(--gold);
+      text-transform:uppercase; letter-spacing:0.5px; font-size:.9rem;
     }
-    tbody tr:nth-child(even) { background:#f8f8f8; }
-    tbody tr:hover { background: var(--highlight); }
-    .dark-mode table { background:#1f1f1f; color: var(--gold); }
-    .dark-mode th    { background:#000; color: var(--gold); }
+    tbody tr:nth-child(even){ background:#f8f8f8; }
+    tbody tr:hover { background:var(--highlight); }
+    .dark-mode table { background:#1f1f1f; color:var(--gold); }
+    .dark-mode th    { background:#000; color:var(--gold); }
     #chartContainer {
-      display:none; margin-top:40px; padding:20px; background: var(--white);
-      border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      display:none; margin-top:40px; padding:20px;
+      background:var(--white); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
     }
     .dark-mode #chartContainer { background:#1f1f1f; }
     #toast {
-      position:fixed; bottom:20px; right:20px; background: var(--green);
-      color: var(--gold); padding:10px 20px; border-radius:8px; opacity:0;
-      transition: opacity .4s;
+      position:fixed; bottom:20px; right:20px;
+      background:var(--green); color:var(--gold); padding:10px 20px; border-radius:8px; opacity:0;
+      transition:opacity .4s;
     }
-    .table-secret { position: relative; }
-    .table-secret tbody { filter:blur(6px); pointer-events:none; user-select:none; }
+    .table-secret { position:relative; }
+    .table-secret tbody { filter:blur(6px); pointer‑events:none; user‑select:none; }
     #secretNotice {
       text-align:center; padding:8px; color:#b22222; font-weight:700; display:none;
     }
-    @media(max-width:900px) {
-      .topbar { flex-wrap:wrap; }
-      table { display:block; overflow-x:auto; white-space:nowrap; }
-    }
-    @media(max-width:700px) {
-      th, td { font-size:12px; padding:8px; }
-      .btn { font-size:0.8rem; padding:6px 10px; }
-    }
+    @media(max-width:900px){ .topbar{flex-wrap:wrap;} table{display:block;overflow-x:auto;white-space:nowrap;} }
+    @media(max-width:700px){ th,td{font-size:12px;padding:8px;} .btn{font-size:0.8rem;padding:6px 10px;} }
   </style>
 </head>
 <body>
 
 <header>
-  🏌️ Barford Golf Society Handicap Calculator
+  🏌️ Barford Golf Society Handicap Calculator
   <div class="dark-toggle">
-    <label for="darkSwitch">Dark Mode</label>
+    <label for="darkSwitch">Dark Mode</label>
     <input type="checkbox" id="darkSwitch">
   </div>
 </header>
@@ -151,26 +140,27 @@
   <button class="btn btn-export" id="exportAllBtn"           style="display:none" onclick="exportAllCSV()">Export All</button>
   <button class="btn btn-export" id="exportStatsBtn"         style="display:none" onclick="exportStatsCSV()">Export Stats</button>
   <button class="btn btn-reset"   id="clearLeagueBtn"        style="display:none" onclick="confirmReset()">Clear League</button>
+  <button class="btn btn-reset"   id="removePlayerBtn"      style="display:none" onclick="removePlayer()">Remove Player</button>
 </div>
 
 <main>
   <div class="round-info">
-    <h3 id="roundHeader">Round 1 of 7</h3>
+    <h3 id="roundHeader">Round 1 of 7</h3>
     <div class="progress-bar"><div id="progressFill"></div></div>
   </div>
   <div id="tableContainer">
-    <div id="secretNotice">Rounds 6 & 7 are locked — unlock to view/edit.</div>
+    <div id="secretNotice">Rounds 6 & 7 are locked — unlock to view/edit.</div>
     <table id="playersTableWrap">
       <thead>
         <tr>
-          <th>Rank</th><th>Player</th><th id="hcpHeader">Round 1 HCP</th><th>Points</th><th>Adj</th><th id="newHcpHeader">Next HCP</th><th>Total</th><th>DNP</th><th>🏆</th>
+          <th>Rank</th><th>Player</th><th id="hcpHeader">Round 1 HCP</th><th>Points</th><th>Adj</th><th id="newHcpHeader">Next HCP</th><th>Total</th><th>DNP</th><th>🏆</th>
         </tr>
       </thead>
       <tbody id="playersTable"></tbody>
     </table>
   </div>
   <div id="chartContainer">
-    <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
+    <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
     <canvas id="hcpChart"></canvas>
   </div>
   <div id="statsGrid" class="stats-grid"></div>
@@ -186,7 +176,7 @@
   let PASSWORD     = "westbrom1997";
   let unlocked     = false;
   let currentRound = 1;
-  const maxRounds = 7;
+  const maxRounds  = 7;
 
   let players       = [];
   let currentHcp    = [];
@@ -204,8 +194,7 @@
 
   function toCSV(arr){
     return arr.map(obj => Object.values(obj)
-      .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`)
-      .join(","))
+      .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`).join(","))
     .join("\n");
   }
 
@@ -221,14 +210,15 @@
 
   async function loadData(){
     document.body.style.cursor = "wait";
-    const { data: roster, error: rErr } = await supabase.from("players").select("name").order("name", { ascending:true });
-    if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor="default"; return; }
+
+    const { data: roster, error: rErr } = await supabase.from("players").select("name").order("name",{ascending:true});
+    if(rErr){ console.error("Error loading players:",rErr); document.body.style.cursor="default"; return; }
     players = roster.map(r=>r.name);
 
     currentHcp   = players.map(()=>0);
     nextHcp      = players.map(()=>null);
     trophies     = players.map(()=>0);
-    lastAdj       = players.map(()=>"");
+    lastAdj       = players.map(()=> "");
     playerScores  = players.map(()=> Array(maxRounds).fill(null));
 
     const { data: scores, error: sErr } = await supabase.from("scores").select("*");
@@ -237,22 +227,22 @@
     players.forEach((name,i)=>{
       const rows = scores.filter(r=>r.player === name);
       rows.forEach(r=>{
-        const idx = r.round - 1;
+        const idx = r.round -1;
         playerScores[i][idx] = r.points;
         if(r.handicap      != null) currentHcp[i]    = r.handicap;
-        if(r.next_handicap != null) nextHcp[i]        = r.next_handicap;
-        if(r.adj            != null) lastAdj[i]      = (r.adj>0?"+" : "") + r.adj;
+        if(r.next_handicap != null) nextHcp[i]       = r.next_handicap;
+        if(r.adj            != null) lastAdj[i]       = (r.adj>0?"+" : "") + r.adj;
       });
     });
 
     // Recalculate trophies fresh
-    trophies = players.map(()=>0);
+    trophies = players.map(() => 0);
     for(let rn=1; rn<=currentRound; rn++){
       let top=-Infinity, winIdx=-1;
-      players.forEach((_, i)=>{
+      players.forEach((_,i)=>{
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
-          top=pts; winIdx=i;
+          top = pts; winIdx = i;
         }
       });
       if(winIdx >=0) trophies[winIdx]++;
@@ -268,7 +258,7 @@
     tbody.innerHTML = "";
 
     const totals = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
       const sum  = vals.reduce((a,b)=>a+b,0);
       return { idx:i, name, total: sum };
     }).sort((a,b)=>b.total - a.total);
@@ -280,7 +270,7 @@
         <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
         <td>${players[i]}</td>
         <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
-        <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1]??""}" ${unlocked?"":"disabled"}></td>
+        <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
         <td>${lastAdj[i]}</td>
         <td>${nextHcp[i] ?? ""}</td>
         <td>${p.total}</td>
@@ -299,9 +289,10 @@
       secretNotice.style.display="none";
     }
 
-    ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn"].forEach(id=>{
+    const btns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
+    btns.forEach(id=>{
       const btn = document.getElementById(id);
-      if(btn) btn.style.display = unlocked ? "inline-block" : "none";
+      if(btn) btn.style.display = unlocked ? "inline‑block" : "none";
     });
 
     document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
@@ -311,10 +302,7 @@
 
   function unlockInputs(){
     const pwEl = document.getElementById("pwInput");
-    if(!pwEl){
-      console.error("Unlock error: pwInput not found");
-      return alert("Internal error: password field missing");
-    }
+    if(!pwEl){ console.error("Unlock error: pwInput not found"); alert("Internal error."); return; }
     const pw = pwEl.value.trim();
     console.log("Unlock attempt with:", pw);
     if(pw !== PASSWORD){
@@ -322,7 +310,7 @@
       return;
     }
     unlocked = true;
-    console.log("Unlock succeeded, unlocked flag set to", unlocked);
+    console.log("Unlocked flag now:", unlocked);
     renderLeaderboard();
     showToast("✅ Admin unlocked");
   }
@@ -337,10 +325,7 @@
     const oldPw = prompt("Enter current password:");
     if(oldPw !== PASSWORD) return alert("Incorrect password");
     const newPw = prompt("Enter new password:");
-    if(newPw){
-      PASSWORD = newPw;
-      alert("Password changed");
-    }
+    if(newPw){ PASSWORD = newPw; alert("Password changed"); }
   }
 
   async function addPlayer(){
@@ -357,22 +342,38 @@
     await loadData();
   }
 
+  async function removePlayer(){
+    if(!unlocked) return alert("Unlock first");
+    const name = prompt("Enter player name to remove:");
+    if(!name) return;
+    if(!confirm(`Are you sure you want to remove player: ${name}? This will remove all associated data.`)) return;
+    const { data, error } = await supabase.from("players").delete().eq("name", name);
+    if(error){
+      console.error("Remove player error:", error);
+      alert("⚠️ Could not remove player: " + error.message);
+    } else {
+      showToast("✅ Player removed: " + name);
+      await loadData();
+    }
+  }
+
   async function calculateHandicaps(){
     if(!unlocked) return alert("Unlock required");
     console.log("=== CalculateHandicaps Round", currentRound);
-    for(let i=0;i<players.length;i++){
+    for(let i=0; i<players.length; i++){
       const hcpVal = parseFloat(document.getElementById(`hcp_${i}`)?.value) || 0;
       const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
       console.log("Player:", players[i], "hcp:", hcpVal, "pts:", ptsVal);
       if(!isNaN(ptsVal)){
         const adj = stablefordAdj(ptsVal);
-        lastAdj[i]    = adj>0?`+${adj}`:`${adj}`;
-        nextHcp[i]    = Math.max(0, hcpVal + adj);
+        lastAdj[i] = adj>0?`+${adj}`:`${adj}`;
+        nextHcp[i] = Math.max(0, hcpVal + adj);
         playerScores[i][currentRound-1] = ptsVal;
-        currentHcp[i]   = hcpVal;
+        currentHcp[i] = hcpVal;
       }
     }
-    const updates = players.map((name,i)=>{
+
+    const updates = players.map((name,i) => {
       const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
       return {
@@ -394,19 +395,20 @@
       console.log("Upsert success:", data);
       showToast("✅ Scores & handicaps updated");
     }
-    // Recalculate trophies
+
     trophies = players.map(()=>0);
     for(let rn=1; rn<=currentRound; rn++){
       let top=-Infinity, winIdx=-1;
-      players.forEach((_,i)=>{
+      players.forEach((_, i)=>{
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
-          top=pts; winIdx=i;
+          top = pts; winIdx = i;
         }
       });
-      if(winIdx>=0) trophies[winIdx]++;
+      if(winIdx >= 0) trophies[winIdx]++;
     }
     console.log("Trophies now:", trophies);
+
     renderLeaderboard();
     renderStatsGrid();
     console.log("=== CalculateHandicaps End ===");
@@ -428,29 +430,10 @@
     }
   }
 
-  async function prevRound(){
-    if(currentRound > 1){
-      currentRound--;
-      renderLeaderboard();
-    }
-  }
-
-  async function nextRound(){
-    if(currentRound < maxRounds){
-      for(let i=0;i<players.length;i++){
-        currentHcp[i] = nextHcp[i] ?? currentHcp[i];
-        lastAdj[i]    = "";
-      }
-      currentRound++;
-      renderLeaderboard();
-    }
-  }
-
   async function exportAllCSV(){
     const { data } = await supabase.from("scores").select("*");
     downloadCSV("all_scores", toCSV(data));
   }
-
   async function exportLeaderboardCSV(){
     const rows = players.map((name,i)=>{
       const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
@@ -458,30 +441,27 @@
     });
     downloadCSV("leaderboard", toCSV(rows));
   }
-
   function exportStatsCSV(){
     const rows = players.map((name,i)=>{
       const vals = playerScores[i].filter(v=>v!=null);
       return {
-        Player: name,
+        Player:name,
         Rounds: vals.length,
         Average: vals.length?(vals.reduce((a,b)=>a+b)/vals.length).toFixed(1):"",
         Best: vals.length?Math.max(...vals):"",
         Worst: vals.length?Math.min(...vals):"",
-        Trophies: trophies[i]
+        Trophies:trophies[i]
       };
     });
     downloadCSV("stats", toCSV(rows));
   }
-
   function downloadCSV(name,csv){
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv],{type:"text/csv"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
   }
-
   function renderStatsGrid(){
     const grid = document.getElementById("statsGrid");
     grid.innerHTML = "";
@@ -500,11 +480,10 @@
     });
   }
 
-  document.getElementById("darkSwitch").addEventListener("change", function(){
+  document.getElementById("darkSwitch").addEventListener("change",function(){
     document.body.classList.toggle("dark-mode", this.checked);
     localStorage.setItem("darkMode", this.checked?"on":"off");
   });
-
   if(localStorage.getItem("darkMode")==="on"){
     document.body.classList.add("dark-mode");
     document.getElementById("darkSwitch").checked = true;
