@@ -597,7 +597,7 @@
     for(let rn=1; rn<=currentRound; rn++){
       let top=-Infinity, winIdx=-1;
       players.forEach((_,i)=>{
-        const pts = playerScores[i][rn‑1];
+       const pts = playerScores[i][rn - 1];
         if(pts != null && pts > top){
           top = pts; winIdx = i;
         }
