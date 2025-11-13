@@ -1,184 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF‑8" />
-  <meta name="viewport" content="width=device‑width, initial‑scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gallery | Barford Golf Society</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent:#d4af37;
-      --dark:#111;
-      --white:#fff;
-      --radius:12px;
-      --shadow:0 8px 24px rgba(0,0,0,.2);
-      --bg:#222;
+      --accent: #d4af37;
+      --dark: #111;
+      --charcoal: #222;
+      --white: #fff;
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(0,0,0,.2);
+      --bg: #1b1b1b;
     }
     body {
-      margin:0;
-      font‑family:"Inter",sans‑serif;
-      color:var(--white);
-      background:var(--dark);
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      color: var(--white);
+      background: var(--dark);
     }
     .site-header {
-      background:var(--bg);
-      padding:18px 24px;
-      position:sticky;
-      top:0;
-      z‑index:1000;
-      box‑shadow:0 2px 10px rgba(0,0,0,.5);
+      background: var(--charcoal);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,.5);
     }
     .header-container {
-      max‑width:1200px;
-      margin:0 auto;
-      display:flex;
-      justify‑content:space‑between;
-      align‑items:center;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .site-title {
-      margin:0;
-      font‑size:1.8rem;
-      font‑weight:700;
-      color:var(--accent);
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
     }
     .site-nav ul {
-      list‑style:none;
-      display:flex;
-      gap:24px;
-      margin:0;
-      padding:0;
+      list-style: none;
+      display: flex;
+      gap: 24px;
+      margin: 0;
+      padding: 0;
     }
     .site-nav a {
-      text‑decoration:none;
-      color:var(--white);
-      font‑weight:600;
-      transition:color .2s;
+      text-decoration: none;
+      color: var(--white);
+      font-weight: 600;
+      transition: color .2s;
     }
     .site-nav a:hover,
     .site-nav a.active {
-      color:var(--accent);
+      color: var(--accent);
     }
 
+    /* Hero slideshow background */
     .hero {
-      position:relative;
-      width:100%;
-      height:75vh;
-      min‑height:450px;
-      overflow:hidden;
-      background:var(--dark);
+      position: relative;
+      width: 100%;
+      height: 55vh;
+      min-height: 350px;
+      overflow: hidden;
+      background: var(--charcoal);
     }
     .hero img {
-      position:absolute;
-      top:50%;
-      left:50%;
-      width:100%;
-      height:auto;
-      max‑height:100%;
-      transform:translate(-50%,-50%);
-      object‑fit:contain;
-      opacity:0;
-      transition:opacity 1s ease‑in‑out;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: auto;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
     }
     .hero img.active {
-      opacity:1;
+      opacity: 1;
     }
-    .hero‑overlay {
-      position:absolute;
-      inset:0;
-      display:flex;
-      flex‑direction:column;
-      align‑items:center;
-      justify‑content:center;
-      text‑align:center;
-      padding:0 20px;
-      z‑index:2;
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 20px;
+      z-index: 2;
     }
-    .hero‑overlay h2 {
-      font‑size:3rem;
-      margin:0 0 12px;
-      font‑weight:700;
-      color:var(--white);
+    .hero-overlay h2 {
+      font-size: 2.8rem;
+      margin: 0 0 12px;
+      font-weight: 700;
+      color: var(--white);
     }
-    .hero‑overlay p {
-      font‑size:1.25rem;
-      margin:0 0 24px;
-      color:rgba(255,255,255,0.9);
+    .hero-overlay p {
+      font-size: 1.1rem;
+      margin: 0 0 24px;
+      color: rgba(255,255,255,0.9);
     }
     .btn {
-      display:inline‑block;
-      text‑decoration:none;
-      padding:14px 28px;
-      border‑radius:var(--radius);
-      font‑weight:700;
-      color:var(--dark);
-      background:var(--accent);
-      margin:10px;
-      transition:all .3s ease‑in‑out;
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-weight: 700;
+      color: var(--dark);
+      background: var(--accent);
+      margin: 6px;
+      transition: all .3s ease-in-out;
     }
     .btn:hover {
-      filter:brightness(1.1);
+      filter: brightness(1.1);
     }
 
     .container {
-      max‑width:1100px;
-      margin:60px auto;
-      padding:0 20px;
+      max-width: 1100px;
+      margin: 60px auto;
+      padding: 0 20px;
     }
     .section-title {
-      color:var(--accent);
-      font‑size:1.8rem;
-      margin‑bottom:20px;
-      text‑align:center;
+      color: var(--accent);
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      text-align: center;
     }
-    .card {
-      background:var(--bg);
-      border‑radius:var(--radius);
-      box‑shadow:var(--shadow);
-      padding:30px;
-      color:var(--white);
-      margin‑bottom:40px;
+    .upload-box {
+      background: var(--charcoal);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      color: var(--white);
+      text-align: center;
     }
-    .highlights {
-      display:grid;
-      gap:30px;
-      grid‑template‑columns:repeat(auto‑fit,minmax(240px,1fr));
-      margin‑top:40px;
+    .upload-box input[type=file] {
+      margin-top: 12px;
     }
-    .highlight {
-      background:var(--bg);
-      padding:30px;
-      border‑radius:var(--radius);
-      text‑align:center;
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 16px;
     }
-    .highlight h4 {
-      color:var(--accent);
-      margin‑bottom:10px;
-      font‑size:1.3rem;
+    .preview-item {
+      position: relative;
+      width: 140px;
+      height: 90px;
+      border-radius: var(--radius/2);
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,.4);
     }
-    .highlight p {
-      color:#bbb;
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
+    .preview-item button {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.6);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap: 18px;
+      margin-top: 40px;
+    }
+    .tile {
+      background: var(--charcoal);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .tile img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .tile .tile-actions {
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn.red {
+      background: #b22222;
+      color: #fff;
+    }
+
     footer {
-      text‑text-align:center;
-      padding:40px 0;
-      color:#888;
-      font‑size:.9rem;
-      background:var(--bg);
+      text-align: center;
+      padding: 40px 0;
+      color: #888;
+      font-size: .9rem;
+      background: var(--charcoal);
+      margin-top: 80px;
     }
 
-    @media(max-width:800px) {
-      .hero‑overlay h2 { font‑size:2.2rem; }
-      .hero‑overlay p { font‑size:1rem; }
+    @media (max-width: 800px) {
+      .hero-overlay h2 {
+        font-size: 2.2rem;
+      }
+      .hero-overlay p {
+        font-size: 1rem;
+      }
     }
-
   </style>
 </head>
 <body>
-
-  <header class="site‑header">
-    <div class="header‑container">
-      <h1 class="site‑title">Barford Golf Society</h1>
-      <nav class="site‑nav">
+  <header class="site-header">
+    <div class="header-container">
+      <h1 class="site-title">Barford Golf Society</h1>
+      <nav class="site-nav">
         <ul>
           <li><a href="index.html" class="active">Home</a></li>
           <li><a href="events.html">Events</a></li>
@@ -190,7 +241,7 @@
   </header>
 
   <section class="hero" id="heroSlideshow">
-    <div class="hero‑overlay">
+    <div class="hero-overlay">
       <h2>Welcome to Barford Golf Society</h2>
       <p>Great golf. Great company. A season‑long journey across fantastic courses.</p>
       <a class="btn" href="events.html">View Events</a>
@@ -200,14 +251,15 @@
   </section>
 
   <div class="container">
-    <h3 class="section-title">Gallery</h3>
-    <div class="upload‑box">
+    <div class="upload-box">
+      <h3 class="section-title">Upload Photos</h3>
       <input type="file" id="fileInput" accept="image/*" multiple>
-      <div id="preview" style="margin:20px 0;"></div>
-      <button class="btn" id="uploadBtn" style="display:none;">Upload Photos</button>
+      <div class="preview" id="preview"></div>
+      <button class="btn" id="uploadBtn" style="display:none;">Approve Uploads</button>
     </div>
 
-    <div class="gallery‑grid" id="galleryGrid" style="margin‑top:40px;"></div>
+    <h3 class="section-title">Gallery</h3>
+    <div class="gallery-grid" id="galleryGrid"></div>
   </div>
 
   <footer><p>© 2025 Barford Golf Society</p></footer>
@@ -220,25 +272,26 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const BUCKET  = 'gallery-images';
-    const PATH    = 'uploads/';
-    let gallery   = [];
+    const BUCKET = 'gallery-images';
+    const PATH = 'uploads/';
+    let gallery = [];
     let currentIndex = 0;
 
-    const hero       = document.getElementById('heroSlideshow');
-    const uploadBtn  = document.getElementById('uploadBtn');
-    const fileInput  = document.getElementById('fileInput');
-    const previewDiv = document.getElementById('preview');
-    const gridDiv    = document.getElementById('galleryGrid');
+    const hero = document.getElementById('heroSlideshow');
+    const fileInput = document.getElementById('fileInput');
+    const previewEl = document.getElementById('preview');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const gridEl = document.getElementById('galleryGrid');
 
-    // Load gallery from Supabase
     async function loadGallery() {
       const { data, error } = await supabase.storage.from(BUCKET).list(PATH, { limit: 1000 });
-      if (error) { console.error('List error:', error); return; }
-
-      gallery = data.filter(obj => !obj.name.endsWith('/')).map(obj => ({
-        url : supabase.storage.from(BUCKET).getPublicUrl(PATH + obj.name).data.publicUrl,
-        path: PATH + obj.name
+      if (error) {
+        console.error('Error loading gallery:', error);
+        return;
+      }
+      gallery = data.filter(f => !f.name.endsWith('/')).map(f => ({
+        url : supabase.storage.from(BUCKET).getPublicUrl(PATH + f.name).data.publicUrl,
+        path: PATH + f.name
       }));
 
       renderHero();
@@ -246,50 +299,53 @@
     }
 
     function renderHero() {
-      hero.querySelectorAll('img').forEach(n => n.remove());
-      gallery.forEach((imgObj, i) => {
+      hero.querySelectorAll('img').forEach(img => img.remove());
+      gallery.forEach((imgObj, idx) => {
         const img = document.createElement('img');
         img.src = imgObj.url;
-        if (i === currentIndex) img.classList.add('active');
-        img.addEventListener('click', () => openLightbox(i));
+        if (idx === currentIndex) img.classList.add('active');
+        img.addEventListener('click', () => openPreview(idx));
         hero.appendChild(img);
       });
     }
 
     function nextSlide() {
+      if (!gallery.length) return;
       currentIndex = (currentIndex + 1) % gallery.length;
       updateHero();
     }
     function prevSlide() {
+      if (!gallery.length) return;
       currentIndex = (currentIndex - 1 + gallery.length) % gallery.length;
       updateHero();
     }
     function updateHero() {
-      hero.querySelectorAll('img').forEach((img, i) => {
-        img.classList.toggle('active', i === currentIndex);
+      hero.querySelectorAll('img').forEach((img, idx) => {
+        img.classList.toggle('active', idx === currentIndex);
       });
     }
     setInterval(nextSlide, 6000);
 
     function renderGrid() {
-      gridDiv.innerHTML = '';
-      gallery.forEach((imgObj, i) => {
+      gridEl.innerHTML = '';
+      gallery.forEach((imgObj, idx) => {
         const tile = document.createElement('div');
-        tile.style.marginBottom = '20px';
+        tile.className = 'tile';
 
         const img = document.createElement('img');
         img.src = imgObj.url;
-        img.style.width  = '100%';
-        img.style.borderRadius = '8px';
 
+        const actions = document.createElement('div');
+        actions.className = 'tile-actions';
         const delBtn = document.createElement('button');
+        delBtn.className = 'btn red';
         delBtn.textContent = 'Delete';
-        delBtn.style.marginTop = '8px';
-        delBtn.onclick = () => deletePhoto(i);
+        delBtn.onclick = () => deletePhoto(idx);
 
+        actions.appendChild(delBtn);
         tile.append(img);
-        tile.append(delBtn);
-        gridDiv.append(tile);
+        tile.append(actions);
+        gridEl.append(tile);
       });
     }
 
@@ -297,11 +353,11 @@
       const confirmed = confirm('Are you sure you want to delete this photo?');
       if (!confirmed) return;
 
-      const { path } = gallery[index];
-      const { data, error } = await supabase.storage.from(BUCKET).remove([ path ]);
+      const path = gallery[index].path;
+      const { error } = await supabase.storage.from(BUCKET).remove([path]);
       if (error) {
         alert('Delete failed: ' + error.message);
-        console.error(error);
+        console.error('Delete error:', error);
         return;
       }
       gallery.splice(index,1);
@@ -309,45 +365,53 @@
       renderGrid();
     }
 
-    fileInput.addEventListener('change', (e) => {
-      previewDiv.innerHTML = '';
+    fileInput.addEventListener('change', e => {
+      previewEl.innerHTML = '';
       const files = Array.from(e.target.files);
       if (files.length) uploadBtn.style.display = 'inline‑block';
-
-      files.forEach(file => {
+      files.forEach((file, i) => {
         const reader = new FileReader();
         reader.onload = () => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'preview-item';
           const img = document.createElement('img');
           img.src = reader.result;
-          img.style.width = '120px';
-          img.style.marginRight = '10px';
-          previewDiv.append(img);
+          wrapper.append(img);
+          const btn = document.createElement('button');
+          btn.textContent = '×';
+          btn.onclick = () => {
+            files.splice(i,1);
+            wrapper.remove();
+            uploadBtn.style.display = files.length ? 'inline‑block' : 'none';
+          };
+          wrapper.append(btn);
+          previewEl.append(wrapper);
         };
         reader.readAsDataURL(file);
       });
 
       uploadBtn.onclick = async () => {
         for (const file of files) {
-          const filepath = PATH + Date.now() + '_' + file.name;
-          const { data, error } = await supabase.storage.from(BUCKET).upload(filepath, file);
+          const filePath = PATH + Date.now() + '_' + file.name;
+          const { error } = await supabase.storage.from(BUCKET).upload(filePath, file);
           if (error) {
             alert('Upload failed: ' + error.message);
-            console.error(error);
+            console.error('Upload error:', error);
             return;
           }
         }
         fileInput.value = '';
-        previewDiv.innerHTML = '';
+        previewEl.innerHTML = '';
         uploadBtn.style.display = 'none';
         loadGallery();
         alert('Photos uploaded!');
       };
     });
 
-    loadGallery();
     window.nextSlide = nextSlide;
     window.prevSlide = prevSlide;
 
+    loadGallery();
   </script>
 </body>
 </html>
