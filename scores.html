@@ -17,7 +17,8 @@
       font-family: "Inter", sans-serif;
       background: linear-gradient(135deg, var(--cream) 40%, #e7ece7);
       color: var(--dark);
-      margin: 0; padding: 0; transition: background .3s, color .3s;
+      margin: 0; padding: 0;
+      transition: background .3s, color .3s;
     }
     header {
       background: linear-gradient(to right, var(--green), #145214);
@@ -26,21 +27,21 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative;
     }
     .navbar {
-      display: flex; justify-content: center; gap: 30px;
-      background: var(--white); padding: 12px 0;
+      display:flex; justify-content:center; gap:30px;
+      background:var(--white); padding:12px 0;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .navbar a {
-      color: var(--green); text-decoration: none; font-weight:600;
+      color: var(--green); text-decoration:none; font-weight:600;
       transition: color .3s;
     }
     .navbar a:hover { color: var(--gold); }
-    .dark-mode { background:#121212; color: var(--gold); }
+    .dark-mode { background:#121212; color:var(--gold); }
     .dark-mode header { background:#000; }
     .dark-mode .navbar { background:#000; }
     .dark-mode .navbar a { color: var(--gold); }
     .dark-toggle {
-      position: absolute; right:20px; top:50%; transform:translateY(-50%);
+      position:absolute; right:20px; top:50%; transform:translateY(-50%);
       display:flex; align-items:center; gap:6px;
     }
     .dark-toggle input { width:18px; height:18px; cursor:pointer; }
@@ -50,8 +51,8 @@
       box-shadow:0 3px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:10;
     }
     input[type=password], input[type=number] {
-      font-family: inherit; border-radius:6px; border:1px solid #ccc; padding:8px;
-      transition: border .2s, box-shadow .2s;
+      font-family:inherit; border-radius:6px; border:1px solid #ccc; padding:8px;
+      transition:border .2s, box-shadow .2s;
     }
     input[type=password]:focus, input[type=number]:focus {
       border-color: var(--gold); box-shadow:0 0 5px rgba(212,175,55,0.4); outline:none;
@@ -61,15 +62,15 @@
       font-weight:600; cursor:pointer; transition: all .25s; font-size:.9rem;
     }
     .btn:hover { transform:translateY(-2px); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-    .btn:active { transform: scale(0.98); }
-    .btn-unlock { background: var(--gold); color: var(--dark); }
-    .btn-lock   { background: var(--green); color: var(--white); }
-    .btn-calc   { background: #ffcc00; color: var(--dark); }
-    .btn-next, .btn-prev { background: #ddd; color: var(--dark); }
-    .btn-reset  { background: #b22222; color: #fff; }
-    .btn-add    { background: var(--silver); color: var(--dark); }
-    .btn-pass   { background: var(--bronze); color: var(--white); }
-    .btn-export { background: var(--gold); color: var(--dark); }
+    .btn:active { transform:scale(0.98); }
+    .btn-unlock { background:var(--gold); color:var(--dark); }
+    .btn-lock   { background:var(--green); color:var(--white); }
+    .btn-calc   { background:#ffcc00; color:var(--dark); }
+    .btn-next, .btn-prev { background:#ddd; color:var(--dark); }
+    .btn-reset  { background:#b22222; color:#fff; }
+    .btn-add    { background:var(--silver); color:var(--dark); }
+    .btn-pass   { background:var(--bronze); color:var(--white); }
+    .btn-export { background:var(--gold); color:var(--dark); }
     main {
       padding:20px; max-width:1100px; margin:auto;
       transition: color .3s, background .3s;
@@ -82,7 +83,7 @@
       border-radius:10px; margin:8px auto 20px; overflow:hidden;
     }
     .progress-bar div {
-      height:100%; width:0%; background: var(--gold);
+      height:100%; width:0%; background:var(--gold);
       transition: width .5s ease;
     }
     table {
@@ -94,23 +95,23 @@
       padding:12px; text-align:center; border-bottom:1px solid #f1f1f1;
     }
     th {
-      background:var(--green); color: var(--gold);
+      background: var(--green); color:var(--gold);
       text-transform:uppercase; letter-spacing:0.5px; font-size:.9rem;
     }
     tbody tr:nth-child(even){ background:#f8f8f8; }
     tbody tr:hover { background:var(--highlight); }
-    .dark-mode table { background:#1f1f1f; color: var(--gold); }
-    .dark-mode th    { background:#000; color: var(--gold); }
+    .dark-mode table { background:#1f1f1f; color:var(--gold); }
+    .dark-mode th    { background:#000; color:var(--gold); }
     #chartContainer {
-      display: none; margin-top:40px; padding:20px;
-      background: var(--white); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      display:none; margin-top:40px; padding:20px; background:var(--white);
+      border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
     }
     .dark-mode #chartContainer { background:#1f1f1f; }
     #toast {
       position:fixed; bottom:20px; right:20px;
-      background: var(--green); color: var(--gold);
+      background:var(--green); color:var(--gold);
       padding:10px 20px; border-radius:8px; opacity:0;
-      transition: opacity .4s;
+      transition:opacity .4s;
     }
     .table-secret { position:relative; }
     .table-secret tbody { filter:blur(6px); pointer-events:none; user-select:none; }
@@ -150,10 +151,10 @@
   <button class="btn btn-unlock" onclick="unlockInputs()">Unlock</button>
   <button class="btn btn-lock"   onclick="lockInputs()">Lock</button>
   <button class="btn btn-calc"   onclick="calculateHandicaps()">Calculate</button>
-  <button class="btn btn-prev"   onclick="prevRound()">◀ Prev</button>
-  <button class="btn btn-next"   onclick="nextRound()">Next ▶</button>
-  <button class="btn btn-add"    onclick="addPlayer()">+ Player</button>
-  <button class="btn btn-pass"   onclick="changePassword()">Change Password</button>
+  <button class="btn btn-prev"   onclick="prevRound()">◀ Prev</button>
+  <button class="btn btn-next"   onclick="nextRound()">Next ▶</button>
+  <button class="btn btn-add"    onclick="addPlayer()">+ Player</button>
+  <button class="btn btn-pass"   onclick="changePassword()">Change Password</button>
 
   <button class="btn btn-export" id="exportLeaderboardBtn" style="display:none" onclick="exportLeaderboardCSV()">Export Leaderboard</button>
   <button class="btn btn-export" id="exportAllBtn"           style="display:none" onclick="exportAllCSV()">Export All</button>
@@ -167,6 +168,7 @@
     <h3 id="roundHeader">Round 1 of 7</h3>
     <div class="progress-bar"><div id="progressFill"></div></div>
   </div>
+
   <div id="tableContainer">
     <div id="secretNotice">Rounds 6 & 7 are locked — unlock to view/edit.</div>
     <table id="playersTableWrap">
@@ -178,10 +180,12 @@
       <tbody id="playersTable"></tbody>
     </table>
   </div>
+
   <div id="chartContainer">
     <h3 style="text-align:center;color:var(--green)">Handicap Progression</h3>
     <canvas id="hcpChart"></canvas>
   </div>
+
   <div id="statsGrid" class="stats-grid"></div>
 </main>
 
@@ -192,10 +196,10 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let PASSWORD      = "westbrom1997";
-  let unlocked      = false;
-  let currentRound  = 1;
-  const maxRounds   = 7;
+  let PASSWORD       = "westbrom1997";
+  let unlocked       = false;
+  let currentRound   = 1;
+  const maxRounds    = 7;
 
   let players       = [];
   let currentHcp    = [];
@@ -208,12 +212,12 @@
     const t = document.getElementById("toast");
     t.textContent = msg;
     t.style.opacity = 1;
-    setTimeout(()=> t.style.opacity = 0, 2500);
+    setTimeout(() => t.style.opacity = 0, 2500);
   }
 
   function toCSV(arr){
     return arr.map(obj => Object.values(obj)
-      .map(v => `"${(v ?? "").toString().replace(/"/g, '""')}"`)
+      .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`)
       .join(","))
     .join("\n");
   }
@@ -234,55 +238,55 @@
     if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor="default"; return; }
     players = roster.map(r => r.name);
 
-    currentHcp   = players.map(()=>0);
-    nextHcp      = players.map(()=>null);
-    trophies     = players.map(()=>0);
-    lastAdj       = players.map(()=> "");
-    playerScores  = players.map(()=> Array(maxRounds).fill(null));
+    currentHcp  = players.map(() => 0);
+    nextHcp     = players.map(() => null);
+    trophies    = players.map(() => 0);
+    lastAdj      = players.map(() => "");
+    playerScores = players.map(() => Array(maxRounds).fill(null));
 
     const { data: scores, error: sErr } = await supabase.from("scores").select("*");
-    if(sErr){ console.error("Error loading scores:", sErr); document.body.style.cursor="default"; return; }
+    if(sErr){ console.error("Error loading scores:", sErr); document.body.style.cursor = "default"; return; }
 
-    players.forEach((name,i)=>{
-      const rows = scores.filter(r=>r.player === name);
-      rows.forEach(r=>{
-        const idx = r.round -1;
+    players.forEach((name,i) => {
+      const rows = scores.filter(r => r.player === name);
+      rows.forEach(r => {
+        const idx = r.round - 1;
         playerScores[i][idx] = r.points;
         if(r.handicap      != null) currentHcp[i]    = r.handicap;
         if(r.next_handicap != null) nextHcp[i]        = r.next_handicap;
-        if(r.adj            != null) lastAdj[i]       = (r.adj>0?"+" : "") + r.adj;
+        if(r.adj            != null) lastAdj[i]        = (r.adj>0?"+" : "") + r.adj;
       });
     });
 
-    // Re‑calculate trophies fresh
-    trophies = players.map(()=>0);
-    for(let rn=1; rn<=currentRound; rn++){
+    // Re‑calculate trophies for rounds up to currentRound
+    trophies = players.map(() => 0);
+    for(let rn = 1; rn <= currentRound; rn++){
       let top=-Infinity, winIdx=-1;
-      players.forEach((_,i)=>{
+      players.forEach((_, i) => {
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
           top = pts; winIdx = i;
         }
       });
-      if(winIdx >=0) trophies[winIdx]++;
+      if(winIdx >= 0) trophies[winIdx]++;
     }
 
     renderLeaderboard();
     renderStatsGrid();
-    document.body.style.cursor="default";
+    document.body.style.cursor = "default";
   }
 
   function renderLeaderboard(){
     const tbody = document.getElementById("playersTable");
     tbody.innerHTML = "";
 
-    const totals = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
+    const totals = players.map((name,i) => {
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
       const sum  = vals.reduce((a,b)=>a+b,0);
-      return { idx:i, name, total: sum };
+      return { idx: i, name, total: sum };
     }).sort((a,b)=>b.total - a.total);
 
-    totals.forEach((p,rank)=>{
+    totals.forEach((p,rank) => {
       const i = p.idx;
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -300,58 +304,73 @@
 
     const wrap = document.getElementById("playersTableWrap");
     const secretNotice = document.getElementById("secretNotice");
-    if((currentRound===6 || currentRound===7) && !unlocked){
+    if((currentRound === 6 || currentRound === 7) && !unlocked){
       wrap.classList.add("table-secret");
-      secretNotice.style.display="block";
+      secretNotice.style.display = "block";
     } else {
       wrap.classList.remove("table-secret");
-      secretNotice.style.display="none";
+      secretNotice.style.display = "none";
     }
 
     const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
-    adminBtns.forEach(id=>{
+    adminBtns.forEach(id => {
       const btn = document.getElementById(id);
       if(btn) btn.style.display = unlocked ? "inline‑block" : "none";
     });
 
     document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
     document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
-    document.getElementById("progressFill").style.width = `${(currentRound/maxRounds)*100}%`;
+    document.getElementById("progressFill").style.width = `${(currentRound / maxRounds) * 100}%`;
   }
 
- function unlockInputs() {
-  const pwInputEl = document.getElementById("pwInput");
-  if (!pwInputEl) {
-    console.error("Unlock error: password input field (pwInput) not found");
-    return alert("Internal error: cannot find password field");
-  }
-  const pw = pwInputEl.value.trim();
-  console.log("Unlock attempt with password:", pw);
-  if (pw !== PASSWORD) {
-    alert("Wrong password");
-    return;
-  }
-
-  unlocked = true;
-  console.log("✅ Unlock successful. unlocked =", unlocked);
-
-  renderLeaderboard(); // Trigger table update
-
-  // Explicitly show admin buttons and log their status
-  const adminBtns = ["exportLeaderboardBtn", "exportAllBtn", "exportStatsBtn", "clearLeagueBtn", "removePlayerBtn"];
-  adminBtns.forEach(id => {
-    const btn = document.getElementById(id);
-    console.log(`Checking button #${id}`, btn);
-    if (btn) {
-      btn.style.display = "inline-block";
-      console.log(`Button "${id}" is now visible`);
+  function nextRound(){
+    if(currentRound < maxRounds){
+      currentRound++;
+      console.log("Moved to next round:", currentRound);
+      // Carry forward handicaps for new round
+      for(let i=0; i<players.length; i++){
+        currentHcp[i] = nextHcp[i] ?? currentHcp[i];
+        lastAdj[i] = "";
+      }
+      renderLeaderboard();
     } else {
-      console.warn(`⚠️ Button "${id}" not found in DOM`);
+      showToast("⛳ Already at final round");
     }
-  });
+  }
 
-  showToast("✅ Admin unlocked");
-}
+  function prevRound(){
+    if(currentRound > 1){
+      currentRound--;
+      console.log("Moved to previous round:", currentRound);
+      renderLeaderboard();
+    } else {
+      showToast("🔙 Already at round 1");
+    }
+  }
+
+  function unlockInputs(){
+    const pwEl = document.getElementById("pwInput");
+    if(!pwEl){
+      console.error("Unlock error: password field not found");
+      alert("Internal error: password field missing");
+      return;
+    }
+    const pw = pwEl.value.trim();
+    console.log("Unlock attempt with:", pw);
+    if(pw !== PASSWORD){
+      alert("Wrong password");
+      return;
+    }
+    unlocked = true;
+    console.log("Unlock succeeded, unlocked =", unlocked);
+    renderLeaderboard();
+    const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
+    adminBtns.forEach(id => {
+      const btn = document.getElementById(id);
+      if(btn) btn.style.display = "inline‑block";
+    });
+    showToast("✅ Admin unlocked");
+  }
 
   function lockInputs(){
     unlocked = false;
@@ -361,12 +380,11 @@
 
   function changePassword(){
     const oldPw = prompt("Enter current password:");
-    if(oldPw !== PASSWORD) { alert("Incorrect password"); return; }
-    const newPw = prompt("Enter new password:");
-    if(newPw){
-      PASSWORD = newPw;
-      alert("Password changed");
+    if(oldPw !== PASSWORD){
+      alert("Incorrect password"); return;
     }
+    const newPw = prompt("Enter new password:");
+    if(newPw){ PASSWORD = newPw; alert("Password changed"); }
   }
 
   async function addPlayer(){
@@ -387,7 +405,7 @@
     if(!unlocked) return alert("Unlock first");
     const name = prompt("Enter player name to remove:");
     if(!name) return;
-    if(!confirm(`Are you sure you want to remove player: ${name}? This will remove all data for them.`)) return;
+    if(!confirm(`Are you sure you want to remove player: ${name}? This will remove all associated data.`)) return;
     const { data, error } = await supabase.from("players").delete().eq("name", name);
     if(error){
       console.error("Remove player error:", error);
@@ -401,20 +419,20 @@
   async function calculateHandicaps(){
     if(!unlocked) return alert("Unlock required");
     console.log("=== CalculateHandicaps Round", currentRound);
-    for(let i=0;i<players.length;i++){
+    for(let i=0; i<players.length; i++){
       const hcpVal = parseFloat(document.getElementById(`hcp_${i}`)?.value) || 0;
       const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
       console.log("Player:", players[i], "hcp:", hcpVal, "pts:", ptsVal);
       if(!isNaN(ptsVal)){
         const adj = stablefordAdj(ptsVal);
-        lastAdj[i]    = adj>0?`+${adj}`:`${adj}`;
-        nextHcp[i]    = Math.max(0, hcpVal + adj);
+        lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
+        nextHcp[i] = Math.max(0, hcpVal + adj);
         playerScores[i][currentRound-1] = ptsVal;
-        currentHcp[i]   = hcpVal;
+        currentHcp[i] = hcpVal;
       }
     }
 
-    const updates = players.map((name,i)=>{
+    const updates = players.map((name,i) => {
       const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
       return {
@@ -427,6 +445,7 @@
         total: total
       };
     });
+
     console.log("Upsert payload:", updates);
     const { data, error } = await supabase.from("scores").upsert(updates, { onConflict:["player","round"] });
     if(error){
@@ -437,16 +456,16 @@
       showToast("✅ Scores & handicaps updated");
     }
 
-    trophies = players.map(()=>0);
+    trophies = players.map(() => 0);
     for(let rn=1; rn<=currentRound; rn++){
       let top=-Infinity, winIdx=-1;
-      players.forEach((_,i)=>{
+      players.forEach((_, i) => {
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
           top = pts; winIdx = i;
         }
       });
-      if(winIdx >=0) trophies[winIdx]++;
+      if(winIdx >= 0) trophies[winIdx]++;
     }
     console.log("Trophies now:", trophies);
 
@@ -455,35 +474,19 @@
     console.log("=== CalculateHandicaps End ===");
   }
 
-  async function confirmReset(){
-    if(!unlocked) return alert("Unlock first");
-    if(prompt("Enter password to reset league:") !== PASSWORD) return alert("Wrong password");
-    if(!confirm("Are you sure you want to reset the league? This cannot be undone.")) return;
-    const { error } = await supabase.rpc("reset_scores");
-    if(error){
-      alert("❌ Reset failed: " + error.message);
-      console.error("Reset error:", error);
-    } else {
-      alert("✅ League reset successful!");
-      currentRound = 1;
-      await loadData();
-      showToast("League reset complete");
-    }
-  }
-
   async function exportAllCSV(){
     const { data } = await supabase.from("scores").select("*");
     downloadCSV("all_scores", toCSV(data));
   }
   async function exportLeaderboardCSV(){
-    const rows = players.map((name,i)=>{
+    const rows = players.map((name,i) => {
       const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
       return { Player: name, Total: vals.reduce((a,b)=>a+b,0), Trophies: trophies[i] };
     });
     downloadCSV("leaderboard", toCSV(rows));
   }
   function exportStatsCSV(){
-    const rows = players.map((name,i)=>{
+    const rows = players.map((name,i) => {
       const vals = playerScores[i].filter(v=>v!=null);
       return {
         Player: name,
@@ -497,7 +500,7 @@
     downloadCSV("stats", toCSV(rows));
   }
   function downloadCSV(name,csv){
-    const blob = new Blob([csv],{type:"text/csv"});
+    const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
@@ -506,7 +509,7 @@
   function renderStatsGrid(){
     const grid = document.getElementById("statsGrid");
     grid.innerHTML = "";
-    players.forEach((name,i)=>{
+    players.forEach((name,i) => {
       const vals = playerScores[i].filter(v=>v!=null);
       const card = document.createElement("div");
       card.className = "stats-card";
