@@ -78,13 +78,14 @@
       left: 50%;
       width: 100%;
       height: auto;
+      max-height: 100%;
       transform: translate(-50%, -50%);
-      opacity: 0.15;
+      opacity: 0.20;
       filter: brightness(50%);
       transition: opacity 1s ease-in-out;
     }
     .hero img.active {
-      opacity: 0.3;
+      opacity: 0.30;
     }
     .hero-overlay {
       position: absolute;
@@ -259,10 +260,10 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // Replace with your actual anon key
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // Replace with your real anon key
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const BUCKET = 'gallery-images';
-    const PATH = 'uploads/'; // Ensure this matches your storage folder
+    const PATH = 'uploads/'; // Adjust to your folder path if needed
 
     async function fetchGalleryUrls() {
       const { data: files, error } = await supabase.storage.from(BUCKET).list(PATH, {
@@ -290,17 +291,17 @@
       const galleryUrls = await fetchGalleryUrls();
       console.log('Gallery URLs:', galleryUrls);
 
-      const hero = document.getElementById('heroSlideshow');
+      const heroEl = document.getElementById('heroSlideshow');
       if (galleryUrls.length) {
         let idx = 0;
         galleryUrls.slice(0, 5).forEach((url, i) => {
           const img = document.createElement('img');
           img.src = url;
           if (i === 0) img.classList.add('active');
-          hero.appendChild(img);
+          heroEl.appendChild(img);
         });
         setInterval(() => {
-          const imgs = hero.querySelectorAll('img');
+          const imgs = heroEl.querySelectorAll('img');
           imgs[idx].classList.remove('active');
           idx = (idx + 1) % imgs.length;
           imgs[idx].classList.add('active');
