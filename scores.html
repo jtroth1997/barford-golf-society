@@ -419,13 +419,30 @@ async function calculateHandicaps(){
 }
 
 async function confirmReset(){
-  if(!unlocked) return alert("Unlock first");
-  if(prompt("Enter password to reset league:") !== PASSWORD) return alert("Wrong password");
-  if(!confirm("Are you sure you want to reset the league?")) return;
-  await supabase.rpc("reset_scores");
-  currentRound=1;
-  await loadData();
-  showToast("League reset");
+  if (!unlocked) return alert("Unlock first");
+  const pw = prompt("Enter password to reset league:");
+  if (pw !== PASSWORD) return alert("Wrong password");
+  if (!confirm("This will clear all rounds and cannot be undone. Continue?")) return;
+
+  document.body.style.cursor = "wait";
+  try {
+    const { data, error } = await supabase.rpc("reset_scores");
+    if (error) {
+      console.error("Reset error:", error);
+      alert("❌ Reset failed: " + error.message);
+    } else {
+      console.log("Reset response data:", data);
+      alert("✅ League reset successful");
+      currentRound = 1;
+      await loadData();
+      showToast("League reset complete");
+    }
+  } catch(err) {
+    console.error("Unexpected error during reset:", err);
+    alert("❌ Unexpected error");
+  } finally {
+    document.body.style.cursor = "default";
+  }
 }
 
 async function exportAllCSV(){
