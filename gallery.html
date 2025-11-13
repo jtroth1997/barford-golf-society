@@ -447,30 +447,51 @@
       lightboxImg.src = gallery[lightboxIndex].url;
     }
 
-    // Delete logic
-    async function requestDelete(index) {
-      const pw = prompt('Enter admin password to delete this photo:');
-      if (pw !== ADMIN_PASSWORD) {
-        alert('Incorrect password.');
-        return;
-      }
-      if (!confirm('Delete this photo?')) return;
+    // Delete logic for gallery
+async function requestDelete(index) {
+  const pw = prompt('Enter admin password to delete this photo:');
+  if (pw !== ADMIN_PASSWORD) {
+    alert('Incorrect password.');
+    return;
+  }
+  if (!confirm('Delete this photo?')) return;
 
-      const path = gallery[index].path;
-      const { error } = await supabase.storage.from(BUCKET_NAME).remove([path]);
-      if (error) {
-        console.error('Delete error:', error);
-        alert('Error deleting photo.');
-        return;
-      }
-      // Remove locally
-      gallery.splice(index, 1);
-      if (currentIndex >= gallery.length) currentIndex = Math.max(0, gallery.length - 1);
-      if (lightboxIndex >= gallery.length) lightboxIndex = Math.max(0, gallery.length - 1);
-      if (!gallery.length) closeLightbox();
-      renderBanner();
-      renderGrid();
+  // Get the path to the file in Supabase
+  const path = gallery[index].path;
+
+  // Remove from DOM first for instant feedback
+  const tiles = grid.querySelectorAll('.tile');
+  if (tiles[index]) tiles[index].remove();
+
+  try {
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove([path]);
+
+    if (error) {
+      console.error('Supabase delete error:', error);
+      alert('Error deleting photo from Supabase. Check console.');
+      return;
     }
+
+    // Remove from local gallery array
+    gallery.splice(index, 1);
+
+    // Adjust currentIndex and lightboxIndex
+    if (currentIndex >= gallery.length) currentIndex = Math.max(0, gallery.length - 1);
+    if (lightboxIndex >= gallery.length) lightboxIndex = Math.max(0, gallery.length - 1);
+
+    // Close lightbox if no images left
+    if (!gallery.length) closeLightbox();
+
+    // Re-render banner and grid
+    renderBanner();
+    renderGrid();
+
+    alert('✅ Photo deleted successfully!');
+  } catch (err) {
+    console.error('Unexpected deletion error:', err);
+    alert('⚠️ Unexpected error occurred while deleting the photo.');
+  }
+}
 
     // Upload & preview logic
     document.getElementById('fileInput').addEventListener('change', e => {
