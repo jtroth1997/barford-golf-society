@@ -22,8 +22,9 @@
       font-family: "Inter", sans-serif;
       background: linear-gradient(135deg, var(--cream) 40%, #e7ece7);
       color: var(--dark);
-      margin: 0; padding: 0;
-      transition: background .3s, color .3s;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
     }
     header {
       background: linear-gradient(to right, var(--green), #145214);
@@ -37,45 +38,68 @@
       position: relative;
     }
     .navbar {
-      display: flex; justify-content: center; gap: 30px;
-      background: var(--white); padding:12px 0;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      background: var(--white);
+      padding: 12px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .navbar a {
-      color: var(--green); text-decoration:none; font-weight:600;
-      transition: color .3s;
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s;
     }
     .navbar a:hover { color: var(--gold); }
-    .dark-mode { background:#121212; color:var(--gold); }
-    .dark-mode header { background:#000; }
-    .dark-mode .navbar { background:#000; }
+    .dark-mode { background: #121212; color: var(--gold); }
+    .dark-mode header { background: #000; }
+    .dark-mode .navbar { background: #000; }
     .dark-mode .navbar a { color: var(--gold); }
     .dark-toggle {
-      position:absolute; right:20px; top:50%; transform:translateY(-50%);
-      display:flex; align-items:center; gap:6px;
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .dark-toggle input { width:18px; height:18px; cursor:pointer; }
+    .dark-toggle input { width: 18px; height: 18px; cursor: pointer; }
     .topbar {
-      display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
-      padding:16px; background:var(--white);
-      box-shadow:0 3px 10px rgba(0,0,0,0.05);
-      position: sticky; top:0; z-index:10;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: var(--white);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     input[type=password], input[type=number] {
-      font-family:inherit;
-      border-radius:6px; border:1px solid #ccc; padding:8px;
+      font-family: inherit;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 8px;
       transition: border .2s, box-shadow .2s;
     }
     input[type=password]:focus, input[type=number]:focus {
       border-color: var(--gold);
-      box-shadow:0 0 5px rgba(212,175,55,0.4);
-      outline:none;
+      box-shadow: 0 0 5px rgba(212,175,55,0.4);
+      outline: none;
     }
     .btn {
-      padding:8px 12px; border:none; border-radius:8px;
-      font-weight:600; cursor:pointer; transition: all .25s; font-size:.9rem;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .25s;
+      font-size: .9rem;
     }
-    .btn:hover { transform:translateY(-2px); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .btn:active { transform: scale(0.98); }
     .btn-unlock { background: var(--gold); color: var(--dark); }
     .btn-lock   { background: var(--green); color: var(--white); }
@@ -86,60 +110,92 @@
     .btn-pass   { background: var(--bronze); color: var(--white); }
     .btn-export { background: var(--gold); color: var(--dark); }
     main {
-      padding:20px; max-width:1100px; margin:auto;
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
       transition: color .3s, background .3s;
     }
     .round-info {
-      text-align:center; margin-bottom:15px; font-weight:600; color: var(--green);
+      text-align: center;
+      margin-bottom: 15px;
+      font-weight: 600;
+      color: var(--green);
     }
     .progress-bar {
-      width:80%; height:10px; background:#ddd;
-      border-radius:10px; margin:8px auto 20px; overflow:hidden;
+      width: 80%;
+      height: 10px;
+      background: #ddd;
+      border-radius: 10px;
+      margin: 8px auto 20px;
+      overflow: hidden;
     }
     .progress-bar div {
-      height:100%; width:0%; background:var(--gold);
+      height: 100%;
+      width: 0%;
+      background: var(--gold);
       transition: width .5s ease;
     }
     table {
-      width:100%; border-collapse:collapse;
-      background: var(--white); border-radius:12px; overflow:hidden;
-      box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
       transition: background .3s, color .3s;
     }
     th, td {
-      padding:12px; text-align:center; border-bottom:1px solid #f1f1f1;
+      padding:12px;
+      text-align:center;
+      border-bottom:1px solid #f1f1f1;
     }
     th {
-      background: var(--green); color: var(--gold);
-      text-transform: uppercase; letter-spacing:0.5px; font-size:.9rem;
+      background: var(--green);
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing:0.5px;
+      font-size:.9rem;
     }
     tbody tr:nth-child(even){ background:#f8f8f8; }
-    tbody tr:hover { background: var(--highlight); }
+    tbody tr:hover { background:var(--highlight); }
     .dark-mode table { background:#1f1f1f; color: var(--gold); }
-    .dark-mode th    { background:#000; color: var(--gold); }
+    .dark-mode th { background:#000; color: var(--gold); }
     #chartContainer {
-      display:none; margin-top:40px; padding:20px; background: var(--white);
-      border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.1);
+      display: none;
+      margin-top: 40px;
+      padding: 20px;
+      background: var(--white);
+      border-radius:12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
     }
     .dark-mode #chartContainer { background:#1f1f1f; }
     #toast {
-      position: fixed; bottom:20px; right:20px;
-      background: var(--green); color: var(--gold);
-      padding:10px 20px; border-radius:8px; opacity:0;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--green);
+      color: var(--gold);
+      padding: 10px 20px;
+      border-radius: 8px;
+      opacity: 0;
       transition: opacity .4s;
     }
     .table-secret { position: relative; }
-    .table-secret tbody { filter: blur(6px); pointer‑events: none; user‑select: none; }
+    .table-secret tbody { filter: blur(6px); pointer-events: none; user-select: none; }
     #secretNotice {
-      text-align:center; padding:8px; color:#b22222; font-weight:700; display:none;
+      text-align: center;
+      padding: 8px;
+      color: #b22222;
+      font-weight: 700;
+      display: none;
     }
-    @media(max-width:900px){
-      .topbar { flex-wrap:wrap; }
-      table { display:block; overflow-x:auto; white-space:nowrap; }
+    @media (max-width:900px){
+      .topbar { flex-wrap: wrap; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
     }
-    @media(max-width:700px){
+    @media (max-width:700px){
       th, td { font-size:12px; padding:8px; }
-      .btn { font-size:0.8rem; padding:6px 10px; }
+      .btn { font-size:0.8rem; padding: 6px 10px; }
     }
   </style>
 </head>
@@ -147,7 +203,7 @@
 <body>
 
 <header>
-  🏌️ Barford Golf Society Handicap Calculator
+  🏌️ Barford Golf Society Handicap Calculator
   <div class="dark-toggle">
     <label for="darkSwitch">Dark Mode</label>
     <input type="checkbox" id="darkSwitch">
@@ -180,7 +236,7 @@
 
 <main>
   <div class="round-info">
-    <h3 id="roundHeader">Round 1 of 7</h3>
+    <h3 id="roundHeader">Round 1 of 7</h3>
     <div class="progress-bar"><div id="progressFill"></div></div>
   </div>
 
@@ -211,17 +267,17 @@
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let PASSWORD      = "westbrom1997";
-  let unlocked      = false;
-  let currentRound  = 1;
-  const maxRounds   = 7;
+  let PASSWORD     = "westbrom1997";
+  let unlocked     = false;
+  let currentRound = 1;
+  const maxRounds  = 7;
 
-  let players       = [];
-  let currentHcp    = [];
-  let nextHcp       = [];
-  let trophies      = [];
-  let lastAdj       = [];
-  let playerScores  = [];
+  let players      = [];
+  let currentHcp   = [];
+  let nextHcp      = [];
+  let trophies     = [];
+  let lastAdj      = [];
+  let playerScores = [];
 
   function showToast(msg){
     const t = document.getElementById("toast");
@@ -231,10 +287,11 @@
   }
 
   function toCSV(arr){
-    return arr.map(obj => Object.values(obj)
-      .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`)
-      .join(","))
-    .join("\n");
+    return arr.map(obj =>
+      Object.values(obj)
+        .map(v => `"${(v ?? "").toString().replace(/"/g, '""')}"`)
+        .join(",")
+    ).join("\n");
   }
 
   function stablefordAdj(pts){
@@ -249,18 +306,22 @@
 
   async function loadData(){
     document.body.style.cursor = "wait";
-
-    const { data: roster, error: rErr } = await supabase.from("players").select("name").order("name", { ascending:true });
-    if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor = "default"; return; }
+    const { data: roster, error: rErr } = await supabase
+      .from("players")
+      .select("name")
+      .order("name", { ascending: true });
+    if(rErr){ console.error("Error loading players:", rErr); document.body.style.cursor="default"; return; }
     players = roster.map(r => r.name);
 
     currentHcp   = players.map(()=>0);
     nextHcp      = players.map(()=>null);
     trophies     = players.map(()=>0);
-    lastAdj       = players.map(()=>"");
-    playerScores  = players.map(()=>Array(maxRounds).fill(null));
+    lastAdj      = players.map(()=>"");
+    playerScores = players.map(()=> Array(maxRounds).fill(null));
 
-    const { data: scores, error: sErr } = await supabase.from("scores").select("*");
+    const { data: scores, error: sErr } = await supabase
+      .from("scores")
+      .select("*");
     if(sErr){ console.error("Error loading scores:", sErr); document.body.style.cursor="default"; return; }
 
     players.forEach((name,i)=>{
@@ -268,27 +329,27 @@
       rows.forEach(r=>{
         const idx = r.round - 1;
         playerScores[i][idx] = r.points;
-        if(r.handicap      != null) currentHcp[i]    = r.handicap;
-        if(r.next_handicap != null) nextHcp[i]        = r.next_handicap;
+        if(r.handicap      != null) currentHcp[i]   = r.handicap;
+        if(r.next_handicap != null) nextHcp[i]       = r.next_handicap;
         if(r.adj            != null) lastAdj[i]        = (r.adj>0?"+" : "") + r.adj;
       });
     });
 
     trophies = players.map(()=>0);
     for(let rn=1; rn<=currentRound; rn++){
-      let top=-Infinity, winIdx=-1;
-      players.forEach((_,i)=>{
+      let top=-Infinity, winIdx = -1;
+      players.forEach((_, i)=>{
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
           top = pts; winIdx = i;
         }
       });
-      if(winIdx >=0) trophies[winIdx]++;
+      if(winIdx >= 0) trophies[winIdx]++;
     }
 
     renderLeaderboard();
     renderStatsGrid();
-    document.body.style.cursor="default";
+    document.body.style.cursor = "default";
   }
 
   function renderLeaderboard(){
@@ -297,7 +358,7 @@
     adminBtns.forEach(id=>{
       const btn = document.getElementById(id);
       console.log(`Button "${id}": element=`, btn, " style.display=", btn?.style.display);
-      if(btn) btn.style.display = unlocked ? "inline‑block" : "none";
+      if(btn) btn.style.display = unlocked ? "inline-block" : "none";
     });
 
     const tbody = document.getElementById("playersTable");
@@ -329,10 +390,10 @@
     const secretNotice = document.getElementById("secretNotice");
     if((currentRound === 6 || currentRound === 7) && !unlocked){
       wrap.classList.add("table-secret");
-      secretNotice.style.display="block";
+      secretNotice.style.display = "block";
     } else {
       wrap.classList.remove("table-secret");
-      secretNotice.style.display="none";
+      secretNotice.style.display = "none";
     }
 
     document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
@@ -344,7 +405,7 @@
     if(currentRound < maxRounds){
       currentRound++;
       console.log("Moved to next round:", currentRound);
-      for(let i=0;i<players.length;i++){
+      for(let i=0; i<players.length; i++){
         currentHcp[i] = nextHcp[i] ?? currentHcp[i];
         lastAdj[i] = "";
       }
@@ -383,7 +444,7 @@
     const adminBtns = ["exportLeaderboardBtn","exportAllBtn","exportStatsBtn","clearLeagueBtn","removePlayerBtn"];
     adminBtns.forEach(id=>{
       const btn = document.getElementById(id);
-      if(btn) btn.style.display = "inline‑block";
+      if(btn) btn.style.display = "inline-block";
     });
     showToast("✅ Admin unlocked");
   }
@@ -439,13 +500,13 @@
   async function calculateHandicaps(){
     if(!unlocked) return alert("Unlock required");
     console.log("=== CalculateHandicaps Round", currentRound);
-    for(let i=0;i<players.length;i++){
+    for(let i=0; i<players.length; i++){
       const hcpVal = parseFloat(document.getElementById(`hcp_${i}`)?.value) || 0;
       const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
       console.log("Player:", players[i], "hcp:", hcpVal, "pts:", ptsVal);
       if(!isNaN(ptsVal)){
         const adj = stablefordAdj(ptsVal);
-        lastAdj[i] = adj>0?`+${adj}`:`${adj}`;
+        lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
         nextHcp[i] = Math.max(0, hcpVal + adj);
         playerScores[i][currentRound-1] = ptsVal;
         currentHcp[i] = hcpVal;
@@ -453,7 +514,7 @@
     }
 
     const updates = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
       return {
         player: name,
@@ -465,6 +526,7 @@
         total: total
       };
     });
+
     console.log("Upsert payload:", updates);
     const { data, error } = await supabase.from("scores").upsert(updates, { onConflict:["player","round"] });
     if(error){
@@ -481,10 +543,10 @@
       players.forEach((_,i)=>{
         const pts = playerScores[i][rn-1];
         if(pts != null && pts > top){
-          top = pts; winIdx=i;
+          top = pts; winIdx = i;
         }
       });
-      if(winIdx>=0) trophies[winIdx]++;
+      if(winIdx >= 0) trophies[winIdx]++;
     }
     console.log("Trophies now:", trophies);
 
@@ -499,7 +561,7 @@
   }
   async function exportLeaderboardCSV(){
     const rows = players.map((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null).sort((a,b)=>b-a).slice(0,5);
+      const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
       return { Player: name, Total: vals.reduce((a,b)=>a+b,0), Trophies: trophies[i] };
     });
     downloadCSV("leaderboard", toCSV(rows));
@@ -519,7 +581,7 @@
     downloadCSV("stats", toCSV(rows));
   }
   function downloadCSV(name,csv){
-    const blob = new Blob([csv], { type:"text/csv" });
+    const blob = new Blob([csv], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
@@ -529,7 +591,7 @@
     const grid = document.getElementById("statsGrid");
     grid.innerHTML = "";
     players.forEach((name,i)=>{
-      const vals = playerScores[i].filter(v=>v!=null);
+      const vals = playerScores[i].filter(v => v!=null);
       const card = document.createElement("div");
       card.className = "stats-card";
       card.innerHTML = `
