@@ -16,25 +16,25 @@
       --transition: all .3s ease-in-out;
     }
     *, *::before, *::after {
-      box-sizing: border‑box;
+      box-sizing: border-box;
     }
     body {
       margin: 0;
       font-family: "Inter", sans-serif;
       color: var(--white);
       background: var(--dark);
-      line‑height: 1.6;
+      line-height: 1.6;
     }
     .site-header {
       background: var(--charcoal);
       padding: 18px 24px;
       position: sticky;
       top: 0;
-      z‑index: 1000;
+      z-index: 1000;
       box-shadow: 0 2px 10px rgba(0,0,0,.50);
     }
     .header-container {
-      max‑width: 1200px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -93,7 +93,7 @@
       background: rgba(0,0,0,0.45);
       text-align: center;
       padding: 0 20px;
-      z‑index: 2;
+      z-index: 2;
     }
     .hero-overlay h2 {
       font-size: 3rem;
@@ -256,21 +256,27 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'; // replace with your anon key
-    const BUCKET = 'gallery‑images';
-    const PATH = ''; // change to 'uploads/' if your files are in a folder
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const BUCKET = 'gallery-images';
+    const PATH = ''; // change to 'uploads/' if your files are in a folder
 
     async function fetchGalleryUrls() {
       const { data: files, error } = await supabase.storage.from(BUCKET).list(PATH, {
         limit: 100,
         sortBy: { column: 'name', order: 'desc' }
       });
-      if (error) { console.error('Error listing gallery files:', error.message); return []; }
+      if (error) {
+        console.error('Error listing gallery files:', error.message);
+        return [];
+      }
       const urls = await Promise.all(files.map(async file => {
         const { data: urlData, error: urlError } = await supabase.storage.from(BUCKET).getPublicUrl(`${PATH}${file.name}`);
-        if (urlError) { console.error('URL error for', file.name, urlError); return null; }
+        if (urlError) {
+          console.error('URL error for', file.name, urlError);
+          return null;
+        }
         return urlData.publicUrl;
       }));
       return urls.filter(u => u);
@@ -280,17 +286,17 @@
       const galleryUrls = await fetchGalleryUrls();
       console.log('Gallery URLs:', galleryUrls);
 
-      const hero = document.getElementById('hero');
+      const heroEl = document.getElementById('hero');
       if (galleryUrls.length) {
         let idx = 0;
         galleryUrls.slice(0, 5).forEach((url, i) => {
           const img = document.createElement('img');
           img.src = url;
           if (i === 0) img.classList.add('active');
-          hero.appendChild(img);
+          heroEl.appendChild(img);
         });
         setInterval(() => {
-          const imgs = hero.querySelectorAll('img');
+          const imgs = heroEl.querySelectorAll('img');
           imgs[idx].classList.remove('active');
           idx = (idx + 1) % imgs.length;
           imgs[idx].classList.add('active');
