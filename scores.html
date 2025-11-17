@@ -197,15 +197,37 @@
       th, td { font-size:12px; padding:8px; }
       .btn { font-size:0.8rem; padding:6px 10px; }
     }
+    .site-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  background: linear-gradient(to right, var(--green), #145214);
+  color: var(--gold);
+  padding: 20px 24px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.header-title {
+  flex: 1;
+  min-width: 250px;
+}
+
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
   </style>
 </head>
 
 <body>
 
-<header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-  <div style="font-size: 1.8rem; font-weight: 700;">
-    🏌️ Barford Golf Society Scores
-  </div>
+<header class="site-header-flex">
+  <div class="header-title">🏌️ Barford Golf Society Handicap Calculator</div>
   <div class="dark-toggle">
     <label for="darkSwitch">Dark Mode</label>
     <input type="checkbox" id="darkSwitch">
