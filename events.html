@@ -290,6 +290,23 @@
       padding: 1.5rem 0;
     }
 
+    .event-description-container .preview {
+  max-height: 4.5em;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.event-description-container .expanded {
+  max-height: 1000px;
+}
+.show-more-btn {
+  background: none;
+  border: none;
+  color: var(--green);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0 0;
+}
+
     /* • Mobile responsiveness */
     @media (max-width: 768px) {
       .header-container {
@@ -434,7 +451,7 @@
     document.getElementById(`tab-${tab}`).classList.add("active");
   }
 
-  async function loadEvents(){
+ async function loadEvents(){
   const {data:events, error} = await supabase
     .from("events")
     .select("*")
@@ -456,7 +473,6 @@
   for(const ev of events){
     list.innerHTML += `
       <div class="event-card">
-        ${ev.cancelled ? '<div class="cancelled-banner">Cancelled</div>' : ""}
         <div class="event-header">
           <div>
             <div class="event-name">${ev.name}</div>
@@ -464,25 +480,31 @@
           </div>
           <div><strong>£${ev.price || "-"}</strong></div>
         </div>
-        <div class="event-description">${ev.description || ""}</div>
+
+        <div class="event-description-container">
+          <div class="event-description preview">${ev.description || ""}</div>
+          <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
+        </div>
+
         <div class="event-links">
           ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
           ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
         </div>
+
         <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
           📝 RSVP to this event
         </button>
+
         <div class="add-to-calendar" id="addCal_${ev.id}"></div>
         <div id="rsvpForm_${ev.id}" class="hidden"></div>
         <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
         <div id="teeTimes_${ev.id}"></div>
-      </div>`;
+      </div>
+    `;
 
-    // Generate ISO date strings for calendar
     const startISO = ev.date.replace(/-/g, '') + 'T090000';
     const endISO   = ev.date.replace(/-/g, '') + 'T170000';
 
-    // Insert the calendar links
     addCalendarLinks(
       ev.id,
       ev.name,
@@ -492,11 +514,16 @@
       ev.description || ''
     );
 
-    // Load tee times for this event
     await loadTeeTimes(ev.id);
   }
 }
 
+  function toggleDescription(btn) {
+  const desc = btn.previousElementSibling;
+  const expanded = desc.classList.toggle("expanded");
+  btn.textContent = expanded ? "Show less ⬆️" : "Show more ⬇️";
+}
+  
   function toggleRSVP(eventId){
     const f = document.getElementById(`rsvpForm_${eventId}`);
     const b = document.getElementById(`rsvpBtn_${eventId}`);
