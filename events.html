@@ -435,14 +435,26 @@
   }
 
   async function loadEvents(){
-    const {data:events, error} = await supabase.from("events").select("*").order("date",{ascending:true});
-    const list = document.getElementById("eventList");
-    if(error){ console.error(error); return list.innerHTML = "<p>Error loading events.</p>"; }
-    if(!events?.length) return list.innerHTML = "<p>No events yet.</p>";
-    
-    list.innerHTML = "";
-    for(const ev of events){
-      list.innerHTML += `
+  const {data:events, error} = await supabase
+    .from("events")
+    .select("*")
+    .order("date",{ascending:true});
+
+  const list = document.getElementById("eventList");
+
+  if (error) {
+    console.error(error);
+    return list.innerHTML = "<p>Error loading events.</p>";
+  }
+
+  if (!events?.length) {
+    return list.innerHTML = "<p>No events yet.</p>";
+  }
+
+  list.innerHTML = "";
+
+  for(const ev of events){
+    list.innerHTML += `
       <div class="event-card">
         ${ev.cancelled ? '<div class="cancelled-banner">Cancelled</div>' : ""}
         <div class="event-header">
@@ -457,14 +469,33 @@
           ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
           ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
         </div>
-        <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">📝 RSVP to this event</button>
+        <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
+          📝 RSVP to this event
+        </button>
+        <div class="add-to-calendar" id="addCal_${ev.id}"></div>
         <div id="rsvpForm_${ev.id}" class="hidden"></div>
         <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
         <div id="teeTimes_${ev.id}"></div>
       </div>`;
-      await loadTeeTimes(ev.id);
-    }
+
+    // Generate ISO date strings for calendar
+    const startISO = ev.date.replace(/-/g, '') + 'T090000';
+    const endISO   = ev.date.replace(/-/g, '') + 'T170000';
+
+    // Insert the calendar links
+    addCalendarLinks(
+      ev.id,
+      ev.name,
+      startISO,
+      endISO,
+      ev.location,
+      ev.description || ''
+    );
+
+    // Load tee times for this event
+    await loadTeeTimes(ev.id);
   }
+}
 
   function toggleRSVP(eventId){
     const f = document.getElementById(`rsvpForm_${eventId}`);
@@ -762,7 +793,56 @@ async function createGolfEvent() {
       currentPairSelection = [];
     }
   }
+  
+/**********************************************
+ * ADD TO CALENDAR GENERATOR
+ **********************************************/
+function addCalendarLinks(id, title, startISO, endISO, location, description) {
+  // Google Calendar
+  const gcalUrl = 
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${encodeURIComponent(title)}` +
+    `&dates=${startISO}/${endISO}` +
+    `&details=${encodeURIComponent(description)}` +
+    `&location=${encodeURIComponent(location)}`;
 
+  // Yahoo Calendar
+  const yahooUrl =
+    `https://calendar.yahoo.com/?v=60` +
+    `&title=${encodeURIComponent(title)}` +
+    `&st=${startISO}` +
+    `&et=${endISO}` +
+    `&desc=${encodeURIComponent(description)}` +
+    `&in_loc=${encodeURIComponent(location)}`;
+
+  // ICS file content (Apple, Outlook, most apps)
+  const icsContent =
+`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${title}
+DESCRIPTION:${description}
+LOCATION:${location}
+DTSTART:${startISO}
+DTEND:${endISO}
+END:VEVENT
+END:VCALENDAR`;
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const icsUrl = URL.createObjectURL(blob);
+
+  // Insert formatted HTML
+  const container = document.getElementById(`addCal_${id}`);
+  container.innerHTML = `
+    <button class="admin-btn" onclick="this.nextElementSibling.style.display='block'">📅 Add to Calendar</button>
+    <div class="calendar-links" style="display:none; margin-top:8px;">
+      <a href="${gcalUrl}" target="_blank">Google Calendar</a> |
+      <a href="${yahooUrl}" target="_blank">Yahoo</a> |
+      <a href="${icsUrl}" download="${title}.ics">iCal / Outlook (.ics)</a>
+    </div>
+  `;
+}
+  
   async function saveTeeTimes(){
     const id = document.getElementById("teeEventSelect").value;
     if(!id) return alert("Please select an event first.");
