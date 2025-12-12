@@ -279,35 +279,34 @@ async function loadNextEvent() {
     .select("*")
     .order("date", { ascending: true });
 
-  if (error || !data?.length) return;
+  if (error || !data?.length) {
+    console.warn("Error or no data", error);
+    return;
+  }
 
-  // 🔧 Normalize today (ignore time)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = new Date().toISOString().split("T")[0]; // Get today's YYYY-MM-DD
 
   const upcomingEvents = data
     .filter(ev => {
-      if (!ev.date) return false;
+      if (!ev.date || ev.cancelled === true) return false;
 
-      const evDate = new Date(ev.date);
-      evDate.setHours(0, 0, 0, 0);
+      const evDate = ev.date.split("T")[0]; // Ignore time
+      return evDate >= today;
+    });
 
-      // ✅ only exclude if explicitly cancelled
-      return evDate >= today && ev.cancelled !== true;
-    })
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!upcomingEvents.length) return;
 
   const next = upcomingEvents[0];
-  if (!next) return;
 
   document.getElementById("nextEventEmpty").style.display = "none";
   document.getElementById("nextEventContent").style.display = "block";
 
   document.getElementById("neName").textContent = next.name;
-  document.getElementById("neDate").textContent = next.date;
+  document.getElementById("neDate").textContent = next.date.split("T")[0];
   document.getElementById("neLoc").textContent = next.location;
   document.getElementById("nePrice").textContent = next.price ? `£${next.price}` : "-";
 }
+
 loadNextEvent();
 </script>
 
