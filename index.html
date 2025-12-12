@@ -279,22 +279,25 @@ async function loadNextEvent() {
     .select("*")
     .order("date", { ascending: true });
 
-  if (error || !data?.length) {
-    console.warn("No events found or error:", error);
-    return;
-  }
+  if (error || !data?.length) return;
 
+  // 🔧 Normalize today (ignore time)
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-const upcomingEvents = data
-  .filter(ev => {
-    const evDate = new Date(ev.date);
-    return evDate >= today && !ev.cancelled;
-  })
-  .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const upcomingEvents = data
+    .filter(ev => {
+      if (!ev.date) return false;
 
-const next = upcomingEvents[0];
+      const evDate = new Date(ev.date);
+      evDate.setHours(0, 0, 0, 0);
 
+      // ✅ only exclude if explicitly cancelled
+      return evDate >= today && ev.cancelled !== true;
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const next = upcomingEvents[0];
   if (!next) return;
 
   document.getElementById("nextEventEmpty").style.display = "none";
