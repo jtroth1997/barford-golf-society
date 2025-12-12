@@ -273,6 +273,14 @@ async function loadGallery() {
 }
 loadGallery();
 
+function getLocalDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 async function loadNextEvent() {
   const { data, error } = await supabase
     .from("events")
@@ -284,15 +292,11 @@ async function loadNextEvent() {
     return;
   }
 
-  const today = new Date().toISOString().split("T")[0]; // Get today's YYYY-MM-DD
+  const today = getLocalDateString(); // use local browser date
 
-  const upcomingEvents = data
-    .filter(ev => {
-      if (!ev.date || ev.cancelled === true) return false;
-
-      const evDate = ev.date.split("T")[0]; // Ignore time
-      return evDate >= today;
-    });
+  const upcomingEvents = data.filter(ev => {
+    return ev.date && ev.date >= today && ev.cancelled !== true;
+  });
 
   if (!upcomingEvents.length) return;
 
@@ -302,7 +306,7 @@ async function loadNextEvent() {
   document.getElementById("nextEventContent").style.display = "block";
 
   document.getElementById("neName").textContent = next.name;
-  document.getElementById("neDate").textContent = next.date.split("T")[0];
+  document.getElementById("neDate").textContent = next.date;
   document.getElementById("neLoc").textContent = next.location;
   document.getElementById("nePrice").textContent = next.price ? `£${next.price}` : "-";
 }
