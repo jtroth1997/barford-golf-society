@@ -284,8 +284,12 @@ async function loadNextEvent() {
     return;
   }
 
-  const today = new Date().toISOString().split("T")[0];
-  const next = data.find(ev => ev.date >= today && !ev.cancelled);
+  const today = new Date();
+
+const next = data.find(ev => {
+  const evDate = new Date(ev.date);
+  return evDate >= today && !ev.cancelled;
+});
 
   if (!next) return;
 
