@@ -386,8 +386,12 @@
     <div id="tab-cancel" class="tab-content">
       <h3>Edit / Cancel Event</h3>
       <select id="cancelSelect"></select>
-      <button onclick="cancelEvent()">Cancel Event</button>
-      <button onclick="uncancelEvent()">Uncancel Event</button>
+     <label>Edit Price (£)</label>
+<input id="editPrice" type="number" placeholder="Leave empty to keep current price">
+<button onclick="updatePrice()">💰 Update Price</button>
+<br><br>
+<button onclick="cancelEvent()">Cancel Event</button>
+<button onclick="uncancelEvent()">Uncancel Event</button>
       <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
@@ -692,6 +696,30 @@ async function createGolfEvent() {
     document.getElementById("cancelMsg").textContent = "❌ Event cancelled.";
     alert("🚫 Event cancelled — members will now see this marked as Cancelled.");
   }
+async function updatePrice() {
+  const id = document.getElementById("cancelSelect").value;
+  const priceInput = document.getElementById("editPrice").value;
+
+  if (!id) return alert("Please select an event.");
+  if (priceInput === "") return alert("Please enter a new price.");
+
+  const price = parseFloat(priceInput);
+  if (isNaN(price)) return alert("Please enter a valid number.");
+
+  const { error } = await supabase
+    .from("events")
+    .update({ price })
+    .eq("id", id);
+
+  if (error) {
+    alert("❌ Error updating price.");
+    console.error(error);
+  } else {
+    alert("✅ Price updated!");
+    document.getElementById("editPrice").value = "";
+    loadEvents(); // reloads the event list with new prices
+  }
+}
 
   async function uncancelEvent(){
     const id = document.getElementById("cancelSelect").value;
