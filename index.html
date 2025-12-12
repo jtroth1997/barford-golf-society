@@ -228,19 +228,32 @@
 
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+<!-- Supabase client (UMD build – works in plain HTML) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.umd.min.js"></script>
 
+<script>
+/* ===============================
+   SUPABASE SETUP
+================================ */
 const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* ===============================
+   HERO GALLERY
+================================ */
 const hero = document.getElementById('heroSlideshow');
-let gallery = [], currentIndex = 0;
+let gallery = [];
+let currentIndex = 0;
 
 function renderHero() {
   hero.querySelectorAll('img').forEach(e => e.remove());
   if (!gallery.length) return;
+
   const img = document.createElement('img');
   img.src = gallery[currentIndex].url;
   img.classList.add('active');
@@ -254,81 +267,82 @@ function nextSlide() {
 }
 
 async function loadGallery() {
-  const { data: objects, error } = await supabase.storage
+  const { data, error } = await supabaseClient.storage
     .from('gallery-images')
     .list('uploads/', { limit: 1000 });
 
   if (error) {
-    console.error(error);
+    console.error("Gallery error:", error);
     return;
   }
 
-  gallery = objects.filter(f => !f.name.endsWith('/'))
+  gallery = data
+    .filter(f => !f.name.endsWith('/'))
     .map(f => ({
-      url: supabase.storage.from('gallery-images').getPublicUrl('uploads/' + f.name).data.publicUrl
+      url: supabaseClient.storage
+        .from('gallery-images')
+        .getPublicUrl('uploads/' + f.name).data.publicUrl
     }));
 
-  if (gallery.length) renderHero();
-  setInterval(nextSlide, 7000);
-}
-loadGallery();
-
-function getLocalDateString() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  if (gallery.length) {
+    renderHero();
+    setInterval(nextSlide, 7000);
+  }
 }
 
+/* ===============================
+   NEXT EVENT (THIS IS THE FIX)
+================================ */
 async function loadNextEvent() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("events")
     .select("*")
     .order("date", { ascending: true });
 
-  console.log("DEBUG — raw events:", data, "error:", error);
+  console.log("EVENT DATA:", data);
 
-  if (error || !data || data.length === 0) {
-    console.error("❌ Error loading events:", error);
+  if (error || !data || !data.length) {
+    console.error("Event load error:", error);
     return;
   }
 
+  // Build today in YYYY-MM-DD (local)
   const now = new Date();
   const today =
     now.getFullYear() + "-" +
     String(now.getMonth() + 1).padStart(2, "0") + "-" +
     String(now.getDate()).padStart(2, "0");
 
-  console.log("DEBUG — today:", today);
+  // Find first future, non-cancelled event
+  const nextEvent = data.find(ev =>
+    ev.date &&
+    ev.date >= today &&
+    ev.cancelled !== true
+  );
 
-  const upcomingEvents = data.filter(ev => {
-    const evDatePart = ev.date ? ev.date.split("T")[0] : null;
-    console.log("DEBUG — checking event:", ev.name, "date:", ev.date, "evDatePart:", evDatePart);
-    return ev.date && evDatePart >= today && ev.cancelled !== true;
-  });
-
-  console.log("DEBUG — upcomingEvents:", upcomingEvents);
-
-  if (!upcomingEvents.length) {
-    console.warn("⚠️ No future events found");
+  if (!nextEvent) {
+    console.warn("No upcoming events found");
     return;
   }
 
-  const next = upcomingEvents[0];
-
+  // Populate UI
   document.getElementById("nextEventEmpty").style.display = "none";
   document.getElementById("nextEventContent").style.display = "block";
 
-  document.getElementById("neName").textContent = next.name;
-  document.getElementById("neDate").textContent = next.date;
-  document.getElementById("neLoc").textContent = next.location || "-";
+  document.getElementById("neName").textContent = nextEvent.name;
+  document.getElementById("neDate").textContent = nextEvent.date;
+  document.getElementById("neLoc").textContent = nextEvent.location || "-";
   document.getElementById("nePrice").textContent =
-    next.price !== null ? `£${next.price}` : "-";
+    nextEvent.price !== null ? `£${nextEvent.price}` : "-";
 }
-  
-window.addEventListener("DOMContentLoaded", loadNextEvent);
 
+/* ===============================
+   INIT
+================================ */
+window.addEventListener("DOMContentLoaded", () => {
+  loadGallery();
+  loadNextEvent();
+});
 </script>
 
 </body>
