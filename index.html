@@ -286,10 +286,14 @@ async function loadNextEvent() {
 
   const today = new Date();
 
-const next = data.find(ev => {
-  const evDate = new Date(ev.date);
-  return evDate >= today && !ev.cancelled;
-});
+const upcomingEvents = data
+  .filter(ev => {
+    const evDate = new Date(ev.date);
+    return evDate >= today && !ev.cancelled;
+  })
+  .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+const next = upcomingEvents[0];
 
   if (!next) return;
 
