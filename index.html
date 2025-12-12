@@ -287,31 +287,43 @@ async function loadNextEvent() {
     .select("*")
     .order("date", { ascending: true });
 
-  if (error || !data?.length) {
-    console.warn("Error or no data", error);
+  if (error || !data || data.length === 0) {
+    console.error("❌ Error loading events:", error);
     return;
   }
 
-  const today = getLocalDateString(); // use local browser date
+  // 🔒 Build TODAY in local YYYY-MM-DD format
+  const now = new Date();
+  const today =
+    now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
 
-  const upcomingEvents = data.filter(ev => {
-    return ev.date && ev.date >= today && ev.cancelled !== true;
-  });
+  // ✅ Find the FIRST future, non-cancelled event
+  const next = data.find(ev =>
+    ev.date &&
+    ev.date >= today &&
+    ev.cancelled !== true
+  );
 
-  if (!upcomingEvents.length) return;
+  if (!next) {
+    console.warn("⚠️ No future events found");
+    return;
+  }
 
-  const next = upcomingEvents[0];
-
+  // ✅ Populate UI
   document.getElementById("nextEventEmpty").style.display = "none";
   document.getElementById("nextEventContent").style.display = "block";
 
   document.getElementById("neName").textContent = next.name;
   document.getElementById("neDate").textContent = next.date;
-  document.getElementById("neLoc").textContent = next.location;
-  document.getElementById("nePrice").textContent = next.price ? `£${next.price}` : "-";
+  document.getElementById("neLoc").textContent = next.location || "-";
+  document.getElementById("nePrice").textContent =
+    next.price !== null ? `£${next.price}` : "-";
 }
 
-loadNextEvent();
+window.addEventListener("DOMContentLoaded", loadNextEvent);
+
 </script>
 
 </body>
