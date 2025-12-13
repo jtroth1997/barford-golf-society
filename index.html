@@ -299,14 +299,12 @@ async function loadNextEvent() {
     .select("*")
     .order("date", { ascending: true });
 
-  console.log("EVENT DATA:", data);
-
-  if (error || !data || !data.length) {
+  if (error || !Array.isArray(data)) {
     console.error("Event load error:", error);
     return;
   }
 
-  // Build today in YYYY-MM-DD (local)
+  // Build today in YYYY-MM-DD
   const now = new Date();
   const today =
     now.getFullYear() + "-" +
@@ -315,13 +313,14 @@ async function loadNextEvent() {
 
   // Find first future, non-cancelled event
   const nextEvent = data.find(ev =>
-    ev.date &&
     ev.date >= today &&
     ev.cancelled !== true
   );
 
   if (!nextEvent) {
-    console.warn("No upcoming events found");
+    document.getElementById("nextEventEmpty").textContent = "No upcoming events yet.";
+    document.getElementById("nextEventEmpty").style.display = "block";
+    document.getElementById("nextEventContent").style.display = "none";
     return;
   }
 
