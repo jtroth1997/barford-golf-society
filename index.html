@@ -311,11 +311,17 @@ async function loadNextEvent() {
     String(now.getMonth() + 1).padStart(2, "0") + "-" +
     String(now.getDate()).padStart(2, "0");
 
+  console.log("All Events Fetched from Supabase:", data);
+
   // Find first future, non-cancelled event
-  const nextEvent = data.find(ev =>
-    ev.date >= today &&
-    ev.cancelled !== true
-  );
+  const nextEvent = data.find(ev => {
+    if (!ev.date) return false;
+
+    // Normalize Supabase date/timestamp to yyyy-mm-dd
+    const eventDate = ev.date.slice(0, 10);
+
+    return eventDate >= today && ev.cancelled !== true;
+  });
 
   if (!nextEvent) {
     document.getElementById("nextEventEmpty").textContent = "No upcoming events yet.";
@@ -324,12 +330,11 @@ async function loadNextEvent() {
     return;
   }
 
-  // Populate UI
   document.getElementById("nextEventEmpty").style.display = "none";
   document.getElementById("nextEventContent").style.display = "block";
 
   document.getElementById("neName").textContent = nextEvent.name;
-  document.getElementById("neDate").textContent = nextEvent.date;
+  document.getElementById("neDate").textContent = nextEvent.date.slice(0, 10);
   document.getElementById("neLoc").textContent = nextEvent.location || "-";
   document.getElementById("nePrice").textContent =
     nextEvent.price !== null ? `£${nextEvent.price}` : "-";
