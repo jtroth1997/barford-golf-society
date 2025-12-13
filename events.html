@@ -256,11 +256,28 @@
       z-index: 5;
     }
 
-    .rsvp-list {
-      margin-top: 1rem;
-      font-size: 0.95rem;
-      color: #333;
-    }
+   .rsvp-list {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* ⬇️ Add this block below */
+.rsvp-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.remove-rsvp-btn {
+  background: none;
+  border: none;
+  color: #c00;
+  font-size: 1rem;
+  cursor: pointer;
+}
 
     .player-card {
       background: #fff;
@@ -781,23 +798,48 @@ list.innerHTML += `
     loadRSVPList(eventId);
   }
 
-  async function loadRSVPList(eventId){
-    const {data} = await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
-    const div = document.getElementById(`rsvpList_${eventId}`);
-    if(!data?.length) return div.innerHTML = "<em>No RSVPs yet.</em>";
-    div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
-  let phone = p.phone ? ` (${p.phone})` : "";
-  if (p.buggy) {
-    if (p.flexibility === "happy") {
-      return `🛺 ${p.name}${phone} (Happy to walk if no pair)`;
-    } else {
-      return `🛺 ${p.name}${phone} (Needs buggy)`;
-    }
+ async function loadRSVPList(eventId){
+  const { data } = await supabase.from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
+  const div = document.getElementById(`rsvpList_${eventId}`);
+  if (!data?.length) return div.innerHTML = "<em>No RSVPs yet.</em>";
+
+  div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
+    const phone = p.phone ? ` (${p.phone})` : "";
+    const icon = p.buggy ? "🛺" : "🚶";
+    const note = p.buggy
+      ? p.flexibility === "happy"
+        ? " (Happy to walk if no pair)"
+        : " (Needs buggy)"
+      : "";
+
+    const removeBtn = localStorage.getItem("isAdmin") === "true"
+      ? ` <button class="remove-rsvp-btn" onclick="confirmRemoveRSVP(${p.id}, ${eventId})">❌</button>`
+      : "";
+
+    return `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}${removeBtn}</div>`;
+  }).join("");
+}
+
+async function confirmRemoveRSVP(rsvpId, eventId) {
+  const input = prompt("Enter admin password to remove this RSVP:");
+  if (input !== ADMIN_PASSWORD) {
+    alert("❌ Incorrect password.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("rsvps")
+    .delete()
+    .eq("id", rsvpId);
+
+  if (error) {
+    alert("❌ Failed to remove RSVP.");
+    console.error(error);
   } else {
-    return `🚶 ${p.name}`; // no phone for walkers
+    alert("✅ RSVP removed.");
+    loadRSVPList(eventId);
   }
-}).join("<br>");
-  }
+}
 
   async function loadTeeTimes(eventId){
     const area = document.getElementById(`teeTimes_${eventId}`);
