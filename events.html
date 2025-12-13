@@ -463,6 +463,14 @@
       document.getElementById("adminToggle").textContent="🔐 Admin Access";
     }
   }
+function formatDatePretty(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
 
   function showTab(tab){
     document.querySelectorAll(".admin-tab").forEach(t=>t.classList.remove("active"));
@@ -500,7 +508,7 @@ list.innerHTML += `
     <div class="event-meta">
       <div class="event-section">
         <h4>Date</h4>
-        <p>${ev.date}</p>
+        <p>${formatDatePretty(ev.date)}</p>
       </div>
       <div class="event-section">
         <h4>Location</h4>
