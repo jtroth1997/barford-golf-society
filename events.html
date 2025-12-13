@@ -700,8 +700,9 @@ list.innerHTML += `
   </div>
 `;
 
-    const startISO = ev.date.replace(/-/g, '') + 'T090000';
-    const endISO   = ev.date.replace(/-/g, '') + 'T170000';
+    const startISO = ev.date.replace(/-/g, '') + 'T120000'; // 12:00 PM
+    const endISO   = ev.date.replace(/-/g, '') + 'T180000'; // 6:00 PM
+
 
     addCalendarLinks(
       ev.id,
