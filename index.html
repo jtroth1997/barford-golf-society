@@ -269,7 +269,7 @@
     }
 
    gallery = data
-  .filter(f => !f.name.endsWith('/'))
+  .filter(f => !f.name.endsWith('/') && f.name !== '.emptyFolderPlaceholder')
   .map(f => {
     const publicUrl = supabaseClient.storage
       .from('gallery-images')
