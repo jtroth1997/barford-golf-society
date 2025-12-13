@@ -657,10 +657,28 @@ list.innerHTML += `
       <div class="event-title">${ev.location}</div>
       <div class="event-subtitle">${ev.name}</div>
       <div class="event-badge">🔴 Limited Availability</div>
-    </div>
 
-    <div class="event-action">
-      <button onclick="toggleRSVP(${ev.id})">Find tickets</button>
+      <div class="event-section">
+        <h4>Description</h4>
+        <div class="event-description-container">
+          <div class="event-description preview">${ev.description || ""}</div>
+          <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
+        </div>
+      </div>
+
+      <div class="event-links">
+        ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
+        ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
+      </div>
+
+      <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
+        📝 RSVP to this event
+      </button>
+
+      <div class="add-to-calendar" id="addCal_${ev.id}"></div>
+      <div id="rsvpForm_${ev.id}" class="hidden"></div>
+      <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
+      <div id="teeTimes_${ev.id}"></div>
     </div>
 
   </div>
