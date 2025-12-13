@@ -334,6 +334,22 @@
         text-align: center;
       }
     }
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.event-section {
+  flex: 1 1 200px;
+}
+
+.event-section h4 {
+  margin-bottom: 0.3rem;
+  color: var(--green);
+  font-size: 1rem;
+}
   </style>
 </head>
 
@@ -475,36 +491,50 @@
   list.innerHTML = "";
 
   for(const ev of events){
-    list.innerHTML += `
-      <div class="event-card">
-        <div class="event-header">
-          <div>
-            <div class="event-name">${ev.name}</div>
-            <div>${ev.location} — ${ev.date}</div>
-          </div>
-          <div><strong>£${ev.price || "-"}</strong></div>
-        </div>
+list.innerHTML += `
+  <div class="event-card">
+    <div class="event-header">
+      <div class="event-name">${ev.name}</div>
+    </div>
 
-        <div class="event-description-container">
-          <div class="event-description preview">${ev.description || ""}</div>
-          <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
-        </div>
-
-        <div class="event-links">
-          ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
-          ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
-        </div>
-
-        <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
-          📝 RSVP to this event
-        </button>
-
-        <div class="add-to-calendar" id="addCal_${ev.id}"></div>
-        <div id="rsvpForm_${ev.id}" class="hidden"></div>
-        <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
-        <div id="teeTimes_${ev.id}"></div>
+    <div class="event-meta">
+      <div class="event-section">
+        <h4>Date</h4>
+        <p>${ev.date}</p>
       </div>
-    `;
+      <div class="event-section">
+        <h4>Location</h4>
+        <p>${ev.location}</p>
+      </div>
+      <div class="event-section">
+        <h4>Price</h4>
+        <p>£${ev.price || "-"}</p>
+      </div>
+    </div>
+
+    <div class="event-section">
+      <h4>Description</h4>
+      <div class="event-description-container">
+        <div class="event-description preview">${ev.description || ""}</div>
+        <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
+      </div>
+    </div>
+
+    <div class="event-links">
+      ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
+      ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
+    </div>
+
+    <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
+      📝 RSVP to this event
+    </button>
+
+    <div class="add-to-calendar" id="addCal_${ev.id}"></div>
+    <div id="rsvpForm_${ev.id}" class="hidden"></div>
+    <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
+    <div id="teeTimes_${ev.id}"></div>
+  </div>
+`;
 
     const startISO = ev.date.replace(/-/g, '') + 'T090000';
     const endISO   = ev.date.replace(/-/g, '') + 'T170000';
