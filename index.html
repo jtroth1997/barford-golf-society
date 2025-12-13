@@ -268,13 +268,17 @@
       return;
     }
 
-    gallery = data
-      .filter(f => !f.name.endsWith('/'))
-      .map(f => ({
-        url: supabaseClient.storage
-          .from('gallery-images')
-          .getPublicUrl('uploads/' + f.name).data.publicUrl
-      }));
+   gallery = data
+  .filter(f => !f.name.endsWith('/'))
+  .map(f => {
+    const publicUrl = supabaseClient.storage
+      .from('gallery-images')
+      .getPublicUrl('uploads/' + f.name).data.publicUrl;
+
+    console.log("Found image:", publicUrl);
+    return { url: publicUrl };
+  })
+  .filter(img => img.url && !img.url.includes("undefined"));
 
     if (gallery.length) {
       renderHero();
