@@ -372,12 +372,13 @@
   <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
 
   <div id="adminPanel" class="admin-panel hidden">
-    <div class="admin-tabs">
-      <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
-      <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
-      <div class="admin-tab" onclick="showTab('cancel')">Edit / Cancel</div>
-      <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
-    </div>
+   <div class="admin-tabs">
+  <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
+  <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
+  <div class="admin-tab" onclick="showTab('edit')">Edit Event</div>
+  <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
+  <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
+</div>
 
     <div id="tab-create" class="tab-content active">
       <h3>Create New Event</h3>
@@ -402,14 +403,27 @@
     <div id="tab-cancel" class="tab-content">
       <h3>Edit / Cancel Event</h3>
       <select id="cancelSelect"></select>
-     <label>Edit Price (£)</label>
-<input id="editPrice" type="number" placeholder="Leave empty to keep current price">
-<button onclick="updatePrice()">💰 Update Price</button>
-<br><br>
 <button onclick="cancelEvent()">Cancel Event</button>
 <button onclick="uncancelEvent()">Uncancel Event</button>
       <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
+<div id="tab-edit" class="tab-content">
+  <h3>Edit Event Details</h3>
+  <select id="editSelect" onchange="loadEditForm()"></select>
+
+  <div id="editFormContainer" class="hidden">
+    <label>Name</label><input id="editName" type="text">
+    <label>Date</label><input id="editDate" type="date">
+    <label>Location</label><input id="editLocation" type="text">
+    <label>Price (£)</label><input id="editPriceFull" type="number">
+    <label>Description</label><textarea id="editDescription" rows="3"></textarea>
+    <label>Course Link</label><input id="editCourseLink" type="text">
+    <label>Weather Link</label><input id="editWeatherLink" type="text">
+
+    <button onclick="saveEventEdits()">💾 Save Changes</button>
+    <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
+  </div>
+</div>
 
     <div id="tab-tee" class="tab-content">
       <h3>🕓 Tee Time Generator</h3>
@@ -670,9 +684,71 @@ list.innerHTML += `
     const del = document.getElementById("deleteSelect"),
           can = document.getElementById("cancelSelect"),
           tee = document.getElementById("teeEventSelect");
+    const edit = document.getElementById("editSelect");
     [del,can,tee].forEach(s => s.innerHTML = "<option value=''>Select event</option>");
+    edit.innerHTML = "<option value=''>Select event</option>";
     data.forEach(e => [del,can,tee].forEach(s => s.innerHTML += `<option value='${e.id}'>${e.name} (${e.date})</option>`));
+    data.forEach(e => {
+  edit.innerHTML += `<option value='${e.id}'>${e.name} (${formatDatePretty(e.date)})</option>`;
+});
   }
+
+  async function loadEditForm() {
+  const id = document.getElementById("editSelect").value;
+  if (!id) return;
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    alert("❌ Error loading event");
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("editFormContainer").classList.remove("hidden");
+
+  document.getElementById("editName").value = data.name || "";
+  document.getElementById("editDate").value = data.date || "";
+  document.getElementById("editLocation").value = data.location || "";
+  document.getElementById("editPriceFull").value = data.price ?? "";
+  document.getElementById("editDescription").value = data.description || "";
+  document.getElementById("editCourseLink").value = data.course_link || "";
+  document.getElementById("editWeatherLink").value = data.weather_link || "";
+}
+async function saveEventEdits() {
+  const id = document.getElementById("editSelect").value;
+  if (!id) return alert("Select an event first");
+
+  const updates = {
+    name: document.getElementById("editName").value.trim(),
+    date: document.getElementById("editDate").value,
+    location: document.getElementById("editLocation").value.trim(),
+    price: document.getElementById("editPriceFull").value
+      ? parseFloat(document.getElementById("editPriceFull").value)
+      : null,
+    description: document.getElementById("editDescription").value.trim(),
+    course_link: document.getElementById("editCourseLink").value.trim(),
+    weather_link: document.getElementById("editWeatherLink").value.trim()
+  };
+
+  const { error } = await supabase
+    .from("events")
+    .update(updates)
+    .eq("id", id);
+
+  if (error) {
+    document.getElementById("editMsg").textContent = "❌ Error saving changes";
+    console.error(error);
+  } else {
+    document.getElementById("editMsg").textContent = "✅ Event updated";
+    loadEvents();
+    loadAdminSelects();
+  }
+}
 
 async function createGolfEvent() {
   const name = document.getElementById("newName").value.trim();
