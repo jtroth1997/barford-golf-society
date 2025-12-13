@@ -221,132 +221,111 @@
   <div class="highlights">
     <div class="highlight"><h4>Exclusive Community</h4><p>Join like-minded members across premium courses.</p></div>
     <div class="highlight"><h4>Engaging Formats</h4><p>Competition formats that are fair and fun.</p></div>
-    <div class="highlight"><h4>Member Gallery</h4><p>Browse member photos capturing memorable moments.</p></div>
+    <div
+    class="highlight"><h4>Member Gallery</h4><p>Browse member photos capturing memorable moments.</p></div>
     <div class="highlight"><h4>Stay Connected</h4><p>Keep up with events, results and socials.</p></div>
   </div>
 </div>
 
 <footer><p>© 2025 Barford Golf Society</p></footer>
 
-<!-- Supabase client (UMD build – works in plain HTML) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.umd.min.js"></script>
 
-<script>
-/* ===============================
-   SUPABASE SETUP
-================================ */
-const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/+esm';
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+  const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
 
-/* ===============================
-   HERO GALLERY
-================================ */
-const hero = document.getElementById('heroSlideshow');
-let gallery = [];
-let currentIndex = 0;
+  const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function renderHero() {
-  hero.querySelectorAll('img').forEach(e => e.remove());
-  if (!gallery.length) return;
+  const hero = document.getElementById('heroSlideshow');
+  let gallery = [];
+  let currentIndex = 0;
 
-  const img = document.createElement('img');
-  img.src = gallery[currentIndex].url;
-  img.classList.add('active');
-  hero.appendChild(img);
-}
+  function renderHero() {
+    hero.querySelectorAll('img').forEach(e => e.remove());
+    if (!gallery.length) return;
 
-function nextSlide() {
-  if (!gallery.length) return;
-  currentIndex = (currentIndex + 1) % gallery.length;
-  renderHero();
-}
-
-async function loadGallery() {
-  const { data, error } = await supabaseClient.storage
-    .from('gallery-images')
-    .list('uploads/', { limit: 1000 });
-
-  if (error) {
-    console.error("Gallery error:", error);
-    return;
+    const img = document.createElement('img');
+    img.src = gallery[currentIndex].url;
+    img.classList.add('active');
+    hero.appendChild(img);
   }
 
-  gallery = data
-    .filter(f => !f.name.endsWith('/'))
-    .map(f => ({
-      url: supabaseClient.storage
-        .from('gallery-images')
-        .getPublicUrl('uploads/' + f.name).data.publicUrl
-    }));
-
-  if (gallery.length) {
+  function nextSlide() {
+    if (!gallery.length) return;
+    currentIndex = (currentIndex + 1) % gallery.length;
     renderHero();
-    setInterval(nextSlide, 7000);
-  }
-}
-
-/* ===============================
-   NEXT EVENT (THIS IS THE FIX)
-================================ */
-async function loadNextEvent() {
-  const { data, error } = await supabaseClient
-    .from("events")
-    .select("*")
-    .order("date", { ascending: true });
-
-  if (error || !Array.isArray(data)) {
-    console.error("Event load error:", error);
-    return;
   }
 
-  // Build today in YYYY-MM-DD
-  const now = new Date();
-  const today =
-    now.getFullYear() + "-" +
-    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-    String(now.getDate()).padStart(2, "0");
+  async function loadGallery() {
+    const { data, error } = await supabaseClient.storage
+      .from('gallery-images')
+      .list('uploads/', { limit: 1000 });
 
-  console.log("All Events Fetched from Supabase:", data);
+    if (error) {
+      console.error("Gallery error:", error);
+      return;
+    }
 
-  // Find first future, non-cancelled event
-  const nextEvent = data.find(ev => {
-    if (!ev.date) return false;
+    gallery = data
+      .filter(f => !f.name.endsWith('/'))
+      .map(f => ({
+        url: supabaseClient.storage
+          .from('gallery-images')
+          .getPublicUrl('uploads/' + f.name).data.publicUrl
+      }));
 
-    // Normalize Supabase date/timestamp to yyyy-mm-dd
-    const eventDate = ev.date.slice(0, 10);
+    if (gallery.length) {
+      renderHero();
+      setInterval(nextSlide, 7000);
+    }
+  }
 
-    return eventDate >= today && ev.cancelled !== true;
+  async function loadNextEvent() {
+    const { data, error } = await supabaseClient
+      .from("events")
+      .select("*")
+      .order("date", { ascending: true });
+
+    if (error || !Array.isArray(data)) {
+      console.error("Event load error:", error);
+      return;
+    }
+
+    const now = new Date();
+    const today =
+      now.getFullYear() + "-" +
+      String(now.getMonth() + 1).padStart(2, "0") + "-" +
+      String(now.getDate()).padStart(2, "0");
+
+    const nextEvent = data.find(ev => {
+      if (!ev.date) return false;
+      const eventDate = ev.date.slice(0, 10);
+      return eventDate >= today && ev.cancelled !== true;
+    });
+
+    if (!nextEvent) {
+      document.getElementById("nextEventEmpty").textContent = "No upcoming events yet.";
+      document.getElementById("nextEventEmpty").style.display = "block";
+      document.getElementById("nextEventContent").style.display = "none";
+      return;
+    }
+
+    document.getElementById("nextEventEmpty").style.display = "none";
+    document.getElementById("nextEventContent").style.display = "block";
+
+    document.getElementById("neName").textContent = nextEvent.name;
+    document.getElementById("neDate").textContent = nextEvent.date.slice(0, 10);
+    document.getElementById("neLoc").textContent = nextEvent.location || "-";
+    document.getElementById("nePrice").textContent =
+      nextEvent.price !== null ? `£${nextEvent.price}` : "-";
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    loadGallery();
+    loadNextEvent();
   });
-
-  if (!nextEvent) {
-    document.getElementById("nextEventEmpty").textContent = "No upcoming events yet.";
-    document.getElementById("nextEventEmpty").style.display = "block";
-    document.getElementById("nextEventContent").style.display = "none";
-    return;
-  }
-
-  document.getElementById("nextEventEmpty").style.display = "none";
-  document.getElementById("nextEventContent").style.display = "block";
-
-  document.getElementById("neName").textContent = nextEvent.name;
-  document.getElementById("neDate").textContent = nextEvent.date.slice(0, 10);
-  document.getElementById("neLoc").textContent = nextEvent.location || "-";
-  document.getElementById("nePrice").textContent =
-    nextEvent.price !== null ? `£${nextEvent.price}` : "-";
-}
-
-/* ===============================
-   INIT
-================================ */
-window.addEventListener("DOMContentLoaded", () => {
-  loadGallery();
-  loadNextEvent();
-});
 </script>
 
 </body>
