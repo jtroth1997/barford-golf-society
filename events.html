@@ -543,6 +543,9 @@
     <label>Description</label><textarea id="editDescription" rows="3"></textarea>
     <label>Course Link</label><input id="editCourseLink" type="text">
     <label>Weather Link</label><input id="editWeatherLink" type="text">
+    <label>Max Players</label><input id="editMaxPlayers" type="number" placeholder="e.g. 24">
+<label>First Tee Time</label><input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
+
 
     <button onclick="saveEventEdits()">💾 Save Changes</button>
     <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
@@ -662,11 +665,13 @@ list.innerHTML += `
     </div>
 
     <div class="event-details">
-      <div class="event-time">${weekday} • 19:30</div>
+     <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
       <div class="event-title">${ev.location}</div>
       <div class="event-subtitle">${ev.name}</div>
-     <div class="event-badge">
-  ⛳ ${slotsLeft !== null ? `${slotsLeft} slots remaining` : "Tee Slots TBC"}
+  <div class="event-badge">
+  ⛳ ${slotsLeft !== null
+    ? `${slotsLeft} of ${ev.max_players} slots remaining`
+    : "Tee Slots TBC"}
 </div>
 
       <div class="event-section">
@@ -855,6 +860,9 @@ list.innerHTML += `
   document.getElementById("editDescription").value = data.description || "";
   document.getElementById("editCourseLink").value = data.course_link || "";
   document.getElementById("editWeatherLink").value = data.weather_link || "";
+  document.getElementById("editMaxPlayers").value = data.max_players ?? "";
+  document.getElementById("editFirstTime").value = data.first_time || "";
+
 }
 async function saveEventEdits() {
   const id = document.getElementById("editSelect").value;
@@ -870,6 +878,10 @@ async function saveEventEdits() {
     description: document.getElementById("editDescription").value.trim(),
     course_link: document.getElementById("editCourseLink").value.trim(),
     weather_link: document.getElementById("editWeatherLink").value.trim()
+      max_players: document.getElementById("editMaxPlayers").value
+    ? parseInt(document.getElementById("editMaxPlayers").value)
+    : null,
+  first_time: document.getElementById("editFirstTime").value.trim() || null,
   };
 
   const { error } = await supabase
