@@ -322,8 +322,8 @@
     !obj.name.startsWith('.')
   )
   .map(obj => ({
-    path: obj.name, // don't add UPLOAD_PATH again
-    url: supabase.storage.from(BUCKET).getPublicUrl(obj.name).data.publicUrl
+    path: obj.name,
+url: supabase.storage.from(BUCKET).getPublicUrl(UPLOAD_PATH + obj.name).data.publicUrl
   }));
 
 renderBanner();
