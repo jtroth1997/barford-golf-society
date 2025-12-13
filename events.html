@@ -320,22 +320,93 @@
     margin-top: 1rem;
   }
 
-  .event-card {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-  }
+ .event-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.2rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
 
-  .event-header {
+.event-date-box {
+  background: #f3f3f3;
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  text-align: center;
+  font-weight: 600;
+  color: #222;
+  min-width: 70px;
+}
+
+.event-date-box .day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.event-details {
+  flex: 1;
+}
+
+.event-time {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.event-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #000;
+}
+
+.event-subtitle {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.event-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c40000;
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.event-action button {
+  background: #0062ff;
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.event-action button:hover {
+  background: #004dcc;
+}
+
+@media (max-width: 600px) {
+  .event-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
   }
 
-  .event-meta {
-    flex-direction: column;
-    gap: 0.6rem;
-    margin-top: 0.8rem;
+  .event-action {
+    width: 100%;
   }
+
+  .event-action button {
+    width: 100%;
+  }
+}
 
   .event-section {
     margin: 0;
@@ -566,26 +637,34 @@ function formatDatePretty(dateStr) {
   list.innerHTML = "";
 
   for(const ev of events){
+const d = new Date(ev.date);
+const day = d.getDate().toString().padStart(2, "0");
+const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
+const year = d.getFullYear();
+const weekday = d.toLocaleString("en-GB", { weekday: "short" });
+
 list.innerHTML += `
   <div class="event-card">
-    <div class="event-header">
-      <div class="event-name">${ev.name}</div>
+
+    <div class="event-date-box">
+      ${month}
+      <div class="day">${day}</div>
+      ${year}
     </div>
 
-    <div class="event-meta">
-      <div class="event-section">
-        <h4>Date</h4>
-        <p>${formatDatePretty(ev.date)}</p>
-      </div>
-      <div class="event-section">
-        <h4>Location</h4>
-        <p>${ev.location}</p>
-      </div>
-      <div class="event-section">
-        <h4>Price</h4>
-        <p>£${ev.price || "-"}</p>
-      </div>
+    <div class="event-details">
+      <div class="event-time">${weekday} • 19:30</div>
+      <div class="event-title">${ev.location}</div>
+      <div class="event-subtitle">${ev.name}</div>
+      <div class="event-badge">🔴 Limited Availability</div>
     </div>
+
+    <div class="event-action">
+      <button onclick="toggleRSVP(${ev.id})">Find tickets</button>
+    </div>
+
+  </div>
+`;
 
     <div class="event-section">
       <h4>Description</h4>
