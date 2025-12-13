@@ -623,6 +623,7 @@
         document.getElementById("adminPanel").classList.remove("hidden");
         document.getElementById("adminToggle").textContent="⬅️ Back to Events";
         loadAdminSelects();
+        loadEvents(); // This will re-render the events + RSVP lists
         alert("✅ Admin access granted");
       } else alert("❌ Wrong password");
     } else {
