@@ -331,19 +331,29 @@
 }
 
 .event-date-box {
-  background: #f3f3f3;
-  border-radius: 6px;
-  padding: 0.6rem 0.9rem;
+  background-color: #f3f3f3;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
   text-align: center;
-  font-weight: 600;
+  font-weight: bold;
   color: #222;
-  min-width: 70px;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .event-date-box .day {
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0.2rem 0;
+}
+
+.event-date-box .month,
+.event-date-box .year {
+  font-size: 0.9rem;
 }
 
 .event-details {
@@ -658,11 +668,11 @@ const slotsLeft = ev.max_players !== null
 list.innerHTML += `
   <div class="event-card">
 
-    <div class="event-date-box">
-      ${month}
-      <div class="day">${day}</div>
-      ${year}
-    </div>
+   <div class="event-date-box">
+  <div class="month">${month}</div>
+  <div class="day">${day}</div>
+  <div class="year">${year}</div>
+</div>
 
     <div class="event-details">
      <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
