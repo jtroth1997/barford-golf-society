@@ -618,10 +618,13 @@ function formatDatePretty(dateStr) {
   }
 
  async function loadEvents(){
-  const {data:events, error} = await supabase
-    .from("events")
-    .select("*")
-    .order("date",{ascending:true});
+const { data: events, error } = await supabase
+  .from("events")
+  .select(`
+    *,
+    rsvps: rsvps(attending)
+  `)
+  .order("date", { ascending: true });
 
   const list = document.getElementById("eventList");
 
@@ -643,6 +646,12 @@ const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
 const year = d.getFullYear();
 const weekday = d.toLocaleString("en-GB", { weekday: "short" });
 
+const attendingCount = ev.rsvps?.filter(r => r.attending).length || 0;
+const slotsLeft = ev.max_players !== null
+    ? ev.max_players - attendingCount
+    : null;
+
+
 list.innerHTML += `
   <div class="event-card">
 
@@ -656,7 +665,9 @@ list.innerHTML += `
       <div class="event-time">${weekday} • 19:30</div>
       <div class="event-title">${ev.location}</div>
       <div class="event-subtitle">${ev.name}</div>
-      <div class="event-badge">🔴 Limited Availability</div>
+     <div class="event-badge">
+  ⛳ ${slotsLeft !== null ? `${slotsLeft} slots remaining` : "Tee Slots TBC"}
+</div>
 
       <div class="event-section">
         <h4>Description</h4>
