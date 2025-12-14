@@ -745,7 +745,7 @@ list.innerHTML += `
     );
 
     await loadTeeTimes(ev.id);
-    loadRSVPList(ev.id);
+    await loadRSVPList(ev.id);
   }
 }
 
@@ -821,7 +821,7 @@ async function loadRSVPList(eventId) {
     return;
   }
 
-  let html = "<h4>Players Attending</h4>";
+ let html = "<strong>👥 Who's Playing:</strong><br>";
   data.forEach(p => {
     const phone = p.phone ? ` (${p.phone})` : "";
     const icon = p.buggy ? "🛺" : "🚶";
