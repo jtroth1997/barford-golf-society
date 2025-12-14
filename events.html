@@ -863,38 +863,55 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
   loadEvents();           // Update slot counts
 }
 
-  async function loadTeeTimes(eventId){
-    const area = document.getElementById(`teeTimes_${eventId}`);
-    const rsvpList = document.getElementById(`rsvpList_${eventId}`);
-    const {data, error} = await supabase.from("tee_times").select("*").eq("event_id",eventId).order("group_number",{ascending:true});
-    if(error){ console.error(error); return; }
-    if(!data?.length){
-      loadRSVPList(eventId);
-      return;
-    }
-    rsvpList.innerHTML = "";
-    let html = "<h4>⛳ Final Tee Times</h4>";
-    data.forEach(group => {
-      html += `<div style="margin-bottom:12px;padding:10px;background:#f9f9f9;border-radius:8px;">
-        <strong>Group ${group.group_number}</strong> — ${group.tee_time}<br>`;
-      const buggyPlayers = group.players.filter(p => p.type === "buggy");
-      const walkers = group.players.filter(p => p.type === "walker");
-      for(let i = 0; i < buggyPlayers.length; i += 2){
-        const p1 = buggyPlayers[i];
-        const p2 = buggyPlayers[i+1];
-        if(p2){
-          html += `🛺 <strong>Pair:</strong> ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"}) ✅<br>`;
-        } else {
-          html += `🛺 ${p1.name} (${p1.phone || "N/A"}) — <em>No partner assigned</em><br>`;
-        }
-      }
-      if(walkers.length){
-        html += `<div style="margin-top:6px;">🚶 <strong>Walkers:</strong> ${walkers.map(w => w.name).join(", ")}</div>`;
-      }
-      html += `</div>`;
-    });
-    area.innerHTML = html;
+ async function loadTeeTimes(eventId){
+  const area = document.getElementById(`teeTimes_${eventId}`);
+
+  const { data, error } = await supabase
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("group_number", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return;
   }
+
+  // If no tee times yet, DO NOT touch the RSVP list
+  if (!data?.length) {
+    return;
+  }
+
+  let html = "<h4>⛳ Final Tee Times</h4>";
+
+  data.forEach(group => {
+    html += `
+      <div style="margin-bottom:12px;padding:10px;background:#f9f9f9;border-radius:8px;">
+        <strong>Group ${group.group_number}</strong> — ${group.tee_time}<br>
+    `;
+
+    const buggyPlayers = group.players.filter(p => p.type === "buggy");
+    const walkers = group.players.filter(p => p.type === "walker");
+
+    for (let i = 0; i < buggyPlayers.length; i += 2) {
+      const p1 = buggyPlayers[i];
+      const p2 = buggyPlayers[i + 1];
+      if (p2) {
+        html += `🛺 <strong>Pair:</strong> ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"}) ✅<br>`;
+      } else {
+        html += `🛺 ${p1.name} (${p1.phone || "N/A"}) — <em>No partner assigned</em><br>`;
+      }
+    }
+
+    if (walkers.length) {
+      html += `<div style="margin-top:6px;">🚶 <strong>Walkers:</strong> ${walkers.map(w => w.name).join(", ")}</div>`;
+    }
+
+    html += `</div>`;
+  });
+
+  area.innerHTML = html;
+}
 
   async function loadAdminSelects(){
     const {data} = await supabase.from("events").select("*").order("date",{ascending:true});
