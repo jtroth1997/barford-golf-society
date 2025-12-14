@@ -577,13 +577,30 @@
   </div>
 </div>
 
-    <div id="tab-tee" class="tab-content">
+<div id="tab-tee" class="tab-content">
   <h3>🕓 Tee Time Generator</h3>
+
+  <!-- Event selector -->
   <select id="teeEventSelect"></select>
+
+  <!-- ✅ Add delete tee times button (initially hidden) -->
+  <div style="margin-top: 0.8rem;">
+    <button id="deleteTeeTimesBtn" onclick="deleteTeeTimes()" style="display:none;">🗑️ Delete Tee Times</button>
+  </div>
+
+  <!-- Player pool shows RSVPs -->
   <div id="playerPool" style="margin-top:1rem;"><em>Select an event to load RSVPs...</em></div>
-  <label>Start Time</label><input id="startTime" value="9:00am" style="width:120px;">
-  <label>Gap (mins)</label><input id="gapMins" value="7" style="width:60px;">
+
+  <!-- Generator controls -->
+  <label>Start Time</label>
+  <input id="startTime" value="9:00am" style="width:120px;">
+  <label>Gap (mins)</label>
+  <input id="gapMins" value="7" style="width:60px;">
+
+  <!-- Output groups -->
   <div id="teeGroups" style="margin-top:20px;"></div>
+
+  <!-- Save button -->
   <button onclick="saveTeeTimes()">💾 Save Tee Times</button>
 </div>
 
