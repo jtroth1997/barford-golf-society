@@ -857,7 +857,6 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
   loadRSVPList(eventId); // refresh this list
   loadEvents();          // also refresh event badges and cards
 }
-}
 
   async function loadTeeTimes(eventId){
     const area = document.getElementById(`teeTimes_${eventId}`);
