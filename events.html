@@ -1411,12 +1411,9 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
 
   alert("✅ RSVP deleted");
 
-  // Refresh the Manage RSVPs list immediately
-  loadAdminRsvps();
-
-  // Refresh events so the slot count updates
-  loadEvents();
-  loadRSVPList(eventId); // Refresh visible RSVP list on card
+  // ✅ Refresh both lists
+  loadAdminRsvps();      // Updates the admin list
+  loadRSVPList(eventId); // Updates the front-end list for the public view
 }
 
 </script>
