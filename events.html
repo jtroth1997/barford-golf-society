@@ -746,9 +746,18 @@ list.innerHTML += `
       ev.description || ''
     );
 
-    await loadTeeTimes(ev.id);
-    await loadRSVPList(ev.id);
-  }
+  // First load tee times data
+const teeTimesResponse = await supabase
+  .from("tee_times")
+  .select("id")
+  .eq("event_id", ev.id);
+
+// If *no* tee times, load RSVP list
+if (!teeTimesResponse.data?.length) {
+  await loadRSVPList(ev.id);
+} else {
+  // Otherwise, load tee times
+  await loadTeeTimes(ev.id);
 }
 
   function toggleDescription(btn) {
