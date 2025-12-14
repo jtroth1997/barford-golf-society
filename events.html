@@ -581,7 +581,17 @@
 </div>
 
     <div id="tab-tee" class="tab-content">
-      <div id="tab-rsvps" class="tab-content">
+  <h3>🕓 Tee Time Generator</h3>
+  <select id="teeEventSelect"></select>
+  <div id="playerPool" style="margin-top:1rem;"><em>Select an event to load RSVPs...</em></div>
+  <label>Start Time</label><input id="startTime" value="9:00am" style="width:120px;">
+  <label>Gap (mins)</label><input id="gapMins" value="7" style="width:60px;">
+  <div id="teeGroups" style="margin-top:20px;"></div>
+  <button onclick="saveTeeTimes()">💾 Save Tee Times</button>
+</div>
+
+<!-- ⚠️ NEW Manage RSVPs tab — NOT inside Tee Times -->
+<div id="tab-rsvps" class="tab-content">
   <h3>Manage RSVPs</h3>
 
   <label>Select Event</label>
@@ -589,14 +599,6 @@
 
   <div id="manageRsvpList" style="margin-top:1rem;"></div>
 </div>
-      <h3>🕓 Tee Time Generator</h3>
-      <select id="teeEventSelect"></select>
-      <div id="playerPool" style="margin-top:1rem;"><em>Select an event to load RSVPs...</em></div>
-      <label>Start Time</label><input id="startTime" value="9:00am" style="width:120px;">
-      <label>Gap (mins)</label><input id="gapMins" value="7" style="width:60px;">
-      <div id="teeGroups" style="margin-top:20px;"></div>
-      <button onclick="saveTeeTimes()">💾 Save Tee Times</button>
-    </div>
   </div>
 
   <h2>Upcoming Events</h2>
@@ -922,19 +924,34 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
   area.innerHTML = html;
 }
 
-  async function loadAdminSelects(){
-    const {data} = await supabase.from("events").select("*").order("date",{ascending:true});
-    const del = document.getElementById("deleteSelect"),
-          can = document.getElementById("cancelSelect"),
-          tee = document.getElementById("teeEventSelect");
-    const edit = document.getElementById("editSelect");
-    [del,can,tee].forEach(s => s.innerHTML = "<option value=''>Select event</option>");
-    edit.innerHTML = "<option value=''>Select event</option>";
-    data.forEach(e => [del,can,tee, document.getElementById("manageRsvpEventSelect")].forEach(s => s.innerHTML += `<option value='${e.id}'>${e.name} (${e.date})</option>`));
-    data.forEach(e => {
-  edit.innerHTML += `<option value='${e.id}'>${e.name} (${formatDatePretty(e.date)})</option>`;
-});
-  }
+  async function loadAdminSelects() {
+  const { data } = await supabase
+    .from("events")
+    .select("*")
+    .order("date", { ascending: true });
+
+  // Get all the event selects
+  const del = document.getElementById("deleteSelect");
+  const can = document.getElementById("cancelSelect");
+  const tee = document.getElementById("teeEventSelect");
+  const edit = document.getElementById("editSelect");
+  const rsvp = document.getElementById("manageRsvpEventSelect");
+
+  // Reset each dropdown
+  [del, can, tee, edit, rsvp].forEach(s => {
+    if (s) s.innerHTML = `<option value="">Select event</option>`;
+  });
+
+  // Populate
+  data.forEach(e => {
+    const label = `${e.name} (${formatDatePretty(e.date)})`;
+    if (del) del.innerHTML += `<option value="${e.id}">${label}</option>`;
+    if (can) can.innerHTML += `<option value="${e.id}">${label}</option>`;
+    if (tee) tee.innerHTML += `<option value="${e.id}">${label}</option>`;
+    if (edit) edit.innerHTML += `<option value="${e.id}">${label}</option>`;
+    if (rsvp) rsvp.innerHTML += `<option value="${e.id}">${label}</option>`;
+  });
+}
 
   async function loadEditForm() {
   const id = document.getElementById("editSelect").value;
