@@ -771,18 +771,19 @@ async function loadEvents() {
       ev.description || ""
     );
 
-    // 🔑 Decide what to show: tee times OR RSVP list
-    const { data: teeTimes } = await supabase
-      .from("tee_times")
-      .select("id")
-      .eq("event_id", ev.id);
+  // 🔑 Decide what to show: tee times OR RSVP list
+const { data: teeTimes } = await supabase
+  .from("tee_times")
+  .select("*")         // 👈 fetch full tee time rows
+  .eq("event_id", ev.id);
 
-    if (teeTimes?.length) {
-      await loadTeeTimes(ev.id);
-    } else {
-      await loadRSVPList(ev.id);
-    }
-  }
+// If any tee times exist in DB, show them; otherwise show RSVP list
+if (teeTimes?.length > 0) {
+  await loadTeeTimes(ev.id);
+} else {
+  await loadRSVPList(ev.id);
+}
+
 }
 
   function toggleDescription(btn) {
@@ -1286,6 +1287,16 @@ END:VCALENDAR`;
     </div>
   `;
 }
+
+  async function checkTeeTimesExist(eventId) {
+  const { data } = await supabase
+    .from("tee_times")
+    .select("id")
+    .eq("event_id", eventId);
+
+  const btn = document.getElementById("deleteTeeTimesBtn");
+  if (btn) btn.style.display = data?.length ? "block" : "none";
+}
   
   async function saveTeeTimes(){
     const id = document.getElementById("teeEventSelect").value;
@@ -1433,12 +1444,16 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
   await loadEvents();
 }
 
-  async function deleteTeeTimes() {
-  // Use teeEventSelect, not editSelect
+async function deleteTeeTimes() {
   const eventId = document.getElementById("teeEventSelect").value;
-  if (!eventId) return alert("⚠️ Please select an event in the Tee Times tab.");
+  if (!eventId) {
+    alert("⚠️ Please select an event in the Tee Times tab.");
+    return;
+  }
 
-  const confirmDelete = confirm("Are you sure you want to delete all tee times for this event?");
+  const confirmDelete = confirm(
+    "Are you sure you want to delete all tee times for this event?"
+  );
   if (!confirmDelete) return;
 
   const { error } = await supabase
@@ -1454,19 +1469,18 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
 
   alert("✅ Tee times deleted.");
 
-  // Refresh UI
-  await loadTeeTimes(eventId);     // removes tee times from cards
-  await loadRSVPList(eventId);     // shows RSVP list again
-}
+  // 🧼 1. CLEAR tee times from event card
+  const teeTimesContainer = document.getElementById(`teeTimes_${eventId}`);
+  if (teeTimesContainer) teeTimesContainer.innerHTML = "";
 
-async function checkTeeTimesExist(eventId) {
-  const { data } = await supabase
-    .from("tee_times")
-    .select("id")
-    .eq("event_id", eventId);
+  // 👥 2. RESTORE RSVP list
+  await loadRSVPList(eventId);
 
-  const btn = document.getElementById("deleteTeeTimesBtn");
-  btn.style.display = data?.length ? "block" : "none";
+  // 🔁 3. Update delete button visibility
+  checkTeeTimesExist(eventId);
+
+  // 🔄 4. Refresh events so cards are correct after reload
+  await loadEvents();
 }
   
 </script>
