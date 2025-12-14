@@ -742,6 +742,7 @@ list.innerHTML += `
     );
 
     await loadTeeTimes(ev.id);
+    loadRSVPList(ev.id);
   }
 }
 
@@ -799,12 +800,24 @@ list.innerHTML += `
     loadRSVPList(eventId);
   }
 
- async function loadRSVPList(eventId){
-  const { data } = await supabase.from("rsvps").select("*").eq("event_id", eventId).eq("attending", true);
-  const div = document.getElementById(`rsvpList_${eventId}`);
-  if (!data?.length) return div.innerHTML = "<em>No RSVPs yet.</em>";
+async function loadRSVPList(eventId) {
+  const { data } = await supabase
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventId)
+    .eq("attending", true);
 
-  div.innerHTML = "<h4>Players Attending</h4>" + data.map(p => {
+  const div = document.getElementById(`rsvpList_${eventId}`);
+
+  if (!div) return;
+
+  if (!data?.length) {
+    div.innerHTML = "<em>No RSVPs yet.</em>";
+    return;
+  }
+
+  let html = "<h4>Players Attending</h4>";
+  data.forEach(p => {
     const phone = p.phone ? ` (${p.phone})` : "";
     const icon = p.buggy ? "🛺" : "🚶";
     const note = p.buggy
@@ -812,13 +825,14 @@ list.innerHTML += `
         ? " (Happy to walk if no pair)"
         : " (Needs buggy)"
       : "";
-
     const removeBtn = localStorage.getItem("isAdmin") === "true"
       ? ` <button class="remove-rsvp-btn" onclick="confirmRemoveRSVP(${p.id}, ${eventId})">❌</button>`
       : "";
 
-    return `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}${removeBtn}</div>`;
-  }).join("");
+    html += `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}${removeBtn}</div>`;
+  });
+
+  div.innerHTML = html;
 }
 
 async function confirmRemoveRSVP(rsvpId, eventId) {
@@ -836,10 +850,13 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
   if (error) {
     alert("❌ Failed to remove RSVP.");
     console.error(error);
-  } else {
-    alert("✅ RSVP removed.");
-    loadRSVPList(eventId);
+    return;
   }
+
+  alert("✅ RSVP removed.");
+  loadRSVPList(eventId); // refresh this list
+  loadEvents();          // also refresh event badges and cards
+}
 }
 
   async function loadTeeTimes(eventId){
