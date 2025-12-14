@@ -271,14 +271,6 @@
   border-bottom: 1px solid #eee;
 }
 
-.remove-rsvp-btn {
-  background: none;
-  border: none;
-  color: #c00;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
     .player-card {
       background: #fff;
       border: 1px solid #ddd;
@@ -839,40 +831,11 @@ async function loadRSVPList(eventId) {
         : " (Needs buggy)"
       : "";
 
-    const removeBtn = localStorage.getItem("isAdmin") === "true"
-      ? ` <button class="remove-rsvp-btn" onclick="confirmRemoveRSVP(${p.id}, ${eventId})">❌</button>`
-      : "";
 
-    html += `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}${removeBtn}</div>`;
+    html += `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}</div>`;
   });
 
   div.innerHTML = html;
-}
-
-async function confirmRemoveRSVP(rsvpId, eventId) {
-  const input = prompt("Enter admin password to remove this RSVP:");
-  if (input !== ADMIN_PASSWORD) {
-    alert("❌ Incorrect password.");
-    return;
-  }
-
- const { data, error } = await supabase
-  .from("rsvps")
-  .delete()
-  .eq("id", rsvpId)
-  .select(); // ← REQUIRED for delete to succeed in anon role
-
-  if (error) {
-    alert("❌ Failed to remove RSVP.");
-    console.error(error);
-    return;
-  }
-
-  alert("✅ RSVP removed.");
-
-  // Refresh UI
-  loadRSVPList(eventId);  // Show updated RSVP list
-  loadEvents();           // Update slot counts
 }
 
  async function loadTeeTimes(eventId){
@@ -1403,7 +1366,7 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
     .from("rsvps")
     .delete()
     .eq("id", rsvpId)
-    .select(); // ✅ required with RLS
+    .select();
 
   if (error) {
     alert("❌ Error deleting RSVP");
@@ -1411,12 +1374,11 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
     return;
   }
 
-  console.log("Deleted RSVP:", data);
   alert("✅ RSVP deleted");
 
-  // Refresh both lists
   await loadAdminRsvps();
   await loadRSVPList(eventId);
+  await loadEvents(); // <-- this is the missing piece
 }
 
 </script>
