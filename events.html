@@ -653,89 +653,94 @@ function formatDatePretty(dateStr) {
     document.getElementById(`tab-${tab}`).classList.add("active");
   }
 
- async function loadEvents(){
-const { data: events, error } = await supabase
-  .from("events")
-  .select(`
-    *,
-    rsvps: rsvps(attending)
-  `)
-  .order("date", { ascending: true });
+async function loadEvents() {
+  const { data: events, error } = await supabase
+    .from("events")
+    .select(`
+      *,
+      rsvps: rsvps(attending)
+    `)
+    .order("date", { ascending: true });
 
   const list = document.getElementById("eventList");
 
   if (error) {
     console.error(error);
-    return list.innerHTML = "<p>Error loading events.</p>";
+    list.innerHTML = "<p>Error loading events.</p>";
+    return;
   }
 
   if (!events?.length) {
-    return list.innerHTML = "<p>No events yet.</p>";
+    list.innerHTML = "<p>No events yet.</p>";
+    return;
   }
 
   list.innerHTML = "";
 
-  for(const ev of events){
-const d = new Date(ev.date);
-const day = d.getDate().toString().padStart(2, "0");
-const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
-const year = d.getFullYear();
-const weekday = d.toLocaleString("en-GB", { weekday: "short" });
+  for (const ev of events) {
+    const d = new Date(ev.date);
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = d.toLocaleString("en-GB", { month: "short" }).toUpperCase();
+    const year = d.getFullYear();
+    const weekday = d.toLocaleString("en-GB", { weekday: "short" });
 
-const attendingCount = ev.rsvps?.filter(r => r.attending).length || 0;
-const slotsLeft = ev.max_players !== null
-    ? ev.max_players - attendingCount
-    : null;
+    const attendingCount = ev.rsvps?.filter(r => r.attending).length || 0;
+    const slotsLeft =
+      ev.max_players !== null
+        ? ev.max_players - attendingCount
+        : null;
 
+    list.innerHTML += `
+      <div class="event-card">
 
-list.innerHTML += `
-  <div class="event-card">
+        <div class="event-date-box">
+          <div class="month">${month}</div>
+          <div class="day">${day}</div>
+          <div class="year">${year}</div>
+        </div>
 
-   <div class="event-date-box">
-  <div class="month">${month}</div>
-  <div class="day">${day}</div>
-  <div class="year">${year}</div>
-</div>
+        <div class="event-details">
+          <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
+          <div class="event-title">${ev.location}</div>
+          <div class="event-subtitle">${ev.name}</div>
 
-    <div class="event-details">
-     <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
-      <div class="event-title">${ev.location}</div>
-      <div class="event-subtitle">${ev.name}</div>
-  <div class="event-badge">
-  ⛳ ${slotsLeft !== null
-    ? `${slotsLeft} of ${ev.max_players} slots remaining`
-    : "Tee Slots TBC"}
-</div>
+          <div class="event-badge">
+            ⛳ ${
+              slotsLeft !== null
+                ? `${slotsLeft} of ${ev.max_players} slots remaining`
+                : "Tee Slots TBC"
+            }
+          </div>
 
-      <div class="event-section">
-        <h4>Description</h4>
-        <div class="event-description-container">
-          <div class="event-description preview">${ev.description || ""}</div>
-          <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
+          <div class="event-section">
+            <h4>Description</h4>
+            <div class="event-description-container">
+              <div class="event-description preview">${ev.description || ""}</div>
+              <button class="show-more-btn" onclick="toggleDescription(this)">
+                Show more ⬇️
+              </button>
+            </div>
+          </div>
+
+          <div class="event-links">
+            ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
+            ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
+          </div>
+
+          <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
+            📝 RSVP to this event
+          </button>
+
+          <div class="add-to-calendar" id="addCal_${ev.id}"></div>
+          <div id="rsvpForm_${ev.id}" class="hidden"></div>
+          <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
+          <div id="teeTimes_${ev.id}"></div>
         </div>
       </div>
+    `;
 
-      <div class="event-links">
-        ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
-        ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
-      </div>
-
-      <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
-        📝 RSVP to this event
-      </button>
-
-      <div class="add-to-calendar" id="addCal_${ev.id}"></div>
-      <div id="rsvpForm_${ev.id}" class="hidden"></div>
-      <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
-      <div id="teeTimes_${ev.id}"></div>
-    </div>
-
-  </div>
-`;
-
-    const startISO = ev.date.replace(/-/g, '') + 'T120000'; // 12:00 PM
-    const endISO   = ev.date.replace(/-/g, '') + 'T180000'; // 6:00 PM
-
+    const startISO = ev.date.replace(/-/g, "") + "T120000";
+    const endISO = ev.date.replace(/-/g, "") + "T180000";
 
     addCalendarLinks(
       ev.id,
@@ -743,8 +748,22 @@ list.innerHTML += `
       startISO,
       endISO,
       ev.location,
-      ev.description || ''
+      ev.description || ""
     );
+
+    // 🔑 Decide what to show: tee times OR RSVP list
+    const { data: teeTimes } = await supabase
+      .from("tee_times")
+      .select("id")
+      .eq("event_id", ev.id);
+
+    if (teeTimes?.length) {
+      await loadTeeTimes(ev.id);
+    } else {
+      await loadRSVPList(ev.id);
+    }
+  }
+}
 
   // First load tee times data
 const teeTimesResponse = await supabase
