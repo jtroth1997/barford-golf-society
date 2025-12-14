@@ -856,10 +856,11 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
     return;
   }
 
-  const { error } = await supabase
-    .from("rsvps")
-    .delete()
-    .eq("id", rsvpId);
+ const { data, error } = await supabase
+  .from("rsvps")
+  .delete()
+  .eq("id", rsvpId)
+  .select(); // ← REQUIRED for delete to succeed in anon role
 
   if (error) {
     alert("❌ Failed to remove RSVP.");
@@ -1398,10 +1399,11 @@ if (selEventId) loadRSVPList(selEventId);
 async function deleteRsvpAdmin(rsvpId, eventId) {
   if (!confirm("Are you sure you want to delete this RSVP?")) return;
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("rsvps")
     .delete()
-    .eq("id", rsvpId);
+    .eq("id", rsvpId)
+    .select(); // ✅ required with RLS
 
   if (error) {
     alert("❌ Error deleting RSVP");
@@ -1409,11 +1411,12 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
     return;
   }
 
+  console.log("Deleted RSVP:", data);
   alert("✅ RSVP deleted");
 
-  // ✅ Refresh both lists
-  loadAdminRsvps();      // Updates the admin list
-  loadRSVPList(eventId); // Updates the front-end list for the public view
+  // Refresh both lists
+  await loadAdminRsvps();
+  await loadRSVPList(eventId);
 }
 
 </script>
