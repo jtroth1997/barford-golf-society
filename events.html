@@ -1271,8 +1271,7 @@ END:VCALENDAR`;
 async function loadAdminRsvps() {
   const sel = document.getElementById("manageRsvpEventSelect");
   const eventId = sel ? sel.value : null;
-  console.log("loadAdminRsvps for event:", eventId);
-
+  console.log("loadAdminRsvps — selected event:", eventId);
 
   if (!eventId) {
     document.getElementById("manageRsvpList").innerHTML = "<em>Select an event above</em>";
@@ -1284,8 +1283,11 @@ async function loadAdminRsvps() {
     .select("*")
     .eq("event_id", eventId);
 
+  console.log("loadAdminRsvps — fetched rows:", data);
+
   if (error) {
     document.getElementById("manageRsvpList").innerHTML = "❌ Error loading RSVPs";
+    console.error(error);
     return;
   }
   
@@ -1361,22 +1363,28 @@ if (selEventId) loadRSVPList(selEventId);
 
 async function deleteRsvpAdmin(rsvpId, eventId) {
   if (!confirm("Are you sure you want to delete this RSVP?")) return;
-  console.log("deleteRsvpAdmin called with:", { rsvpId, eventId });
 
-  const { error } = await supabase
+  console.log("Attempting to delete RSVP:", rsvpId, "for event:", eventId);
+
+  const { data, error } = await supabase
     .from("rsvps")
     .delete()
-    .eq("id", rsvpId); // ✅ FIXED: Removed `.select()`
+    .eq("id", rsvpId);
 
   if (error) {
-    alert("❌ Error deleting RSVP");
-    console.error(error);
+    alert("❌ Error deleting RSVP: " + error.message);
+    console.error("Supabase delete error:", error);
     return;
   }
 
+  console.log("Delete result:", data);
+
   alert("✅ RSVP deleted from database");
 
+  // Force the selected event back into the dropdown
   document.getElementById("manageRsvpEventSelect").value = eventId;
+
+  // Refresh UI
   await loadAdminRsvps();
   await loadRSVPList(eventId);
   await loadEvents();
