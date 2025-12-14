@@ -771,10 +771,10 @@ async function loadEvents() {
       ev.description || ""
     );
 
-  // 🔑 Decide what to show: tee times OR RSVP list
+// 🔑 Decide what to show: tee times OR RSVP list
 const { data: teeTimes } = await supabase
   .from("tee_times")
-  .select("*")         // 👈 fetch full tee time rows
+  .select("*")
   .eq("event_id", ev.id);
 
 // If any tee times exist in DB, show them; otherwise show RSVP list
@@ -784,7 +784,9 @@ if (teeTimes?.length > 0) {
   await loadRSVPList(ev.id);
 }
 
-}
+  } // <-- closes the `for` loop
+
+} // <-- **NEW**: closes the `loadEvents()` function
 
   function toggleDescription(btn) {
   const desc = btn.previousElementSibling;
