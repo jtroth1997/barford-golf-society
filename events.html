@@ -1355,10 +1355,10 @@ async function loadAdminRsvps() {
 
         <td><input id="rsvp_pref_${r.id}" value="${r.preferred_time || ""}"></td>
 
-        <td>
-          <button onclick="saveRsvpEdit(${r.id})">💾</button>
-          <button onclick="deleteRsvpAdmin(${r.id})">❌</button>
-        </td>
+       <td>
+  <button onclick="saveRsvpEdit(${r.id}, ${eventId})">💾</button>
+  <button onclick="deleteRsvpAdmin(${r.id}, ${eventId})">❌</button>
+</td>
       </tr>
     `;
   });
@@ -1367,7 +1367,7 @@ async function loadAdminRsvps() {
   document.getElementById("manageRsvpList").innerHTML = html;
 }
 
-async function saveRsvpEdit(rsvpId) {
+async function saveRsvpEdit(rsvpId, eventId) {
   const updates = {
     name: document.getElementById(`rsvp_name_${rsvpId}`).value.trim(),
     phone: document.getElementById(`rsvp_phone_${rsvpId}`).value.trim(),
@@ -1386,11 +1386,16 @@ async function saveRsvpEdit(rsvpId) {
   } else {
     alert("✅ RSVP updated");
     loadAdminRsvps();
-    loadEvents();
+loadEvents();      // reloads the overview and slot counts
+// if an event card is currently visible and matches the selected event,
+// also rerender it:
+const selEventId = document.getElementById("manageRsvpEventSelect").value;
+if (selEventId) loadRSVPList(selEventId); 
+    loadRSVPList(eventId); // Refresh RSVP list on event card
   }
 }
 
-async function deleteRsvpAdmin(rsvpId) {
+async function deleteRsvpAdmin(rsvpId, eventId) {
   if (!confirm("Are you sure you want to delete this RSVP?")) return;
 
   const { error } = await supabase
@@ -1400,11 +1405,19 @@ async function deleteRsvpAdmin(rsvpId) {
 
   if (error) {
     alert("❌ Error deleting RSVP");
-  } else {
-    alert("✅ RSVP deleted");
-    loadAdminRsvps();
-    loadEvents();
+    console.error(error);
+    return;
   }
+
+  alert("✅ RSVP deleted");
+
+  // Refresh the Manage RSVPs list immediately
+  loadAdminRsvps();
+
+  // Refresh events so the slot count updates
+  loadEvents();
+  loadRSVPList(eventId); // Refresh visible RSVP list on card
+}
 }
 </script>
 </body>
