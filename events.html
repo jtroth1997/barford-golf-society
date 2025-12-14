@@ -853,9 +853,13 @@ async function loadRSVPList(eventId) {
   }
 
   // If no tee times yet, DO NOT touch the RSVP list
-  if (!data?.length) {
-    return;
-  }
+ if (!data?.length) {
+  return;
+}
+
+// ✅ Hide RSVP list when tee times exist
+const rsvpDiv = document.getElementById(`rsvpList_${eventId}`);
+if (rsvpDiv) rsvpDiv.innerHTML = "";
 
   let html = "<h4>⛳ Final Tee Times</h4>";
 
