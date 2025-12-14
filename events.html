@@ -801,15 +801,17 @@ list.innerHTML += `
   }
 
 async function loadRSVPList(eventId) {
+  const div = document.getElementById(`rsvpList_${eventId}`);
+  if (!div) return;
+
+  // Clear before repopulating
+  div.innerHTML = "";
+
   const { data } = await supabase
     .from("rsvps")
     .select("*")
     .eq("event_id", eventId)
     .eq("attending", true);
-
-  const div = document.getElementById(`rsvpList_${eventId}`);
-
-  if (!div) return;
 
   if (!data?.length) {
     div.innerHTML = "<em>No RSVPs yet.</em>";
@@ -825,6 +827,7 @@ async function loadRSVPList(eventId) {
         ? " (Happy to walk if no pair)"
         : " (Needs buggy)"
       : "";
+
     const removeBtn = localStorage.getItem("isAdmin") === "true"
       ? ` <button class="remove-rsvp-btn" onclick="confirmRemoveRSVP(${p.id}, ${eventId})">❌</button>`
       : "";
@@ -854,8 +857,10 @@ async function confirmRemoveRSVP(rsvpId, eventId) {
   }
 
   alert("✅ RSVP removed.");
-  loadRSVPList(eventId); // refresh this list
-  loadEvents();          // also refresh event badges and cards
+
+  // Refresh UI
+  loadRSVPList(eventId);  // Show updated RSVP list
+  loadEvents();           // Update slot counts
 }
 
   async function loadTeeTimes(eventId){
