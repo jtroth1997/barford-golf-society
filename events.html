@@ -1376,9 +1376,13 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
 
   alert("✅ RSVP deleted");
 
+  // RELOAD THE ADMIN LIST FOR THE SAME EVENT
+  document.getElementById("manageRsvpEventSelect").value = eventId;
   await loadAdminRsvps();
+
+  // Refresh event card layout & RSVP list
   await loadRSVPList(eventId);
-  await loadEvents(); // <-- this is the missing piece
+  await loadEvents();
 }
 
 </script>
