@@ -566,6 +566,8 @@
     <label>Max Players</label><input id="editMaxPlayers" type="number" placeholder="e.g. 24">
 <label>First Tee Time</label><input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
 
+    <button onclick="deleteTeeTimes()">🗑️ Delete Tee Times</button>
+
 
     <button onclick="saveEventEdits()">💾 Save Changes</button>
     <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
@@ -1392,6 +1394,29 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
   await loadAdminRsvps();
   await loadRSVPList(eventId);
   await loadEvents();
+}
+
+  async function deleteTeeTimes() {
+  const eventId = document.getElementById("editSelect").value;
+  if (!eventId) return alert("Please select an event.");
+
+  const confirmDelete = confirm("Are you sure you want to delete all tee times for this event?");
+  if (!confirmDelete) return;
+
+  const { error } = await supabase
+    .from("tee_times")
+    .delete()
+    .eq("event_id", eventId);
+
+  if (error) {
+    alert("❌ Error deleting tee times");
+    console.error(error);
+    return;
+  }
+
+  alert("✅ Tee times deleted.");
+  await loadTeeTimes(eventId); // Will now not find any tee times
+  await loadRSVPList(eventId); // RSVP list will be shown again
 }
 
 </script>
