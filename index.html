@@ -357,7 +357,7 @@
   });
 </script>
 
- <script>
+<script>
   let deferredPrompt;
 
   const btnAndroidInstall = document.getElementById('btnAndroidInstall');
@@ -369,10 +369,9 @@
     e.preventDefault();
     deferredPrompt = e;
 
-    // Show the Android button (optional if you also auto-prompt)
     btnAndroidInstall.style.display = 'inline-block';
 
-    // 🪄 Automatically show the install prompt after a short delay
+    // Optional auto prompt after a delay
     setTimeout(() => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -385,15 +384,32 @@
           deferredPrompt = null;
         });
       }
-    }, 4000); // 4-second delay for gentler experience
+    }, 4000);
   });
 
-  // iOS: Show simple instructions when tapped
+  // ✅ Manual click trigger for Android install
+  btnAndroidInstall.addEventListener('click', () => {
+    if (!deferredPrompt) {
+      alert("Install prompt not available yet. Try visiting the site again or ensure it's served via HTTPS.");
+      return;
+    }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      if (choice.outcome === 'accepted') {
+        console.log('✅ Installed from button');
+      } else {
+        console.log('❌ Install dismissed from button');
+      }
+      deferredPrompt = null;
+    });
+  });
+
+  // iOS instructions toggle
   btnIOSHelp.addEventListener('click', () => {
     iosHelpBox.style.display = iosHelpBox.style.display === 'none' ? 'block' : 'none';
   });
 
-  // Optional: Toast-style message
+  // Optional: show install toast gently
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       const toast = document.getElementById('installToast');
@@ -401,7 +417,6 @@
     }, 1500);
   });
 </script>
-
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -411,6 +426,7 @@
     });
   }
 </script>
+
 
 </body>
 </html>
