@@ -6,16 +6,18 @@
   "background_color": "#111111",
   "theme_color": "#d4af37",
   "orientation": "portrait",
+  "id": "/index.html",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192.png?v=3",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512.png?v=3",
       "type": "image/png",
       "sizes": "512x512"
     }
   ]
 }
+
