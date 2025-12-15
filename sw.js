@@ -9,4 +9,4 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', function(event) {
   // Just pass through all requests
-});
+
