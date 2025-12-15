@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barford Golf Society | Home</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+ <title>Barford Golf Society | Home</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d4af37">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --accent: #d4af37;
@@ -217,6 +219,23 @@
     </div>
   </div>
 
+  <div id="installSection" style="text-align:center; margin-bottom: 30px;">
+  <p style="font-size: 1.2rem; color: var(--accent); font-weight: 600;">📲 Add to Home Screen</p>
+  <p style="color: #ccc;">Get one-tap access just like an app.</p>
+  
+  <button class="btn" id="btnAndroidInstall">Install on Android</button>
+  <button class="btn" id="btnIOSHelp">How to Install on iPhone</button>
+
+  <div id="iosHelpBox" style="display:none; margin-top: 15px; color:#bbb; font-size:0.95rem;">
+    <p>On iPhone:</p>
+    <ol style="text-align:left; display:inline-block; margin: 0 auto;">
+      <li>Tap the <strong>Share icon</strong> (square with arrow)</li>
+      <li>Scroll and tap <strong>Add to Home Screen</strong></li>
+      <li>Then tap <strong>Add</strong></li>
+    </ol>
+  </div>
+</div>
+  
   <h3 class="section-title">Why Our Society Matters</h3>
   <div class="highlights">
     <div class="highlight"><h4>Exclusive Community</h4><p>Join like-minded members across premium courses.</p></div>
@@ -330,6 +349,47 @@
     loadGallery();
     loadNextEvent();
   });
+</script>
+
+  <script>
+  let deferredPrompt;
+
+  const btnAndroidInstall = document.getElementById('btnAndroidInstall');
+  const btnIOSHelp = document.getElementById('btnIOSHelp');
+  const iosHelpBox = document.getElementById('iosHelpBox');
+
+  // Handle Android Install
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    btnAndroidInstall.style.display = 'inline-block';
+  });
+
+  btnAndroidInstall.addEventListener('click', () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(choice => {
+        if (choice.outcome === 'accepted') {
+          console.log('App installed');
+        }
+        deferredPrompt = null;
+      });
+    }
+  });
+
+  // iOS Instructions
+  btnIOSHelp.addEventListener('click', () => {
+    iosHelpBox.style.display = iosHelpBox.style.display === 'none' ? 'block' : 'none';
+  });
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service worker registered ✅', reg.scope))
+        .catch(err => console.error('Service worker failed ❌', err));
+    });
+  }
 </script>
 
 </body>
