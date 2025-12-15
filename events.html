@@ -194,51 +194,129 @@
       display: none !important;
     }
 
-    .event-card {
-      position: relative;
-      background: var(--card-bg);
-      padding: 1.5rem;
-      border-radius: 10px;
-      margin-bottom: 2rem;
-      box-shadow: 0 3px 8px var(--shadow);
-    }
+  .event-card {
+  position: relative;
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 3px 8px var(--shadow);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
 
-    .event-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem 1rem;
-    }
+.event-date-box {
+  background-color: var(--green);
+  color: white;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-weight: 700;
+  width: 80px;
+  line-height: 1.2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
 
-    .event-name {
-      color: var(--green);
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin: 0;
-    }
+.event-date-box .day {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0.2rem 0;
+}
 
-    .event-description {
-      margin-top: 0.8rem;
-      white-space: pre-line;
-      color: #444;
-    }
+.event-date-box .month,
+.event-date-box .year {
+  font-size: 0.9rem;
+}
 
-    .event-links {
-      margin-top: 1rem;
-    }
+.event-details {
+  flex: 1;
+  min-width: 240px;
+}
 
-    .event-links a {
-      margin-right: 1rem;
-      color: var(--green);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.3s;
-    }
+.event-time {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 4px;
+}
 
-    .event-links a:hover {
-      color: var(--gold);
-    }
+.event-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #000;
+}
+
+.event-subtitle {
+  font-size: 1.05rem;
+  color: #444;
+  margin-top: 0.3rem;
+}
+
+.event-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c40000;
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.event-section {
+  margin-top: 1rem;
+}
+
+.event-section h4 {
+  margin-bottom: 0.3rem;
+  color: var(--green);
+  font-size: 1rem;
+}
+
+.event-description-container {
+  margin-top: 0.5rem;
+}
+
+.event-description-container .preview {
+  max-height: 4.5em;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.event-description-container .expanded {
+  max-height: 1000px;
+}
+
+.show-more-btn {
+  background: none;
+  border: none;
+  color: var(--green);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0 0;
+}
+
+.event-links {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.event-links a {
+  font-size: 0.95rem;
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.event-links a:hover {
+  color: var(--gold);
+}
 
     .cancelled-banner {
       position: absolute;
@@ -340,18 +418,16 @@
 }
 
 .event-date-box {
-  background-color: #f3f3f3;
+  background-color: var(--green);
+  color: white;
   border-radius: 10px;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   text-align: center;
-  font-weight: bold;
-  color: #222;
-  min-width: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  font-weight: 700;
+  width: 80px;
   line-height: 1.2;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  align-self: flex-start;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .event-date-box .day {
