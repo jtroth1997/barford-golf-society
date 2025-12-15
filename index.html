@@ -219,10 +219,14 @@
     </div>
   </div>
 
-  <div id="installSection" style="text-align:center; margin-bottom: 30px;">
+<div id="installSection" style="text-align:center; margin-bottom: 30px;">
   <p style="font-size: 1.2rem; color: var(--accent); font-weight: 600;">📲 Add to Home Screen</p>
   <p style="color: #ccc;">Get one-tap access just like an app.</p>
-  
+
+  <div id="installToast" style="display:none; background:#333; color:#fff; padding:10px 20px; text-align:center; border-radius:8px; margin:20px auto; max-width:400px;">
+    📲 You can install this site to your phone like an app
+  </div>
+
   <button class="btn" id="btnAndroidInstall">Install on Android</button>
   <button class="btn" id="btnIOSHelp">How to Install on iPhone</button>
 
@@ -234,6 +238,8 @@
       <li>Then tap <strong>Add</strong></li>
     </ol>
   </div>
+</div>
+
 </div>
   
   <h3 class="section-title">Why Our Society Matters</h3>
@@ -351,37 +357,51 @@
   });
 </script>
 
-  <script>
+ <script>
   let deferredPrompt;
 
   const btnAndroidInstall = document.getElementById('btnAndroidInstall');
   const btnIOSHelp = document.getElementById('btnIOSHelp');
   const iosHelpBox = document.getElementById('iosHelpBox');
 
-  // Handle Android Install
+  // Listen for the browser's install prompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+
+    // Show the Android button (optional if you also auto-prompt)
     btnAndroidInstall.style.display = 'inline-block';
+
+    // 🪄 Automatically show the install prompt after a short delay
+    setTimeout(() => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choice => {
+          if (choice.outcome === 'accepted') {
+            console.log('✅ Installed automatically');
+          } else {
+            console.log('❌ User dismissed install');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }, 4000); // 4-second delay for gentler experience
   });
 
-  btnAndroidInstall.addEventListener('click', () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(choice => {
-        if (choice.outcome === 'accepted') {
-          console.log('App installed');
-        }
-        deferredPrompt = null;
-      });
-    }
-  });
-
-  // iOS Instructions
+  // iOS: Show simple instructions when tapped
   btnIOSHelp.addEventListener('click', () => {
     iosHelpBox.style.display = iosHelpBox.style.display === 'none' ? 'block' : 'none';
   });
+
+  // Optional: Toast-style message
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      const toast = document.getElementById('installToast');
+      if (toast) toast.style.display = 'block';
+    }, 1500);
+  });
 </script>
+
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
