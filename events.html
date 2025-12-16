@@ -1601,7 +1601,7 @@ async function deleteTeeTimes() {
   // 🔄 4. Refresh events so cards are correct after reload
   await loadEvents();
 }
-}
+  
   function activateAllStarRatings() {
   document.querySelectorAll('.star-rating').forEach(container => {
     const courseId = container.dataset.courseId;
@@ -1621,21 +1621,9 @@ async function deleteTeeTimes() {
       });
     });
 
-    updateStarDisplay(container, 0); // Init blank
+   updateStarDisplay(container, 0); // Init blank
   });
-
-  function updateStarDisplay(container, rating) {
-    const stars = container.querySelectorAll('span');
-    stars.forEach(star => {
-      const val = parseFloat(star.dataset.value);
-      star.classList.remove('full', 'half');
-      if (val <= rating - 0.5) {
-        star.classList.add('full');
-      } else if (val <= rating) {
-        star.classList.add('half');
-      }
-    });
-  }
+} 
 
 function submitReview(eventId) {
   const rating = parseFloat(
