@@ -830,8 +830,8 @@ async function loadEvents() {
 
         <div class="event-details">
           <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
-          <div class="event-title">${ev.location}</div>
-          <div class="event-subtitle">${ev.name}</div>
+          <div class="event-title">${ev.name}</div>
+          <div class="event-subtitle">${ev.location}</div>
           ${ev.price !== null && ev.price !== undefined ? `
   <div class="event-section">
     <h4>Price</h4>
