@@ -566,6 +566,36 @@
   color: var(--green);
   font-size: 1rem;
 }
+    .star-rating {
+  display: flex;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.star-rating span {
+  width: 24px;
+  height: 24px;
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/1/18/Five-pointed_star.svg');
+  background-size: cover;
+  opacity: 0.3;
+  position: relative;
+}
+
+.star-rating span.full {
+  opacity: 1;
+}
+
+.star-rating span.half::before {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/1/18/Five-pointed_star.svg');
+  background-size: cover;
+  opacity: 1;
+}
   </style>
 </head>
 
@@ -783,37 +813,34 @@ async function loadEvents() {
         ? ev.max_players - attendingCount
         : null;
 
-    list.innerHTML += `
-      <div class="event-card">
+  list.innerHTML += `
+  <div class="event-card">
+    <div class="event-date-box">
+      <div class="month">${month}</div>
+      <div class="day">${day}</div>
+      <div class="year">${year}</div>
+    </div>
 
-        <div class="event-date-box">
-          <div class="month">${month}</div>
-          <div class="day">${day}</div>
-          <div class="year">${year}</div>
+    <div class="event-details">
+      <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
+      <div class="event-title">${ev.location}</div>
+      <div class="event-subtitle">${ev.name}</div>
+
+      <div class="event-badge">
+        ⛳ ${
+          slotsLeft !== null
+            ? `${slotsLeft} of ${ev.max_players} slots remaining`
+            : "Tee Slots TBC"
+        }
+      </div>
+
+      <div class="event-section">
+        <h4>Description</h4>
+        <div class="event-description-container">
+          <div class="event-description preview">${ev.description || ""}</div>
+          <button class="show-more-btn" onclick="toggleDescription(this)">Show more ⬇️</button>
         </div>
-
-        <div class="event-details">
-          <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
-          <div class="event-title">${ev.location}</div>
-          <div class="event-subtitle">${ev.name}</div>
-
-          <div class="event-badge">
-            ⛳ ${
-              slotsLeft !== null
-                ? `${slotsLeft} of ${ev.max_players} slots remaining`
-                : "Tee Slots TBC"
-            }
-          </div>
-
-          <div class="event-section">
-            <h4>Description</h4>
-            <div class="event-description-container">
-              <div class="event-description preview">${ev.description || ""}</div>
-              <button class="show-more-btn" onclick="toggleDescription(this)">
-                Show more ⬇️
-              </button>
-            </div>
-          </div>
+      </div>
 
           <div class="event-links">
             ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
@@ -827,14 +854,11 @@ async function loadEvents() {
           <div class="add-to-calendar" id="addCal_${ev.id}"></div>
 
 <!-- ⭐ Rating Section -->
+<!-- ⭐ Half-Star Rating Section -->
 <div class="course-review-section" id="reviewSection_${ev.id}" style="margin-top: 20px;">
   <h4>Rate this course:</h4>
-  <div class="star-rating" id="starRating_${ev.id}">
-    <span data-rating="1">★</span>
-    <span data-rating="2">★</span>
-    <span data-rating="3">★</span>
-    <span data-rating="4">★</span>
-    <span data-rating="5">★</span>
+  <div class="star-rating" data-course-id="${ev.id}" data-rating="0">
+    ${[0.5,1,1.5,2,2.5,3,3.5,4,4.5,5].map(r => `<span data-value="${r}"></span>`).join('')}
   </div>
   <p id="rating-value-text_${ev.id}" style="margin: 8px 0;">You selected: 0 stars</p>
   <div id="commentSection_${ev.id}" style="display: none; margin-bottom: 10px;">
@@ -849,6 +873,8 @@ async function loadEvents() {
         </div>
       </div>
     `;
+    
+activateAllStarRatings();
 
     const startISO = ev.date.replace(/-/g, "") + "T120000";
     const endISO = ev.date.replace(/-/g, "") + "T180000";
@@ -1575,32 +1601,48 @@ async function deleteTeeTimes() {
   // 🔄 4. Refresh events so cards are correct after reload
   await loadEvents();
 }
- function initReviewHandlers(eventId) {
-  const stars = document.querySelectorAll(`#starRating_${eventId} span`);
-  const ratingText = document.getElementById(`rating-value-text_${eventId}`);
-  const commentSection = document.getElementById(`commentSection_${eventId}`);
-  let selectedRating = 0;
-
-  stars.forEach(star => {
-    star.addEventListener("click", () => {
-      selectedRating = parseInt(star.getAttribute("data-rating"));
-      stars.forEach(s => {
-        const r = parseInt(s.getAttribute("data-rating"));
-        s.style.color = r <= selectedRating ? "gold" : "gray";
-      });
-      ratingText.textContent = `You selected: ${selectedRating} star${selectedRating > 1 ? "s" : ""}`;
-      commentSection.style.display = "block";
-    });
-  });
-
-  window[`getReviewData_${eventId}`] = () => ({
-    rating: selectedRating,
-    comment: document.getElementById(`reviewComment_${eventId}`).value
-  });
 }
+  function activateAllStarRatings() {
+  document.querySelectorAll('.star-rating').forEach(container => {
+    const courseId = container.dataset.courseId;
+    const stars = container.querySelectorAll('span');
+    let rating = 0;
 
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        rating = parseFloat(star.dataset.value);
+        container.dataset.rating = rating;
+        updateStarDisplay(container, rating);
+
+        const ratingText = document.getElementById(`rating-value-text_${courseId}`);
+        const commentSection = document.getElementById(`commentSection_${courseId}`);
+        if (ratingText) ratingText.textContent = `You selected: ${rating} star${rating !== 1 ? "s" : ""}`;
+        if (commentSection) commentSection.style.display = "block";
+      });
+    });
+
+    updateStarDisplay(container, 0); // Init blank
+  });
+
+  function updateStarDisplay(container, rating) {
+    const stars = container.querySelectorAll('span');
+    stars.forEach(star => {
+      const val = parseFloat(star.dataset.value);
+      star.classList.remove('full', 'half');
+      if (val <= rating - 0.5) {
+        star.classList.add('full');
+      } else if (val <= rating) {
+        star.classList.add('half');
+      }
+    });
+  }
+  }
 function submitReview(eventId) {
-  const { rating, comment } = window[`getReviewData_${eventId}`]();
+  const rating = parseFloat(
+    document.querySelector(`.star-rating[data-course-id="${eventId}"]`)?.dataset.rating || 0
+  );
+  const comment = document.getElementById(`reviewComment_${eventId}`).value;
+
   if (!rating) return alert("Please select a star rating first!");
 
   fetch("/api/submit-review", {
@@ -1621,7 +1663,6 @@ function submitReview(eventId) {
     .catch(() => {
       alert("❌ Failed to submit review.");
     });
-  initReviewHandlers(ev.id);
 }
  
 </script>
