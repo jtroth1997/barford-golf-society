@@ -401,10 +401,11 @@
 }
 
 .site-nav ul {
-  flex-direction: row;   /* ⬅️ Keep nav links horizontal */
+  flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 16px;
+  padding-left: 0;
 }
 
  .event-card {
@@ -486,7 +487,10 @@
 .event-action button:hover {
   background: #004dcc;
 }
-
+.site-nav {
+  width: 100%;
+  overflow-x: auto;
+}
 @media (max-width: 600px) {
   .event-card {
     flex-direction: column;
