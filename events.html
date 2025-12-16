@@ -825,6 +825,24 @@ async function loadEvents() {
           </button>
 
           <div class="add-to-calendar" id="addCal_${ev.id}"></div>
+
+<!-- ⭐ Rating Section -->
+<div class="course-review-section" id="reviewSection_${ev.id}" style="margin-top: 20px;">
+  <h4>Rate this course:</h4>
+  <div class="star-rating" id="starRating_${ev.id}">
+    <span data-rating="1">★</span>
+    <span data-rating="2">★</span>
+    <span data-rating="3">★</span>
+    <span data-rating="4">★</span>
+    <span data-rating="5">★</span>
+  </div>
+  <p id="rating-value-text_${ev.id}" style="margin: 8px 0;">You selected: 0 stars</p>
+  <div id="commentSection_${ev.id}" style="display: none; margin-bottom: 10px;">
+    <textarea id="reviewComment_${ev.id}" placeholder="Leave a comment (optional)" rows="3" style="width:100%;"></textarea>
+  </div>
+  <button onclick="submitReview(${ev.id})" class="admin-btn">Submit Review</button>
+</div>
+
           <div id="rsvpForm_${ev.id}" class="hidden"></div>
           <div id="rsvpList_${ev.id}" class="rsvp-list"></div>
           <div id="teeTimes_${ev.id}"></div>
@@ -1557,7 +1575,55 @@ async function deleteTeeTimes() {
   // 🔄 4. Refresh events so cards are correct after reload
   await loadEvents();
 }
-  
+ function initReviewHandlers(eventId) {
+  const stars = document.querySelectorAll(`#starRating_${eventId} span`);
+  const ratingText = document.getElementById(`rating-value-text_${eventId}`);
+  const commentSection = document.getElementById(`commentSection_${eventId}`);
+  let selectedRating = 0;
+
+  stars.forEach(star => {
+    star.addEventListener("click", () => {
+      selectedRating = parseInt(star.getAttribute("data-rating"));
+      stars.forEach(s => {
+        const r = parseInt(s.getAttribute("data-rating"));
+        s.style.color = r <= selectedRating ? "gold" : "gray";
+      });
+      ratingText.textContent = `You selected: ${selectedRating} star${selectedRating > 1 ? "s" : ""}`;
+      commentSection.style.display = "block";
+    });
+  });
+
+  window[`getReviewData_${eventId}`] = () => ({
+    rating: selectedRating,
+    comment: document.getElementById(`reviewComment_${eventId}`).value
+  });
+}
+
+function submitReview(eventId) {
+  const { rating, comment } = window[`getReviewData_${eventId}`]();
+  if (!rating) return alert("Please select a star rating first!");
+
+  fetch("/api/submit-review", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      courseId: eventId,
+      rating,
+      comment
+    })
+  })
+    .then(res => res.json())
+    .then(() => {
+      alert("✅ Thanks for your review!");
+    })
+    .catch(() => {
+      alert("❌ Failed to submit review.");
+    });
+  initReviewHandlers(ev.id);
+}
+ 
 </script>
 </body>
 </html>
