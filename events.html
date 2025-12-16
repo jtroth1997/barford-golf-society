@@ -636,7 +636,22 @@
     <label>Description</label><textarea id="editDescription" rows="3"></textarea>
     <label>Course Link</label><input id="editCourseLink" type="text">
     <label>Weather Link</label><input id="editWeatherLink" type="text">
-    <label>Video Link</label><input id="editVideoLink" type="text" placeholder="e.g. https://www.youtube.com/embed/xyz123">
+    <label>Video Type</label>
+<select id="editVideoType" onchange="toggleVideoFields()">
+  <option value="">None</option>
+  <option value="whole">Whole Course Video</option>
+  <option value="per-hole">Per-Hole Videos</option>
+</select>
+
+<div id="wholeCourseVideo" class="hidden">
+  <label>Whole Course Video Link</label>
+  <input id="editVideoLink" type="text" placeholder="https://www.youtube.com/embed/xyz123">
+</div>
+
+<div id="perHoleVideos" class="hidden">
+  <h4>Per-Hole Videos</h4>
+  <div id="holeVideosContainer"></div>
+</div>
     <label>Max Players</label><input id="editMaxPlayers" type="number" placeholder="e.g. 24">
 <label>First Tee Time</label><input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
 
@@ -819,7 +834,28 @@ async function loadEvents() {
         <div class="event-links">
   ${ev.course_link ? `<a href="${ev.course_link}" target="_blank">Course</a>` : ""}
   ${ev.weather_link ? `<a href="${ev.weather_link}" target="_blank">Weather</a>` : ""}
-  ${ev.video_link ? `<div style="margin-top: 1rem;"><iframe width="100%" height="250" src="${ev.video_link}" frameborder="0" allowfullscreen></iframe></div>` : ""}
+ ${
+  ev.video_type === "whole" && ev.video_link
+    ? `<div style="margin-top: 1rem;">
+         <iframe width="100%" height="250" src="${ev.video_link}" frameborder="0" allowfullscreen></iframe>
+       </div>`
+    : ""
+}
+
+${
+  ev.video_type === "per-hole" && ev.per_hole_videos
+    ? `<div style="margin-top:1rem;">
+         <h4>Select a Hole for Video Preview</h4>
+         <select onchange="showHoleVideo(this, ${ev.id})">
+           <option value="">Select Hole</option>
+           ${Object.keys(ev.per_hole_videos || {}).map(k => 
+             `<option value="${ev.per_hole_videos[k]}">${k.replace("hole","Hole ")}</option>`
+           ).join("")}
+         </select>
+         <div id="holeVideo_${ev.id}" style="margin-top:1rem;"></div>
+       </div>`
+    : ""
+}
 </div>
           <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
             📝 RSVP to this event
@@ -1034,7 +1070,33 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
     if (rsvp) rsvp.innerHTML += `<option value="${e.id}">${label}</option>`;
   });
 }
+function toggleVideoFields() {
+  const type = document.getElementById("editVideoType").value;
+  document.getElementById("wholeCourseVideo").classList.toggle("hidden", type !== "whole");
+  document.getElementById("perHoleVideos").classList.toggle("hidden", type !== "per-hole");
 
+  if (type === "per-hole") {
+    const container = document.getElementById("holeVideosContainer");
+    if (!container.innerHTML.trim()) {
+      container.innerHTML = "";
+      for (let i = 1; i <= 18; i++) {
+        container.innerHTML += `
+          <label>Hole ${i} Video Link</label>
+          <input type="text" id="hole${i}" placeholder="https://www.youtube.com/embed/xyz123">
+        `;
+      }
+    }
+  }
+}
+function showHoleVideo(sel, id) {
+  const url = sel.value;
+  const div = document.getElementById("holeVideo_" + id);
+  if (url) {
+    div.innerHTML = `<iframe width="100%" height="250" src="${url}" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    div.innerHTML = "";
+  }
+}
   async function loadEditForm() {
   const id = document.getElementById("editSelect").value;
   if (!id) return;
@@ -1060,9 +1122,21 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
   document.getElementById("editDescription").value = data.description || "";
   document.getElementById("editCourseLink").value = data.course_link || "";
   document.getElementById("editWeatherLink").value = data.weather_link || "";
-  document.getElementById("editVideoLink").value = data.video_link || "";
-  document.getElementById("editMaxPlayers").value = data.max_players ?? "";
-  document.getElementById("editFirstTime").value = data.first_time || "";
+ document.getElementById("editVideoType").value = data.video_type || "";
+toggleVideoFields();
+
+document.getElementById("editVideoLink").value = data.video_link || "";
+
+// Load per-hole videos if present
+if (data.per_hole_videos) {
+  for (let i = 1; i <= 18; i++) {
+    const input = document.getElementById("hole" + i);
+    if (input) input.value = data.per_hole_videos["hole" + i] || "";
+  }
+}
+
+document.getElementById("editMaxPlayers").value = data.max_players ?? "";
+document.getElementById("editFirstTime").value = data.first_time || "";
 
 }
 async function saveEventEdits() {
@@ -1079,7 +1153,16 @@ async function saveEventEdits() {
     description: document.getElementById("editDescription").value.trim(),
     course_link: document.getElementById("editCourseLink").value.trim(),
     weather_link: document.getElementById("editWeatherLink").value.trim(),
-    video_link: document.getElementById("editVideoLink").value.trim(),
+   video_type: document.getElementById("editVideoType").value,
+video_link: document.getElementById("editVideoLink").value.trim(),
+per_hole_videos: (() => {
+  if (document.getElementById("editVideoType").value !== "per-hole") return null;
+  const obj = {};
+  for (let i = 1; i <= 18; i++) {
+    obj["hole" + i] = document.getElementById("hole" + i)?.value.trim() || "";
+  }
+  return obj;
+})(),
 
 
       max_players: document.getElementById("editMaxPlayers").value
