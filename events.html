@@ -832,6 +832,12 @@ async function loadEvents() {
           <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
           <div class="event-title">${ev.location}</div>
           <div class="event-subtitle">${ev.name}</div>
+          ${ev.price !== null && ev.price !== undefined ? `
+  <div class="event-section">
+    <h4>Price</h4>
+    <p>£${ev.price.toFixed(2)}</p>
+  </div>
+` : ""}
 
           <div class="event-badge">
             ⛳ ${
