@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>Barford Golf Society | Home</title>
@@ -78,9 +79,27 @@ a.btn:hover {
 }
 
 .site-title {
-  font-size: 2.1rem;
-  letter-spacing: .05rem;
+  font-size: 2.3rem;
   color: var(--accent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: baseline;
+}
+
+.site-title span:first-child {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: -0.5px;
+}
+
+.site-title span:last-child {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
 }
 
 .header-container {
@@ -342,7 +361,10 @@ footer {
 
 <header class="site-header">
   <div class="header-container">
-    <h1 class="site-title">Barford Golf Society</h1>
+    <h1 class="site-title">
+  <span class="shimmer-text">Barford</span>
+  <span>Golf Society</span>
+</h1>
     <nav class="site-nav">
       <ul>
         <li><a href="index.html" class="active">Home</a></li>
