@@ -793,9 +793,12 @@ async function loadEvents() {
     .from("events")
     .select(`
       *,
-      rsvps: rsvps(attending)
+     .select("*")
     `)
     .order("date", { ascending: true });
+
+  console.log("Supabase loadEvents → events", events);
+  console.log("Supabase loadEvents → error", error);
 
   const list = document.getElementById("eventList");
 
