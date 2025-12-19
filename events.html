@@ -720,7 +720,7 @@
 
 <script>
   const ADMIN_PASSWORD = "westbrom1997";
-  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supa.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
   const { createClient } = window.supabase;
 const supa = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -978,7 +978,7 @@ if (teeTimes?.length > 0) {
     if(!name || !playing) return msg.textContent = "⚠️ Fill all required fields.";
     if(buggy && !phone) return msg.textContent = "⚠️ Enter phone.";
     const attending = playing === "yes";
-    await supabase.from("rsvps").insert([{event_id:eventId,name,attending,buggy,flexibility:flex,phone,preferred_time:pref}]);
+    await supa.from("rsvps").insert([{event_id:eventId,name,attending,buggy,flexibility:flex,phone,preferred_time:pref}]);
     msg.textContent = "✅ RSVP saved!";
     loadRSVPList(eventId);
   }
@@ -1223,7 +1223,7 @@ async function createGolfEvent() {
     return;
   }
 
-  const { error } = await supabase.from("events").insert([
+  const { error } = await supa.from("events").insert([
     {
       name,
       date,
@@ -1250,9 +1250,9 @@ async function createGolfEvent() {
   async function deleteEvent(){
     const id = document.getElementById("deleteSelect").value;
     if(!id) return;
-    await supabase.from("rsvps").delete().eq("event_id",id);
-    await supabase.from("tee_times").delete().eq("event_id",id);
-    await supabase.from("events").delete().eq("id",id);
+    await supa.from("rsvps").delete().eq("event_id",id);
+    await supa.from("tee_times").delete().eq("event_id",id);
+    await supa,from("events").delete().eq("id",id);
     document.getElementById("deleteMsg").textContent = "✅ Event deleted.";
     loadEvents();
     loadAdminSelects();
@@ -1263,7 +1263,7 @@ async function createGolfEvent() {
     if(!id) return;
     const pass = prompt("Enter admin password to confirm cancel:");
     if(pass !== ADMIN_PASSWORD) return alert("❌ Wrong password");
-    const { error } = await supabase.from("events").update({cancelled:true}).eq("id",id);
+    const { error } = await supa,from("events").update({cancelled:true}).eq("id",id);
     if(error) return alert("❌ Error cancelling event.");
     document.getElementById("cancelMsg").textContent = "❌ Event cancelled.";
     alert("🚫 Event cancelled — members will now see this marked as Cancelled.");
@@ -1298,7 +1298,7 @@ async function updatePrice() {
     if(!id) return;
     const pass = prompt("Enter admin password to uncancel:");
     if(pass !== ADMIN_PASSWORD) return alert("❌ Wrong password");
-    const { error } = await supabase.from("events").update({cancelled:false}).eq("id",id);
+    const { error } = await supa,from("events").update({cancelled:false}).eq("id",id);
     if(error) return alert("❌ Error reinstating event.");
     document.getElementById("cancelMsg").textContent = "✅ Event reinstated.";
     alert("✅ Event reinstated — banner removed for members.");
@@ -1314,7 +1314,7 @@ document.getElementById("teeEventSelect").onchange = () => {
 
   async function loadAdminPlayers(eventId){
     const pool = document.getElementById("playerPool");
-    const {data} = await supabase.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
+    const {data} = await supa,from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
     if(!data?.length) return pool.innerHTML = "<em>No RSVPs.</em>";
     window.currentPlayers = data;
     pool.innerHTML = `<strong>${data.length} Players</strong> <button onclick='generateTeeGroups(${eventId})'>⚙️ Generate Tee Times</button>`;
@@ -1497,8 +1497,8 @@ END:VCALENDAR`;
         type: li.dataset.type
       }))
     }));
-    await supabase.from("tee_times").delete().eq("event_id", id);
-    await supabase.from("tee_times").insert(data);
+    await supa,from("tee_times").delete().eq("event_id", id);
+    await supa,from("tee_times").insert(data);
     alert("✅ Tee times saved.");
     loadTeeTimes(id);
   }
