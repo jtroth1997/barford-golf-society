@@ -1252,7 +1252,7 @@ async function createGolfEvent() {
     if(!id) return;
     await supa.from("rsvps").delete().eq("event_id",id);
     await supa.from("tee_times").delete().eq("event_id",id);
-    await supa,from("events").delete().eq("id",id);
+    await supa.from("events").delete().eq("id",id);
     document.getElementById("deleteMsg").textContent = "✅ Event deleted.";
     loadEvents();
     loadAdminSelects();
@@ -1263,7 +1263,7 @@ async function createGolfEvent() {
     if(!id) return;
     const pass = prompt("Enter admin password to confirm cancel:");
     if(pass !== ADMIN_PASSWORD) return alert("❌ Wrong password");
-    const { error } = await supa,from("events").update({cancelled:true}).eq("id",id);
+    const { error } = await supa.from("events").update({cancelled:true}).eq("id",id);
     if(error) return alert("❌ Error cancelling event.");
     document.getElementById("cancelMsg").textContent = "❌ Event cancelled.";
     alert("🚫 Event cancelled — members will now see this marked as Cancelled.");
@@ -1298,7 +1298,7 @@ async function updatePrice() {
     if(!id) return;
     const pass = prompt("Enter admin password to uncancel:");
     if(pass !== ADMIN_PASSWORD) return alert("❌ Wrong password");
-    const { error } = await supa,from("events").update({cancelled:false}).eq("id",id);
+    const { error } = await supa.from("events").update({cancelled:false}).eq("id",id);
     if(error) return alert("❌ Error reinstating event.");
     document.getElementById("cancelMsg").textContent = "✅ Event reinstated.";
     alert("✅ Event reinstated — banner removed for members.");
@@ -1314,7 +1314,7 @@ document.getElementById("teeEventSelect").onchange = () => {
 
   async function loadAdminPlayers(eventId){
     const pool = document.getElementById("playerPool");
-    const {data} = await supa,from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
+    const {data} = await supa.from("rsvps").select("*").eq("event_id",eventId).eq("attending",true);
     if(!data?.length) return pool.innerHTML = "<em>No RSVPs.</em>";
     window.currentPlayers = data;
     pool.innerHTML = `<strong>${data.length} Players</strong> <button onclick='generateTeeGroups(${eventId})'>⚙️ Generate Tee Times</button>`;
@@ -1483,25 +1483,33 @@ END:VCALENDAR`;
   if (btn) btn.style.display = data?.length ? "block" : "none";
 }
   
-  async function saveTeeTimes(){
-    const id = document.getElementById("teeEventSelect").value;
-    if(!id) return alert("Please select an event first.");
-    const grps = document.querySelectorAll(".tee-group");
-    const data = Array.from(grps).map((g, i) => ({
-      event_id: id,
-      group_number: i+1,
-      tee_time: g.dataset.time,
-      players: Array.from(g.querySelectorAll(".player-card")).map(li => ({
-        name: li.dataset.name,
-        phone: li.dataset.phone,
-        type: li.dataset.type
-      }))
-    }));
-    await supa,from("tee_times").delete().eq("event_id", id);
-    await supa,from("tee_times").insert(data);
-    alert("✅ Tee times saved.");
-    loadTeeTimes(id);
-  }
+ async function saveTeeTimes(){
+  const id = document.getElementById("teeEventSelect").value;
+  if(!id) return alert("Please select an event first.");
+
+  const grps = document.querySelectorAll(".tee-group");
+  const data = Array.from(grps).map((g, i) => ({
+    event_id: id,
+    group_number: i + 1,
+    tee_time: g.dataset.time,
+    players: Array.from(g.querySelectorAll(".player-card")).map(li => ({
+      name: li.dataset.name,
+      phone: li.dataset.phone,
+      type: li.dataset.type
+    }))
+  }));
+
+  // 🧼 Remove existing tee times
+  await supa.from("tee_times").delete().eq("event_id", id);
+
+  // 📥 Insert new ones
+  await supa.from("tee_times").insert(data);
+
+  alert("✅ Tee times saved.");
+
+  // ✅ Refresh UI
+  loadTeeTimes(id);
+}
 
   // ——————————————
 // RSVP Management (Admin Tab)
