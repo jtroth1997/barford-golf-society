@@ -6,7 +6,7 @@
   <title>Events | Barford Golf Society</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supa/supa-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
   <style>
@@ -720,10 +720,10 @@
 
 <script>
   const ADMIN_PASSWORD = "westbrom1997";
-  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supa.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-  const { createClient } = window.supabase;
-const supa = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa_URL = "https://tzzkgfehtnuizamzlbgr.supa.co";
+  const supa_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+  const { createClient } = window.supa;
+const supa = createClient(supa_URL, supa_KEY);
   // ——————— Convert YouTube links to embed format ———————
 
   window.onload = () => {
@@ -789,13 +789,13 @@ function formatDatePretty(dateStr) {
   }
 
 async function loadEvents() {
-  const { data: events, error } = await supabase
+  const { data: events, error } = await supa
   .from("events")
   .select("*")
   .order("date", { ascending: true });
 
-  console.log("Supabase loadEvents → events", events);
-  console.log("Supabase loadEvents → error", error);
+  console.log("supa loadEvents → events", events);
+  console.log("supa loadEvents → error", error);
 
   const list = document.getElementById("eventList");
 
@@ -913,7 +913,7 @@ ${ev.video_type === "per-hole" && ev.per_hole_videos
     );
 
 // 🔑 Decide what to show: tee times OR RSVP list
-const { data: teeTimes } = await supabase
+const { data: teeTimes } = await supa
   .from("tee_times")
   .select("*")
   .eq("event_id", ev.id);
@@ -990,7 +990,7 @@ async function loadRSVPList(eventId) {
   // Clear before repopulating
   div.innerHTML = "";
 
-  const { data } = await supabase
+  const { data } = await supa
     .from("rsvps")
     .select("*")
     .eq("event_id", eventId)
@@ -1021,7 +1021,7 @@ async function loadRSVPList(eventId) {
  async function loadTeeTimes(eventId){
   const area = document.getElementById(`teeTimes_${eventId}`);
 
-  const { data, error } = await supabase
+  const { data, error } = await supa
     .from("tee_times")
     .select("*")
     .eq("event_id", eventId)
@@ -1073,7 +1073,7 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
 }
 
   async function loadAdminSelects() {
-  const { data } = await supabase
+  const { data } = await supa
     .from("events")
     .select("*")
     .order("date", { ascending: true });
@@ -1123,7 +1123,7 @@ function toggleVideoFields() {
   const id = document.getElementById("editSelect").value;
   if (!id) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await supa
     .from("events")
     .select("*")
     .eq("id", id)
@@ -1193,7 +1193,7 @@ per_hole_videos: (() => {
   first_time: document.getElementById("editFirstTime").value.trim() || null,
   };
 
-  const { error } = await supabase
+  const { error } = await supa
     .from("events")
     .update(updates)
     .eq("id", id);
@@ -1237,8 +1237,8 @@ async function createGolfEvent() {
   ]);
 
   if (error) {
-    console.error("❌ Supabase error:", error);
-    msg.textContent = `❌ Supabase error: ${error.message}`;
+    console.error("❌ supa error:", error);
+    msg.textContent = `❌ supa error: ${error.message}`;
     return;
   }
 
@@ -1278,7 +1278,7 @@ async function updatePrice() {
   const price = parseFloat(priceInput);
   if (isNaN(price)) return alert("Please enter a valid number.");
 
-  const { error } = await supabase
+  const { error } = await supa
     .from("events")
     .update({ price })
     .eq("id", id);
@@ -1474,7 +1474,7 @@ END:VCALENDAR`;
 }
 
   async function checkTeeTimesExist(eventId) {
-  const { data } = await supabase
+  const { data } = await supa
     .from("tee_times")
     .select("id")
     .eq("event_id", eventId);
@@ -1517,7 +1517,7 @@ async function loadAdminRsvps() {
     return;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supa
     .from("rsvps")
     .select("*")
     .eq("event_id", eventId);
@@ -1581,7 +1581,7 @@ async function saveRsvpEdit(rsvpId, eventId) {
     preferred_time: document.getElementById(`rsvp_pref_${rsvpId}`).value.trim() || null
   };
 
-  const { error } = await supabase
+  const { error } = await supa
     .from("rsvps")
     .update(updates)
     .eq("id", rsvpId);
@@ -1605,14 +1605,14 @@ async function deleteRsvpAdmin(rsvpId, eventId) {
 
   console.log("Attempting to delete RSVP:", rsvpId, "for event:", eventId);
 
-  const { data, error } = await supabase
+  const { data, error } = await supa
     .from("rsvps")
     .delete()
     .eq("id", rsvpId);
 
   if (error) {
     alert("❌ Error deleting RSVP: " + error.message);
-    console.error("Supabase delete error:", error);
+    console.error("supa delete error:", error);
     return;
   }
 
@@ -1641,7 +1641,7 @@ async function deleteTeeTimes() {
   );
   if (!confirmDelete) return;
 
-  const { error } = await supabase
+  const { error } = await supa
     .from("tee_times")
     .delete()
     .eq("event_id", eventId);
