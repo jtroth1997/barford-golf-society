@@ -6,7 +6,7 @@
   <title>Events | Barford Golf Society</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supa/supa-js@2"></script>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
   <style>
@@ -720,10 +720,10 @@
 
 <script>
   const ADMIN_PASSWORD = "westbrom1997";
-  const supa_URL = "https://tzzkgfehtnuizamzlbgr.supa.co";
+  const supa_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
   const supa_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-  const { createClient } = window.supa;
-const supa = createClient(supa_URL, supa_KEY);
+  const { createClient } = window.supabase;
+  const supa = createClient(supa_URL, supa_KEY);
   // ——————— Convert YouTube links to embed format ———————
 
   window.onload = () => {
