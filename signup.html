@@ -138,18 +138,18 @@
     }
 
     /* ADMIN LOGIN BOX (TOP LEFT CORNER) */
-    #adminAccess {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: var(--bigShadow);
-      z-index: 999;
-      width: 240px;
-      font-size: 0.95rem;
-    }
+ #adminAccess {
+  position: fixed;
+  top: 100px; /* previously: 20px */
+  left: 20px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: var(--bigShadow);
+  z-index: 999;
+  width: 240px;
+  font-size: 0.95rem;
+}
 
     #adminAccess h3 {
       font-size: 1rem;
@@ -230,7 +230,7 @@
 <!-- ✅ Admin Login Panel (Top Left Corner) -->
 <div id="adminAccess">
   <h3>Admin Access</h3>
-  <input type="password" id="adminPass" placeholder="Enter admin code">
+  <input type="password" id="adminPass" placeholder="Enter admin password">
   <button onclick="checkAdmin()">Access Signups</button>
 </div>
 
