@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up | Barford Golf Society</title>
 
   <!-- Fonts -->
@@ -20,69 +20,165 @@
       --radius: 14px;
       --bigShadow: 0 12px 40px rgba(0,0,0,0.1);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; background: var(--background); color: var(--dark); }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--background);
+      color: var(--dark);
+    }
 
     /* HEADER */
     .site-header {
       background: var(--white);
       padding: 18px 24px;
-      position: sticky; top: 0; z-index: 1000;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
       border-bottom: 1px solid #ddd;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .header-container {
-      max-width: 1200px; margin: 0 auto;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .site-title { display: flex; gap: .3rem; align-items: baseline; }
-    .site-title span:first-child {
-      font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--accent);
-    }
-    .site-title span:last-child {
-      font-size: 1.7rem; text-transform: uppercase; color: var(--accent);
-    }
-    .site-nav ul { list-style: none; display: flex; gap: 16px; }
-    .site-nav a { text-decoration: none; font-weight: 600; color: var(--dark); }
-    .site-nav a.active, .site-nav a:hover { color: var(--accent); }
 
-    .container {
-      max-width: 700px; margin: 60px auto; padding: 0 20px; text-align: center;
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    h2 { color: var(--accent); margin-bottom: 20px; }
+
+    .site-title {
+      display: flex;
+      gap: .3rem;
+      align-items: baseline;
+    }
+
+    .site-title span:first-child {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      color: var(--accent);
+    }
+
+    .site-title span:last-child {
+      font-size: 1.7rem;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .site-nav ul {
+      list-style: none;
+      display: flex;
+      gap: 16px;
+    }
+
+    .site-nav a {
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .site-nav a.active,
+    .site-nav a:hover {
+      color: var(--accent);
+    }
+
+    /* MAIN */
+    .container {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    h2 {
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
     form {
-      background: #fff; padding: 24px; border-radius: var(--radius);
+      background: #fff;
+      padding: 24px;
+      border-radius: var(--radius);
       box-shadow: var(--bigShadow);
     }
+
     input {
-      width: 100%; padding: 12px; margin: 8px 0;
-      border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
     }
+
     button {
-      width: 100%; margin-top: 12px; padding: 12px;
-      background: var(--accent); border: none; border-radius: 8px;
-      font-weight: 700; cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
     }
+
     .message {
       margin-top: 14px;
       font-size: 1rem;
-      color: var(--dark);
     }
 
     /* ADMIN BOX */
     #adminAccess {
-      position: fixed; top: 100px; left: 20px;
-      width: 240px; background: #fff; padding: 16px;
-      border-radius: 12px; box-shadow: var(--bigShadow); z-index: 999;
+      position: fixed;
+      top: 100px;
+      left: 20px;
+      width: 260px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: var(--bigShadow);
+      z-index: 999;
+      text-align: left;
     }
-    #adminAccess h3 { font-size: 1rem; margin-bottom: 8px; }
-    #adminPanel { display: none; margin-top: 30px; }
+
+    #adminAccess h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    #pendingCount {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    #adminPanel {
+      display: none;
+      margin-top: 30px;
+      text-align: left;
+    }
+
     table {
-      width: 100%; border-collapse: collapse; margin-top: 16px;
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
     }
-    th, td { border: 1px solid #ddd; padding: 10px; }
-    th { background: var(--accent-light); }
-    footer { text-align: center; padding: 30px; color: var(--gray); }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    th {
+      background: var(--accent-light);
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--gray);
+    }
   </style>
 </head>
 
@@ -106,9 +202,10 @@
   </div>
 </header>
 
-<!-- ADMIN LOGIN -->
+<!-- ADMIN BOX -->
 <div id="adminAccess">
   <h3>Admin Access</h3>
+  <div id="pendingCount">Loading sign‑ups…</div>
   <input type="password" id="adminPass" placeholder="Enter admin password">
   <button id="adminBtn">Access Signups</button>
 </div>
@@ -129,7 +226,13 @@
     <h3>Member Signups</h3>
     <table>
       <thead>
-        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Contacted</th></tr>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Joined</th>
+          <th>Contacted</th>
+        </tr>
       </thead>
       <tbody id="signupTableBody"></tbody>
     </table>
@@ -141,39 +244,56 @@
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/+esm';
 
-  const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = createClient(
+    'https://tzzkgfehtnuizamzlbgr.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ'
+  );
 
   const form = document.getElementById('signupForm');
   const msg = document.getElementById('message');
   const tbody = document.getElementById('signupTableBody');
+  const pendingCountEl = document.getElementById('pendingCount');
 
-  // Submit signups
+  async function updatePendingCount() {
+    const { count, error } = await supabase
+      .from('signups')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      pendingCountEl.textContent = 'Unable to load sign‑ups';
+      return;
+    }
+
+    pendingCountEl.textContent =
+      count === 0
+        ? 'No sign‑ups waiting'
+        : `${count} sign‑up${count === 1 ? '' : 's'} waiting`;
+  }
+
+  updatePendingCount();
+
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    msg.textContent = 'Submitting...';
+    msg.textContent = 'Submitting…';
 
-    const response = await supabase.from('signups').insert([{
+    const { error } = await supabase.from('signups').insert([{
       name: document.getElementById('name').value.trim(),
       email: document.getElementById('email').value.trim(),
       phone: document.getElementById('phone').value.trim()
     }]);
 
-    if (response.error) {
-      msg.textContent = "❌ Something went wrong.";
-      console.error(response.error);
+    if (error) {
+      msg.textContent = '❌ Something went wrong.';
     } else {
-      msg.textContent = "✅ Thanks — someone will be in touch soon!";
+      msg.textContent = '✅ Thanks — someone will be in touch soon to confirm your sign up.';
       form.reset();
+      updatePendingCount();
     }
   });
 
-  // Admin login & fetch
   document.getElementById('adminBtn').onclick = async () => {
-    if (document.getElementById('adminPass').value !== "westbrom1997") {
-      alert("Wrong admin password.");
+    if (document.getElementById('adminPass').value !== 'westbrom1997') {
+      alert('Wrong admin password');
       return;
     }
 
@@ -183,8 +303,7 @@
       .order('created_at', { ascending: false });
 
     if (error) {
-      alert("Error loading signups");
-      console.error(error);
+      alert('Error loading signups');
       return;
     }
 
@@ -205,18 +324,18 @@
     document.getElementById('adminPanel').style.display = 'block';
   };
 
-  // Delete on contact
   tbody.addEventListener('change', async e => {
     const id = e.target.dataset.id;
     if (!id) return;
 
-    if (!confirm("Mark as contacted and remove?")) {
+    if (!confirm('Mark as contacted and remove?')) {
       e.target.checked = false;
       return;
     }
 
     await supabase.from('signups').delete().eq('id', id);
     e.target.closest('tr').remove();
+    updatePendingCount();
   });
 </script>
 
