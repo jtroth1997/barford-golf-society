@@ -33,7 +33,6 @@
       color: var(--dark);
     }
 
-    /* HEADER */
     .site-header {
       background: var(--white);
       padding: 18px 24px;
@@ -92,8 +91,8 @@
     }
 
     .container {
-      max-width: 500px;
-      margin: 80px auto;
+      max-width: 700px;
+      margin: 60px auto;
       padding: 0 20px;
       text-align: center;
     }
@@ -138,6 +137,38 @@
       color: var(--gray);
     }
 
+    /* ADMIN SECTION */
+    #adminAccess {
+      margin-top: 60px;
+      text-align: left;
+      background: #fff;
+      padding: 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--bigShadow);
+    }
+
+    #adminPanel {
+      margin-top: 30px;
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--accent-light);
+      color: var(--dark);
+    }
+
     footer {
       text-align: center;
       padding: 30px 0;
@@ -149,7 +180,6 @@
 
 <body>
 
-<!-- ✅ HEADER WITH NAV MENU -->
 <header class="site-header">
   <div class="header-container">
     <h1 class="site-title">
@@ -170,7 +200,6 @@
   </div>
 </header>
 
-<!-- ✅ SIGN-UP FORM -->
 <div class="container">
   <h2>Join Barford Golf Society</h2>
 
@@ -182,6 +211,25 @@
   </form>
 
   <p class="message" id="message"></p>
+
+  <!-- 🔐 ADMIN ACCESS SECTION -->
+  <div id="adminAccess">
+    <h3>Admin Access</h3>
+    <input type="password" id="adminPass" placeholder="Enter admin code">
+    <button onclick="checkAdmin()">Access Signups</button>
+
+    <div id="adminPanel">
+      <h3>Member Signups</h3>
+      <table id="signupTable">
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Phone</th><th>Joined</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <footer>
@@ -220,6 +268,41 @@
       form.reset();
     }
   });
+
+  // 🔐 Admin access
+  window.checkAdmin = async function () {
+    const pass = document.getElementById("adminPass").value;
+    if (pass !== "westbrom1997") {
+      alert("Wrong admin code.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('signups')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      alert("Error loading signups.");
+      console.error(error);
+      return;
+    }
+
+    const tbody = document.querySelector("#signupTable tbody");
+    tbody.innerHTML = "";
+
+    data.forEach(entry => {
+      const row = `<tr>
+        <td>${entry.name}</td>
+        <td>${entry.email}</td>
+        <td>${entry.phone}</td>
+        <td>${new Date(entry.created_at).toLocaleDateString()}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+
+    document.getElementById("adminPanel").style.display = "block";
+  }
 </script>
 
 </body>
