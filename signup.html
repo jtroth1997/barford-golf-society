@@ -129,18 +129,23 @@
     }
 
     /* ADMIN BOX */
-    #adminAccess {
-      position: fixed;
-      top: 100px;
-      left: 20px;
-      width: 260px;
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: var(--bigShadow);
-      z-index: 999;
-      text-align: left;
-    }
+   #adminAccess {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: var(--bigShadow);
+  text-align: left;
+  margin: 40px auto 0;
+  max-width: 700px;
+}
+
+/* Optional: mobile tweaks */
+@media (max-width: 600px) {
+  #adminAccess {
+    margin: 20px auto;
+    width: 90%;
+  }
+}
 
     #adminAccess h3 {
       font-size: 1rem;
