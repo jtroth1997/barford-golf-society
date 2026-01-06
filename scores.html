@@ -534,7 +534,7 @@
     const name = prompt("Enter player name:");
     if(!name) return;
     try {
-      await supabase.from("players").upsert({ name });
+      await supabaseClient.from("players").upsert({ name });
       showToast("✅ Player added: " + name);
     } catch(err){
       console.error("Add player error:", err);
@@ -548,7 +548,7 @@
     const name = prompt("Enter player name to remove:");
     if(!name) return;
     if(!confirm(`Are you sure you want to remove player: ${name}?`)) return;
-    const { data, error } = await supabase.from("players").delete().eq("name", name);
+    const { data, error } = await supabaseClient.from("players").delete().eq("name", name);
     if(error){
       console.error("Remove player error:", error);
       alert("⚠️ Could not remove player: " + error.message);
@@ -567,7 +567,7 @@
 
     document.body.style.cursor = "wait";
     try {
-      const { error } = await supabase.rpc("reset_scores");
+      const { error } = await supabaseClient.rpc("reset_scores");
       if(error) throw error;
       showToast("✅ League reset successful!");
       currentRound = 1;
@@ -611,7 +611,7 @@
     });
 
     console.log("Upsert payload:", updates);
-    const { data, error } = await supabase.from("scores").upsert(updates, { onConflict:["player","round"] });
+    const { data, error } = await supabaseClient.from("scores").upsert(updates, { onConflict:["player","round"] });
     if(error){
       console.error("Upsert error:", error);
       alert("⚠️ Error saving data: " + err.message);
@@ -639,7 +639,7 @@
   }
 
   async function exportAllCSV(){
-    const { data } = await supabase.from("scores").select("*");
+    const { data } = await supabaseClient.from("scores").select("*");
     downloadCSV("all_scores", toCSV(data));
   }
   async function exportLeaderboardCSV(){
