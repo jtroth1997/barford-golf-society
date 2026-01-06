@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sign Up | Barford Golf Society</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: #f5f9fc;
+      color: #1a1a1a;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 80px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    h2 {
+      color: #d4af37;
+    }
+    form {
+      background: #fff;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      background: #d4af37;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #1a1a1a;
+      width: 100%;
+      margin-top: 12px;
+    }
+    .message {
+      margin-top: 14px;
+      font-size: 1rem;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Join Barford Golf Society</h2>
+
+  <form id="signupForm">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email Address" required>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <p class="message" id="message"></p>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/+esm';
+
+  const SUPABASE_URL = 'https://tzzkgfehtnuizamzlbgr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ';
+  
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('signupForm');
+  const messageEl = document.getElementById('message');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    messageEl.textContent = "Submitting...";
+
+    const { data, error } = await supabase
+      .from('signups')
+      .insert([{ name, email, phone }]);
+
+    if (error) {
+      messageEl.textContent = "Error submitting — please try again!";
+      console.error("Supabase insert error:", error);
+    } else {
+      messageEl.textContent = "Thanks for signing up! We'll be in touch.";
+      form.reset();
+    }
+  });
+</script>
+
+</body>
+</html>
