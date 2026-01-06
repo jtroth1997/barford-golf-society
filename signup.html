@@ -137,19 +137,46 @@
       color: var(--gray);
     }
 
-    /* ADMIN SECTION */
+    /* ADMIN LOGIN BOX (TOP LEFT CORNER) */
     #adminAccess {
-      margin-top: 60px;
-      text-align: left;
+      position: fixed;
+      top: 20px;
+      left: 20px;
       background: #fff;
-      padding: 24px;
-      border-radius: var(--radius);
+      padding: 16px;
+      border-radius: 12px;
       box-shadow: var(--bigShadow);
+      z-index: 999;
+      width: 240px;
+      font-size: 0.95rem;
+    }
+
+    #adminAccess h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    #adminAccess input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    #adminAccess button {
+      background: var(--accent);
+      border: none;
+      width: 100%;
+      padding: 8px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     #adminPanel {
       margin-top: 30px;
       display: none;
+      text-align: left;
     }
 
     table {
@@ -200,6 +227,13 @@
   </div>
 </header>
 
+<!-- ✅ Admin Login Panel (Top Left Corner) -->
+<div id="adminAccess">
+  <h3>Admin Access</h3>
+  <input type="password" id="adminPass" placeholder="Enter admin code">
+  <button onclick="checkAdmin()">Access Signups</button>
+</div>
+
 <div class="container">
   <h2>Join Barford Golf Society</h2>
 
@@ -212,23 +246,16 @@
 
   <p class="message" id="message"></p>
 
-  <!-- 🔐 ADMIN ACCESS SECTION -->
-  <div id="adminAccess">
-    <h3>Admin Access</h3>
-    <input type="password" id="adminPass" placeholder="Enter admin code">
-    <button onclick="checkAdmin()">Access Signups</button>
-
-    <div id="adminPanel">
-      <h3>Member Signups</h3>
-      <table id="signupTable">
-        <thead>
-          <tr>
-            <th>Name</th><th>Email</th><th>Phone</th><th>Joined</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <div id="adminPanel">
+    <h3>Member Signups</h3>
+    <table id="signupTable">
+      <thead>
+        <tr>
+          <th>Name</th><th>Email</th><th>Phone</th><th>Joined</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 </div>
 
