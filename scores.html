@@ -336,7 +336,7 @@
   document.body.style.cursor = "wait";
 
   // Load players
-  const { data: roster, error: rErr } = await supabase
+  const { data: roster, error: rErr } = await supabaseClient
     .from("players")
     .select("name")
     .order("name", { ascending: true });
@@ -360,7 +360,7 @@
   playerScores = players.map(()=> Array(maxRounds).fill(null));
 
   // Load scores
-  const { data: scores, error: sErr } = await supabase
+ const { data: scores, error: sErr } = await supabaseClient
     .from("scores")
     .select("*");
 
