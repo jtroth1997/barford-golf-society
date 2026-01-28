@@ -541,14 +541,17 @@ footer {
       return;
     }
 
-   gallery = data
+  gallery = data
   .filter(f => !f.name.endsWith('/') && f.name !== '.emptyFolderPlaceholder')
+  .sort((a, b) => {
+    const aTime = parseInt(a.name.split('_')[0]);
+    const bTime = parseInt(b.name.split('_')[0]);
+    return bTime - aTime; // Newest first
+  })
   .map(f => {
     const publicUrl = supabaseClient.storage
       .from('gallery-images')
       .getPublicUrl('uploads/' + f.name).data.publicUrl;
-
-    console.log("Found image:", publicUrl);
     return { url: publicUrl };
   })
   .filter(img => img.url && !img.url.includes("undefined"));
