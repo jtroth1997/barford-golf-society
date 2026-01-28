@@ -316,14 +316,19 @@
         console.error('Error listing storage objects:', error);
         return;
       }
-     gallery = objects
+    gallery = objects
   .filter(obj =>
     !obj.name.endsWith('/') &&
     !obj.name.startsWith('.')
   )
+  .sort((a, b) => {
+    const aTime = parseInt(a.name.split('_')[0]);
+    const bTime = parseInt(b.name.split('_')[0]);
+    return bTime - aTime; // newest first
+  })
   .map(obj => ({
     path: obj.name,
-url: supabase.storage.from(BUCKET).getPublicUrl(UPLOAD_PATH + obj.name).data.publicUrl
+    url: supabase.storage.from(BUCKET).getPublicUrl(UPLOAD_PATH + obj.name).data.publicUrl
   }));
 
 renderBanner();
