@@ -193,12 +193,18 @@ a.btn:hover {
   pointer-events: none;
   transition: opacity 0.6s ease;
 }
-    .hero::after {
+  .hero::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* darkness level */
-  z-index: 1; /* sits above the image but below the text */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .hero-overlay {
