@@ -188,11 +188,12 @@ a.btn:hover {
   z-index: 0;
 }
 
-.hero-text h2 {
-  font-size: 3rem;
-  color: var(--accent); /* gold */
-  margin-bottom: 20px;
-  font-weight: 800;
+.hero-text {
+  margin-left: 10%;
+  max-width: 45%;
+  text-align: left;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-text p {
@@ -211,14 +212,14 @@ a.btn:hover {
   position: absolute;
   top: 0;
   right: 0;
-  width: 50%;
+  width: 55%;
   height: 100%;
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   z-index: 0;
-  clip-path: polygon(4.9% 0%, 100% 0%, 100% 100%, 0% 100%);
-  object-fit: cover;
-  pointer-events: none;
+
+  /* MATCHES GREEN ANGLE */
+  clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 
