@@ -819,11 +819,15 @@ async function loadEvents() {
     const year = d.getFullYear();
     const weekday = d.toLocaleString("en-GB", { weekday: "short" });
 
-    const attendingCount = ev.rsvps?.filter(r => r.attending).length || 0;
-    const slotsLeft =
-      ev.max_players !== null
-        ? ev.max_players - attendingCount
-        : null;
+    // Fetch RSVP count for this event
+const { data: rsvpsData, error: rsvpError } = await supa
+  .from("rsvps")
+  .select("*")
+  .eq("event_id", ev.id)
+  .eq("attending", true);
+
+const attendingCount = rsvpsData?.length || 0;
+const slotsLeft = ev.max_players !== null ? ev.max_players - attendingCount : null;
 
     list.innerHTML += `
       <div class="event-card">
