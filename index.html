@@ -421,6 +421,15 @@ footer {
   animation: shimmer 4s linear infinite;
   transition: transform .3s;
 }
+    /* Restrict button width on wider screens */
+@media (min-width: 801px) {
+  .hero-overlay .btn {
+    max-width: 500px;
+    width: 90%;
+    margin: 0 auto;
+    display: block;
+  }
+}
 </style>   
 </head>
 <body>
