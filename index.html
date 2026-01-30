@@ -175,16 +175,11 @@ a.btn:hover {
 }
 
 /* GOLD ANGLED LINE */
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(50% - 2px); /* Adjust to center line */
-  width: 4px; /* Thin line */
-  background: var(--accent); /* Gold */
+.hero-divider {
+  flex: 0 0 12px;
+  background: var(--accent);
   clip-path: polygon(0 0, 100% 0, 60% 100%, 0% 100%);
-  z-index: 4;
+  z-index: 2;
 }
 
 /* NEW WRAPPER FOR ANGLED TEXT BACKGROUND */
@@ -483,10 +478,14 @@ footer {
         <a class="btn" href="gallery.html">Member Gallery</a>
       </div>
     </div>
+ 
   </div>
+
+  <div class="hero-divider"></div>
+
   <div class="hero-image-right" style="background-image: url('https://your-domain.com/path-to-golf-image.jpg');"></div>
 </div>
-<img class="mobile-hero-image" src="https://your-domain.com/path-to-golf-image.jpg" alt="Golf photo">
+
 
 
 <div class="container">
