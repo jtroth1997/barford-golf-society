@@ -169,7 +169,7 @@ a.btn:hover {
 .hero {
   position: relative;
   width: 100%;
-   background: var(--background);
+   background: white;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -187,7 +187,6 @@ a.btn:hover {
   height: 100%;
   width: auto;
   object-fit: contain;
-  background-color: #000;
   z-index: 1;
   opacity: 1;
   filter: contrast(1.1) brightness(1.1);
@@ -217,19 +216,13 @@ a.btn:hover {
 }
 
 .hero-overlay h2 {
-  font-size: 3.4rem;
-  font-weight: 800;
-  margin: 0;
-  text-shadow: 0 3px 9px rgba(0,0,0,0.45);
-  color: var(--dark);
+  color: var(--accent);
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.5); /* strong contrast */
 }
 
 .hero-overlay p {
-  font-size: 1.3rem;
-  color: var(--dark); /* ✅ Darker text for contrast */
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* ✅ Optional: add light shadow for clarity */
-  max-width: 720px;
-  margin: 0 auto;
+  color: var(--accent-light);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* MAIN CONTAINER */
