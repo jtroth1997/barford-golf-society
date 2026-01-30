@@ -373,66 +373,36 @@ footer {
     list-style: none;
   }
 
- .hero {
+.hero {
   flex-direction: column;
   text-align: center;
   padding: 0;
   position: relative;
 }
 
-/* Angled split on mobile too */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: #1f5935;
-  z-index: 0;
+.hero-divider {
+  display: none; /* Hide on mobile */
+}
+
+.hero-left {
+  clip-path: none;
+  padding: 2rem 1.5rem;
+  flex: unset;
+  width: 100%;
 }
 
 .hero-text {
-  flex: 1;
-  padding: 3rem 4rem;
-  text-align: left;
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  text-align: center;
+  padding: 0;
 }
-
-  .hero-text h2 {
-    font-size: 2rem;
-  }
-
-  .hero-text p {
-    font-size: 1.1rem;
-  }
-
-  .hero-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 2rem;
-  justify-content: center;
-  align-items: center;
-}
-
-  .hero-buttons a.btn {
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
-  }
 
 .hero-image-right {
-  position: relative;
+  clip-path: none;
   width: 100%;
-  height: 300px;
+  height: 280px;
+  border-radius: 0;
   background-size: cover;
   background-position: center;
-  border-bottom-left-radius: var(--radius);
-  border-bottom-right-radius: var(--radius);
-  z-index: 1;
-  clip-path: none;
 }
 }
     /* Restrict button width on wider screens */
