@@ -170,50 +170,53 @@ a.btn:hover {
   display: flex;
   align-items: stretch;
   position: relative;
-  background: #2c6e49;
-  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
   overflow: hidden;
   min-height: 520px;
 }
 
-.hero::before {
-  display: none;
-}
-
-.hero + .mobile-hero-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  margin-top: -15vw;
-  z-index: 0;
-}
-
-.hero-text {
-  margin-left: 10%;
-  max-width: 45%;
-  text-align: left;
-  position: relative;
+/* NEW WRAPPER FOR ANGLED TEXT BACKGROUND */
+.hero-left {
+  flex: 0 0 50%;
+  background: #2c6e49;
+  padding: 3rem 3rem;
+  clip-path: polygon(0 0, 95% 0%, 85% 100%, 0% 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   z-index: 2;
 }
 
-.hero-text p {
-  font-size: 1.2rem;
+.hero-text {
+  max-width: 100%;
   color: white;
-  margin-bottom: 30px;
+  text-align: left;
+}
+
+.hero-text h2 {
+  font-size: 2.6rem;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+}
+
+.hero-text p {
+  font-size: 1.15rem;
+  color: white;
+  margin-bottom: 1.8rem;
   line-height: 1.6;
 }
 
-.hero-buttons a.btn {
-  margin-right: 16px;
-  display: inline-block;
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .hero-image-right {
-  flex: 1;
+  flex: 0 0 50%;
   background-size: cover;
   background-position: center;
-  clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
   min-height: 520px;
+  clip-path: polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 
@@ -457,13 +460,15 @@ footer {
 </header>
 
 <div class="hero">
-  <div class="hero-text">
-    <h2>Welcome to Barford Golf Society</h2>
-    <p>Great golf. Great company. A season-long journey across fantastic courses.</p>
-    <div class="hero-buttons">
-      <a class="btn" href="events.html">RSVP to Next Event</a>
-      <a class="btn" href="scores.html">Enter Scores</a>
-      <a class="btn" href="gallery.html">Member Gallery</a>
+  <div class="hero-left">
+    <div class="hero-text">
+      <h2>Welcome to Barford Golf Society</h2>
+      <p>Great golf. Great company. A season-long journey across fantastic courses.</p>
+      <div class="hero-buttons">
+        <a class="btn" href="events.html">RSVP to Next Event</a>
+        <a class="btn" href="scores.html">Enter Scores</a>
+        <a class="btn" href="gallery.html">Member Gallery</a>
+      </div>
     </div>
   </div>
   <div class="hero-image-right" style="background-image: url('https://your-domain.com/path-to-golf-image.jpg');"></div>
