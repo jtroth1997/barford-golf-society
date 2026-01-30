@@ -167,13 +167,13 @@ a.btn:hover {
 
 /* HERO */
 .hero {
-  flex-direction: column;
-  text-align: center;
-  padding: 0;
+  display: flex;
+  align-items: stretch;
   position: relative;
   background: #2c6e49;
   clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-  z-index: 1;
+  overflow: hidden;
+  min-height: 520px;
 }
 
 .hero::before {
@@ -209,17 +209,11 @@ a.btn:hover {
 }
 
 .hero-image-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 55%;
-  height: 100%;
+  flex: 1;
   background-size: cover;
-  background-position: center center;
-  z-index: 0;
-
-  /* MATCHES GREEN ANGLE */
+  background-position: center;
   clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
+  min-height: 520px;
 }
 
 
@@ -384,10 +378,15 @@ footer {
   z-index: 0;
 }
 
- .hero-text {
-  max-width: 100%;
-  padding: 1.5rem 1rem;
+.hero-text {
+  flex: 1;
+  padding: 3rem 4rem;
+  text-align: left;
+  position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
   .hero-text h2 {
