@@ -55,9 +55,11 @@ a.btn {
   letter-spacing: .04rem;
   box-shadow: var(--bigShadow);
   transition: transform .3s, box-shadow .3s;
-  background: var(--accent);  /* ✅ Add a background */
-  color: var(--dark);         /* ✅ Dark text for better contrast */
+  background: rgba(212, 175, 55, 0.3); /* Transparent gold */
+  color: #111; /* Dark text for high contrast */
   text-decoration: none;
+  backdrop-filter: blur(4px); /* Optional: subtle blur behind for clarity */
+  border: 2px solid var(--accent); /* Keeps structure */
 }
 
 a.btn:hover {
@@ -184,12 +186,24 @@ a.btn:hover {
   transform: translate(-50%, -50%);
   height: 100%;
   width: auto;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 1; /* Fully visible */
+  filter: contrast(1.15) brightness(1.05); /* Boost vibrancy */
+  pointer-events: none;
+}
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 100%;
+  width: auto;
   object-fit: contain;
   z-index: 0;
   opacity: 0.8;
   pointer-events: none;
 }
-
 
 .hero-overlay {
   position: relative;
