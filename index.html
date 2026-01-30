@@ -167,61 +167,64 @@ a.btn:hover {
 
 /* HERO */
 .hero {
-  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 450px;
-  background: white;
-  overflow: hidden;
-}
-
-.hero-image {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: brightness(0.9) contrast(1.1);
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.hero-image.left {
-  left: 0;
-}
-
-.hero-image.right {
-  right: 0;
-}
-
-.hero-overlay {
   position: relative;
-  z-index: 3;
-  max-width: 550px;
-  text-align: center;
-  padding: 0 20px;
+  min-height: 480px;
+  overflow: hidden;
+  padding: 0;
 }
 
-.hero-overlay h2 {
-  color: var(--accent);
-  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
-}
-
-.hero-overlay p {
-  color: var(--accent-light);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-}
-
+/* Background split with gold angled divider */
 .hero::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.3);
-  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    #3da47f 49.5%,
+    var(--accent) 49.5%,
+    var(--accent) 50.5%,
+    transparent 50.5%
+  );
+  z-index: 0;
 }
+ .hero-text {
+  flex: 1;
+  padding: 60px 40px;
+  color: white;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text h2 {
+  font-size: 3rem;
+  color: var(--accent); /* gold */
+  margin-bottom: 20px;
+  font-weight: 800;
+}
+
+.hero-text p {
+  font-size: 1.2rem;
+  color: white;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.hero-buttons a.btn {
+  margin-right: 16px;
+  display: inline-block;
+}
+
+ .hero-image-right {
+  flex: 1;
+  background-size: cover;
+  background-position: center;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+
     
 /* MAIN CONTAINER */
 .container {
@@ -367,72 +370,50 @@ footer {
     list-style: none;
   }
 
-  .hero-image.left {
-    width: 100%;
-    left: 0;
-    right: 0;
-  }
-
-  .hero-image.right {
-    display: none !important;
-    width: 0;
-  }
-
-  .hero-overlay h2,
-  .hero-overlay p {
-    color: white;
-    text-shadow: 0 3px 9px rgba(0, 0, 0, 0.6);
-  }
-
- .hero-overlay a.btn {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  margin: 12px auto;
+  .hero {
+  flex-direction: column;
   text-align: center;
-  box-sizing: border-box;
-}
-}
-    /* ✨ GOLD SHIMMER EFFECT */
-@keyframes shimmer {
-  0% {
-    background-position: -500px 0;
-  }
-  100% {
-    background-position: 500px 0;
-  }
+  padding: 0;
 }
 
-.shimmer-text {
-  background: linear-gradient(
-    90deg,
-    var(--accent),
-    var(--accent-light),
-    var(--accent)
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 5s infinite linear;
+.hero::before {
+  background: #3da47f; /* solid green on mobile */
 }
 
-.btn-gold-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--accent),
-    var(--accent-light),
-    var(--accent)
-  );
-  background-size: 300% 100%;
-  color: #111;
-  font-weight: 700;
-  border-radius: var(--radius);
-  padding: 1rem 2rem;
-  border: none;
-  box-shadow: var(--bigShadow);
-  text-transform: uppercase;
-  animation: shimmer 4s linear infinite;
-  transition: transform .3s;
+  .hero-text {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .hero-text h2 {
+    font-size: 2rem;
+  }
+
+  .hero-text p {
+    font-size: 1.1rem;
+  }
+
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 1.5rem;
+  }
+
+  .hero-buttons a.btn {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .hero-image-right {
+    width: 100%;
+    height: 240px;
+    margin-top: 20px;
+    background-size: cover;
+    background-position: center;
+    border-radius: var(--radius);
+  }
 }
     /* Restrict button width on wider screens */
 @media (min-width: 801px) {
@@ -466,19 +447,19 @@ footer {
   </div>
 </header>
 
-<div class="hero" id="heroSlideshow">
-  <div class="hero-image left"></div>
-
-  <div class="hero-overlay">
+<div class="hero">
+  <div class="hero-text">
     <h2>Welcome to Barford Golf Society</h2>
     <p>Great golf. Great company. A season-long journey across fantastic courses.</p>
-    <a class="btn" href="events.html">RSVP to Next Event</a>
-    <a class="btn" href="scores.html">Enter Scores</a>
-    <a class="btn" href="gallery.html">Member Gallery</a>
+    <div class="hero-buttons">
+      <a class="btn" href="events.html">RSVP to Next Event</a>
+      <a class="btn" href="scores.html">Enter Scores</a>
+      <a class="btn" href="gallery.html">Member Gallery</a>
+    </div>
   </div>
-
-  <div class="hero-image right"></div>
+  <div class="hero-image-right" style="background-image: url('https://your-domain.com/path-to-golf-image.jpg');"></div>
 </div>
+
 
 <div class="container">
   <div class="card next-event" id="nextEventCard">
@@ -537,23 +518,19 @@ footer {
 
   const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const hero = document.getElementById('heroSlideshow');
-const leftImg = hero.querySelector('.hero-image.left');
-const rightImg = hero.querySelector('.hero-image.right');
-
 let gallery = [];
-let galleryPairs = [];
-let currentPairIndex = 0;
+let currentIndex = 0;
 
-function showPair() {
-  const pair = galleryPairs[currentPairIndex];
-  if (!pair) return;
+function showHeroImage() {
+  const heroImage = document.querySelector(".hero-image-right");
+  if (!heroImage || !gallery.length) return;
 
-  leftImg.style.backgroundImage = `url("${pair.left}")`;
-  rightImg.style.backgroundImage = `url("${pair.right}")`;
+  heroImage.style.backgroundImage = `url("${gallery[currentIndex]}")`;
+}
 
-  leftImg.style.opacity = "1";
-  rightImg.style.opacity = "1";
+function nextHeroImage() {
+  currentIndex = (currentIndex + 1) % gallery.length;
+  showHeroImage();
 }
 
 
@@ -591,28 +568,12 @@ function nextPair() {
   })
   .filter(img => img.url && !img.url.includes("undefined"));
 
-    galleryPairs = [];
+   gallery = gallery.map(img => img.url);
 
-for (let i = 0; i < gallery.length - 1; i += 2) {
-  galleryPairs.push({
-    left: gallery[i].url,
-    right: gallery[i + 1].url
-  });
+if (gallery.length) {
+  showHeroImage();
+  setInterval(nextHeroImage, 7000);
 }
-
-// Fallback if odd number of images
-if (gallery.length % 2 === 1) {
-  galleryPairs.push({
-    left: gallery[gallery.length - 1].url,
-    right: gallery[0].url
-  });
-}
-
-if (galleryPairs.length) {
-  showPair();
-  setInterval(nextPair, 7000);
-  
-    }
   }
 
   async function loadNextEvent() {
