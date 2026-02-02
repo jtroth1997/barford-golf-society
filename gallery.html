@@ -52,22 +52,39 @@
   font-size: 1.2rem;
   letter-spacing: 0.04rem;
 }
-    .site-nav ul {
-      list-style: none;
-      display: flex;
-      gap: 20px;
-      margin: 0;
-      padding: 0;
-    }
-    .site-nav a {
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      transition: color .2s;
-    }
-    .site-nav a:hover, .site-nav a.active {
-      color: var(--gold);
-    }
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+}
+
+.site-nav a {
+  color: #222;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  position: relative;
+}
+
+.site-nav a.active {
+  font-weight: 700;
+  color: #064d2b;
+}
+
+.site-nav a.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #c9aa4d;
+}
 
     /* Banner slideshow */
     .banner {
