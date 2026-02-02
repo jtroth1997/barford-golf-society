@@ -148,11 +148,7 @@
   }
 
   /* ✅ RESPONSIVE HEADER FIX */
- @media (max-width: 768px) {
-  .site-header {
-    overflow-x: hidden;
-  }
-
+@media (max-width: 768px) {
   .header-container {
     flex-direction: column;
     align-items: flex-start;
@@ -168,22 +164,16 @@
   }
 
   .site-nav ul {
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap; /* ✅ Allow nav to wrap onto new row */
+    gap: 12px;
     padding-left: 0;
-    flex-wrap: wrap;
-    overflow-x: hidden;
   }
 
   .site-nav a {
-    display: block;
     padding: 8px 0;
-    width: 100%;
-    border-top: 1px solid #eee;
   }
 }
-
   /* ADMIN PANEL STYLES */
   #adminAccess h3 {
     font-size: 1rem;
