@@ -247,19 +247,30 @@
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-container">
-      <h1 class="site-title">Barford Golf Society</h1>
-      <nav class="site-nav">
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="events.html">Events</a></li>
-          <li><a href="scores.html">Scores</a></li>
-          <li><a href="gallery.html" class="active">Gallery</a></li>
-        </ul>
-      </nav>
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">
+      <span class="shimmer-text">Barford</span>
+      <span class="shimmer-text">GOLF SOCIETY</span>
+    </h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html">Scores</a></li>
+        <li><a href="gallery.html" class="active">Gallery</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="signup.html">Sign Up</a></li>
+      </ul>
+    </nav>
+
+    <!-- 🌙 Dark Mode Toggle -->
+    <div class="dark-toggle">
+      <label for="darkSwitch">🌙 Dark Mode</label>
+      <input type="checkbox" id="darkSwitch">
     </div>
-  </header>
+  </div>
+</header>
 
   <div class="banner" id="banner">
     <div class="arrow left" onclick="prevSlide()">&#10094;</div>
@@ -500,8 +511,24 @@ renderGrid();
     window.lbNext = lbNext;
     window.lbPrev = lbPrev;
     window.closeLightbox = closeLightbox;
+  
+    window.closeLightbox = closeLightbox;
+</script> <!-- ✅ closes the type="module" script -->
 
-  </script>
+<!-- ✅ separate dark mode script -->
+<script>
+  const darkSwitch = document.getElementById("darkSwitch");
+  if (darkSwitch) {
+    darkSwitch.addEventListener("change", function () {
+      document.body.classList.toggle("dark-mode", this.checked);
+      localStorage.setItem("darkMode", this.checked ? "on" : "off");
+    });
+    if (localStorage.getItem("darkMode") === "on") {
+      document.body.classList.add("dark-mode");
+      darkSwitch.checked = true;
+    }
+  }
+</script>
 
 </body>
 </html>
