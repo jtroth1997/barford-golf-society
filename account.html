@@ -4,9 +4,180 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Account | Barford Golf Society</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+      color: #222;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #005a2b;
+      margin-bottom: 1rem;
+    }
+    .login-box, .round-box {
+      margin-top: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      background: #d4af37;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .logout {
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: #888;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .highlight {
+      background: #f0fff0;
+      border-left: 4px solid #005a2b;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
-  <h1>⛳ Member Dashboard Coming Soon</h1>
-  <p>This will show your tee time and playing partners.</p>
+  <div class="container">
+    <h1>🏌️ Your Next Round</h1>
+    <div id="userArea">Loading...</div>
+  </div>
+
+  <script>
+    const supa = supabase.createClient(
+      "https://tzzkgfehtnuizamzlbgr.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    );
+
+    const userArea = document.getElementById("userArea");
+
+    async function init() {
+      const urlToken = new URLSearchParams(window.location.search).get("token");
+
+      // Magic Link Login
+      if (urlToken) {
+        const { data, error } = await supa.auth.exchangeCodeForSession(urlToken);
+        if (error) {
+          userArea.innerHTML = "❌ Error logging in: " + error.message;
+          return;
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      const {
+        data: { session }
+      } = await supa.auth.getSession();
+
+      if (session?.user) {
+        loadDashboard(session.user);
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      userArea.innerHTML = `
+        <div class="login-box">
+          <p>Enter your email to receive a secure login link.</p>
+          <label>Email</label>
+          <input id="emailInput" type="email" placeholder="you@example.com"/>
+          <button onclick="sendLogin()">📩 Send Magic Link</button>
+        </div>
+      `;
+    }
+
+    async function sendLogin() {
+      const email = document.getElementById("emailInput").value;
+      if (!email) return alert("Please enter your email.");
+
+      const { error } = await supa.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: location.href
+        }
+      });
+
+      if (error) {
+        alert("❌ Error sending link: " + error.message);
+      } else {
+        alert("✅ Magic link sent! Check your inbox.");
+      }
+    }
+
+    async function loadDashboard(user) {
+      const { data: member, error } = await supa
+        .from("members")
+        .select("*")
+        .eq("email", user.email)
+        .single();
+
+      if (!member) {
+        userArea.innerHTML = `
+          <p>⚠️ You are logged in but no member profile was found.</p>
+          <button onclick="logout()">Log out</button>
+        `;
+        return;
+      }
+
+      const { data: nextEvent } = await supa
+        .rpc("get_next_event_for_member", { member_email: user.email });
+
+      userArea.innerHTML = `
+        <div class="round-box">
+          <p><strong>Welcome, ${member.name}!</strong></p>
+          ${
+            nextEvent
+              ? `<div class="highlight">
+                    <p>📍 <strong>${nextEvent.event_name}</strong></p>
+                    <p>🗓️ ${nextEvent.date}</p>
+                    <p>⏰ Tee Time: <strong>${nextEvent.tee_time}</strong></p>
+                    <p>🧑‍🤝‍🧑 Playing with: ${nextEvent.partners.join(", ")}</p>
+                    <p>🚶 Buggy: ${member.buggy ? "Yes" : "No"}</p>
+                </div>`
+              : `<p>No tee times available yet.</p>`
+          }
+          <div class="logout" onclick="logout()">Log out</div>
+        </div>
+      `;
+    }
+
+    async function logout() {
+      await supa.auth.signOut();
+      location.reload();
+    }
+
+    init();
+  </script>
 </body>
 </html>
