@@ -163,12 +163,15 @@
     font-size: 1.2rem;
   }
 
-  .site-nav ul {
-    flex-direction: row;
-    flex-wrap: wrap; /* ✅ Allow nav to wrap onto new row */
-    gap: 12px;
-    padding-left: 0;
-  }
+ .site-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;       /* ✅ Allow items to wrap if needed */
+  justify-content: flex-start;
+  gap: 12px;
+  max-width: 100%;
+  padding-left: 0;
+}
 
   .site-nav a {
     padding: 8px 0;
