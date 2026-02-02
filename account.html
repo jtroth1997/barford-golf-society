@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Account | Barford Golf Society</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -16,7 +14,6 @@
       color: #222;
       padding: 2rem;
     }
-
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -25,26 +22,20 @@
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-
-    h1 {
+    h1, h2 {
       font-size: 1.8rem;
       color: #005a2b;
       margin-bottom: 1rem;
     }
-
-    .login-box,
-    .round-box {
+    .login-box, .round-box {
       margin-top: 1.5rem;
     }
-
     label {
       display: block;
       margin-top: 1rem;
       font-weight: 600;
     }
-
-    input,
-    select {
+    input, select {
       width: 100%;
       padding: 0.6rem;
       margin-top: 0.3rem;
@@ -52,9 +43,8 @@
       border-radius: 6px;
       font-size: 1rem;
     }
-
     button {
-      margin-top: 1.2rem;
+      margin-top: 1.5rem;
       background: #d4af37;
       border: none;
       padding: 0.8rem 1.2rem;
@@ -62,7 +52,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     .logout {
       margin-top: 1.5rem;
       font-size: 0.9rem;
@@ -70,7 +59,6 @@
       text-decoration: underline;
       cursor: pointer;
     }
-
     .highlight {
       background: #f0fff0;
       border-left: 4px solid #005a2b;
@@ -80,169 +68,153 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <h1>🏌️ Your Next Round</h1>
-    <div id="userArea">Loading…</div>
+    <div id="userArea">Loading...</div>
   </div>
 
-<script>
-  const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+  <script>
+    const supa = supabase.createClient(
+      "https://tzzkgfehtnuizamzlbgr.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"
+    );
 
-  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const userArea = document.getElementById("userArea");
+    const userArea = document.getElementById("userArea");
 
-  async function init() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    async function init() {
+      const urlToken = new URLSearchParams(window.location.search).get("token");
 
-    if (token) {
-      const { error } = await supa.auth.exchangeCodeForSession(token);
-      if (error) {
-        userArea.innerHTML = "❌ Login failed: " + error.message;
+      if (urlToken) {
+        const { data, error } = await supa.auth.exchangeCodeForSession(urlToken);
+        if (error) {
+          userArea.innerHTML = "❌ Error logging in: " + error.message;
+          return;
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      const { data: { session } } = await supa.auth.getSession();
+
+      if (session?.user) {
+        loadDashboard(session.user);
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      userArea.innerHTML = `
+        <div class="login-box">
+          <h2>🙋 Create Your Account</h2>
+          <p>Enter your details and we'll email you a secure login link.</p>
+
+          <label>Full Name</label>
+          <input id="nameInput" type="text" placeholder="John Smith" />
+
+          <label>Email</label>
+          <input id="emailInput" type="email" placeholder="you@example.com" />
+
+          <label>Phone Number</label>
+          <input id="phoneInput" type="tel" placeholder="07123 456789" />
+
+          <label>Do you need a buggy?</label>
+          <select id="buggyInput">
+            <option value="">Select</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+
+          <label>Buggy Flexibility</label>
+          <select id="flexInput">
+            <option value="">Select</option>
+            <option value="need">I need a buggy</option>
+            <option value="happy">Happy to walk if odd</option>
+          </select>
+
+          <button onclick="sendSignup()">📩 Send Magic Link</button>
+        </div>
+      `;
+    }
+
+    async function sendSignup() {
+      const name = document.getElementById("nameInput").value.trim();
+      const email = document.getElementById("emailInput").value.trim();
+      const phone = document.getElementById("phoneInput").value.trim();
+      const buggy = document.getElementById("buggyInput").value;
+      const flex = document.getElementById("flexInput").value;
+
+      if (!name || !email || !phone || !buggy) {
+        return alert("⚠️ Please fill in all required fields.");
+      }
+
+      const { error: saveError } = await supa.from("members").upsert({
+        name,
+        email,
+        phone,
+        buggy: buggy === "true",
+        flexibility: flex || null
+      }, { onConflict: 'email' });
+
+      if (saveError) {
+        alert("❌ Error saving your details: " + saveError.message);
         return;
       }
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
 
-    const { data } = await supa.auth.getSession();
-
-    if (data?.session?.user) {
-      loadDashboard(data.session.user);
-    } else {
-      showLogin();
-    }
-  }
-
-  function showLogin() {
-    userArea.innerHTML = `
-      <div class="login-box">
-        <p>Enter your email to receive a secure login link.</p>
-        <label>Email</label>
-        <input id="emailInput" type="email" placeholder="you@example.com">
-        <button onclick="sendLogin()">📩 Send Magic Link</button>
-      </div>
-    `;
-  }
-
-  async function sendLogin() {
-    const email = document.getElementById("emailInput").value.trim();
-    if (!email) return alert("Enter your email");
-
-    const { error } = await supa.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.href }
-    });
-
-    if (error) alert(error.message);
-    else alert("✅ Check your email for the login link");
-  }
-
-  async function loadDashboard(user) {
-    const { data: member } = await supa
-      .from("members")
-      .select("*")
-      .eq("email", user.email)
-      .single();
-
-    if (!member) {
-      showProfileForm(user.email);
-      return;
-    }
-
-    const { data: nextEvent } = await supa
-      .rpc("get_next_event_for_member", { member_email: user.email });
-
-    userArea.innerHTML = `
-      <div class="round-box">
-        <p><strong>Welcome, ${member.name}</strong></p>
-
-        ${
-          nextEvent
-            ? `<div class="highlight">
-                <p><strong>${nextEvent.event_name}</strong></p>
-                <p>📅 ${nextEvent.date}</p>
-                <p>⏰ Tee Time: <strong>${nextEvent.tee_time}</strong></p>
-                <p>👥 Playing with: ${nextEvent.partners.join(", ")}</p>
-                <p>${member.buggy ? "🛺 Buggy" : "🚶 Walker"}</p>
-              </div>`
-            : `<p>Tee times have not yet been released.</p>`
+      const { error: linkError } = await supa.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: location.href
         }
+      });
 
-        <div class="logout" onclick="logout()">Log out</div>
-      </div>
-    `;
-  }
-
-  function showProfileForm(email) {
-    userArea.innerHTML = `
-      <div class="login-box">
-        <p>Please complete your profile</p>
-
-        <label>Name</label>
-        <input id="nameInput">
-
-        <label>Phone Number</label>
-        <input id="phoneInput">
-
-        <label>Handicap (optional)</label>
-        <input id="handicapInput" type="number" step="0.1">
-
-        <label>Do you need a buggy?</label>
-        <select id="buggyInput">
-          <option value="">Select</option>
-          <option value="true">Yes</option>
-          <option value="false">No</option>
-        </select>
-
-        <label>Buggy flexibility</label>
-        <select id="flexInput">
-          <option value="">Select</option>
-          <option value="need">I need a buggy</option>
-          <option value="happy">Happy to walk if odd</option>
-        </select>
-
-        <button onclick="saveProfile('${email}')">Save Profile</button>
-      </div>
-    `;
-  }
-
-  async function saveProfile(email) {
-    const name = document.getElementById("nameInput").value.trim();
-    const phone = document.getElementById("phoneInput").value.trim();
-    const handicap = document.getElementById("handicapInput").value;
-    const buggy = document.getElementById("buggyInput").value;
-    const flex = document.getElementById("flexInput").value;
-
-    if (!name || !phone || !buggy) {
-      alert("Please complete all required fields");
-      return;
+      if (linkError) {
+        alert("❌ Error sending magic link: " + linkError.message);
+      } else {
+        alert("✅ Magic link sent! Check your inbox.");
+      }
     }
 
-    const { error } = await supa.from("members").insert([{
-      email,
-      name,
-      phone,
-      handicap: handicap ? parseFloat(handicap) : null,
-      buggy: buggy === "true",
-      flexibility: flex || null
-    }]);
+    async function loadDashboard(user) {
+      const { data: member, error } = await supa
+        .from("members")
+        .select("*")
+        .eq("email", user.email)
+        .single();
 
-    if (error) {
-      alert(error.message);
-    } else {
+      if (!member) {
+        showLogin(); // fallback
+        return;
+      }
+
+      const { data: nextEvent } = await supa
+        .rpc("get_next_event_for_member", { member_name: member.name });
+
+      userArea.innerHTML = `
+        <div class="round-box">
+          <p><strong>Welcome, ${member.name}!</strong></p>
+          ${
+            nextEvent
+              ? `<div class="highlight">
+                    <p>📍 <strong>${nextEvent.event_name}</strong></p>
+                    <p>🗓️ ${nextEvent.date}</p>
+                    <p>⏰ Tee Time: <strong>${nextEvent.tee_time}</strong></p>
+                    <p>🧑‍🤝‍🧑 Playing with: ${nextEvent.partners.join(", ")}</p>
+                    <p>🚶 Buggy: ${member.buggy ? "Yes" : "No"}</p>
+                </div>`
+              : `<p>No tee times available yet.</p>`
+          }
+          <div class="logout" onclick="logout()">Log out</div>
+        </div>
+      `;
+    }
+
+    async function logout() {
+      await supa.auth.signOut();
       location.reload();
     }
-  }
 
-  async function logout() {
-    await supa.auth.signOut();
-    location.reload();
-  }
-
-  init();
-</script>
+    init();
+  </script>
 </body>
 </html>
