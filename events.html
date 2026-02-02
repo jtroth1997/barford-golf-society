@@ -891,9 +891,12 @@ ${ev.video_type === "per-hole" && ev.per_hole_videos
      </div>`
   : ""}
 </div>
-          <button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
-            📝 RSVP to this event
-          </button>
+         ${slotsLeft === 0
+  ? `<div class="event-badge" style="background:#fce4e4;color:#900;">❌ All slots full</div>`
+  : `<button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
+       📝 RSVP to this event
+     </button>`
+}
 
           <div class="add-to-calendar" id="addCal_${ev.id}"></div>
 
@@ -982,6 +985,22 @@ if (teeTimes?.length > 0) {
     if(!name || !playing) return msg.textContent = "⚠️ Fill all required fields.";
     if(buggy && !phone) return msg.textContent = "⚠️ Enter phone.";
     const attending = playing === "yes";
+    const { data: currentEvent } = await supa
+  .from("events")
+  .select("*")
+  .eq("id", eventId)
+  .single();
+
+const { data: rsvps } = await supa
+  .from("rsvps")
+  .select("*")
+  .eq("event_id", eventId)
+  .eq("attending", true);
+
+if (currentEvent?.max_players && rsvps.length >= currentEvent.max_players) {
+  msg.textContent = "❌ Sorry, this event is full.";
+  return;
+}
     await supa.from("rsvps").insert([{event_id:eventId,name,attending,buggy,flexibility:flex,phone,preferred_time:pref}]);
     msg.textContent = "✅ RSVP saved!";
     loadRSVPList(eventId);
