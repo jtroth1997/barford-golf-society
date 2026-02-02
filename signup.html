@@ -149,19 +149,34 @@
 
   /* ✅ RESPONSIVE HEADER FIX */
 @media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.header-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px; /* ✅ ADD this to prevent edge overflow */
+  box-sizing: border-box;
+}
 
   .site-nav ul {
-    justify-content: center;  /* 👌 Center nav on mobile */
-  }
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12px;
+  max-width: 100%;
+  padding-left: 0;
+  box-sizing: border-box;
+}
 
-  .site-nav a {
-    padding: 6px 0;
-    white-space: nowrap;      /* 🧼 Prevent wrapping individual words */
-  }
+.site-nav a {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--dark);
+  white-space: nowrap; /* ✅ Prevents long links from wrapping awkwardly */
+}
 }
   
   /* ADMIN PANEL STYLES */
