@@ -152,31 +152,18 @@
   .header-container {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
   }
 
-  .site-title span:first-child {
-    font-size: 1.8rem;
+  .site-nav ul {
+    justify-content: center;  /* 👌 Center nav on mobile */
   }
-
-  .site-title span:last-child {
-    font-size: 1.2rem;
-  }
-
- .site-nav ul {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;       /* ✅ Allow items to wrap if needed */
-  justify-content: flex-start;
-  gap: 12px;
-  max-width: 100%;
-  padding-left: 0;
-}
 
   .site-nav a {
-    padding: 8px 0;
+    padding: 6px 0;
+    white-space: nowrap;      /* 🧼 Prevent wrapping individual words */
   }
 }
+  
   /* ADMIN PANEL STYLES */
   #adminAccess h3 {
     font-size: 1rem;
