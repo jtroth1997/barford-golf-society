@@ -149,32 +149,53 @@
 
   /* ✅ RESPONSIVE HEADER FIX */
 @media (max-width: 768px) {
-.header-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 12px; /* ✅ ADD this to prevent edge overflow */
-  box-sizing: border-box;
-}
-  .site-nav li {
-  display: inline-block;
-}
-  .site-nav ul {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: flex-start;
-  gap: 12px 16px;
-  max-width: 100%;
-  padding-left: 0;
-  box-sizing: border-box;
-}
+  .header-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+  }
 
-.site-nav a {
-  white-space: nowrap;
-}
+  .site-nav {
+    width: 100%;
+  }
+
+  .site-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  .site-nav li {
+    display: inline-block;
+  }
+
+  .site-nav a {
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #222;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .site-nav a.active {
+    font-weight: 700;
+    color: #064d2b;
+  }
+
+  .site-nav a.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #c9aa4d;
+  }
 }
   
   /* ADMIN PANEL STYLES */
