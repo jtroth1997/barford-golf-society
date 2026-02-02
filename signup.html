@@ -159,11 +159,12 @@
   padding: 0 12px; /* ✅ ADD this to prevent edge overflow */
   box-sizing: border-box;
 }
-
- .site-nav ul {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;           /* ✅ allow wrapping */
+  .site-nav li {
+  display: inline-block;
+}
+  .site-nav ul {
+  display: flex !important;
+  flex-wrap: wrap !important;
   justify-content: flex-start;
   gap: 12px 16px;
   max-width: 100%;
@@ -172,10 +173,7 @@
 }
 
 .site-nav a {
-  text-decoration: none;
-  font-weight: 600;
-  color: var(--dark);
-  white-space: nowrap;       /* ✅ Prevents links from breaking mid-word */
+  white-space: nowrap;
 }
 }
   
