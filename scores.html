@@ -37,25 +37,8 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       position: relative;
     }
-    .navbar {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      background: var(--white);
-      padding: 12px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .navbar a {
-      color: var(--green);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.3s;
-    }
-    .navbar a:hover { color: var(--gold); }
     .dark-mode { background: #121212; color: var(--gold); }
     .dark-mode header { background: #000; }
-    .dark-mode .navbar { background: #000; }
-    .dark-mode .navbar a { color: var(--gold); }
     .dark-toggle {
       position: absolute;
       right: 20px;
@@ -197,23 +180,6 @@
       th, td { font-size:12px; padding:8px; }
       .btn { font-size:0.8rem; padding:6px 10px; }
     }
-    .site-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  background: linear-gradient(to right, var(--green), #145214);
-  color: var(--gold);
-  padding: 20px 24px;
-  font-size: 1.8rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.header-title {
-  flex: 1;
-  min-width: 250px;
-}
 
 .dark-toggle {
   display: flex;
@@ -221,25 +187,96 @@
   gap: 8px;
   font-size: 1rem;
 }
+    .site-header {
+  background: #ffffff;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 2px solid #c9aa4d;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-title {
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: #064d2b;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.site-title span:last-child {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: 0.04rem;
+}
+
+.site-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+}
+
+.site-nav a {
+  color: #222;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  position: relative;
+}
+
+.site-nav a.active {
+  font-weight: 700;
+  color: #064d2b;
+}
+
+.site-nav a.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #c9aa4d;
+}
   </style>
 </head>
 
 <body>
 
-<header class="site-header-flex">
-  <div class="header-title">🏌️Barford Golf Society Scores</div>
-  <div class="dark-toggle">
-    <label for="darkSwitch">Dark Mode</label>
-    <input type="checkbox" id="darkSwitch">
+<header class="site-header">
+  <div class="header-container">
+    <h1 class="site-title">
+      <span class="shimmer-text">Barford</span>
+      <span class="shimmer-text">GOLF SOCIETY</span>
+    </h1>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html" class="active">Scores</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="signup.html">Sign Up</a></li>
+      </ul>
+    </nav>
   </div>
 </header>
-
-<div class="navbar">
-  <a href="index.html">Home</a>
-  <a href="events.html">Events</a>
-  <a href="scores.html">Scores</a>
-  <a href="gallery.html">Gallery</a>
-</div>
 
 <div class="topbar">
   <input type="password" id="pwInput" placeholder="Enter password">
