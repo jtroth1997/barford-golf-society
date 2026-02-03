@@ -728,6 +728,8 @@
 
   <!-- Save button -->
   <button onclick="saveTeeTimes()">💾 Save Tee Times</button>
+
+  <button onclick="sendTeeTimeUpdates()" style="margin-left: 8px;">📲 Send WhatsApp Tee Times</button>
 </div>
 
 <!-- ⚠️ NEW Manage RSVPs tab — NOT inside Tee Times -->
@@ -1738,7 +1740,31 @@ async function deleteTeeTimes() {
   // 🔄 4. Refresh events so cards are correct after reload
   await loadEvents();
 }
- 
+ async function sendTeeTimeUpdates() {
+  const eventId = document.getElementById("teeEventSelect").value;
+  if (!eventId) {
+    alert("⚠️ Please select an event first.");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventId })
+    });
+
+    const result = await res.json();
+    if (res.ok && result.success !== false) {
+      alert("✅ WhatsApp messages sent!");
+    } else {
+      alert("❌ Failed to send messages: " + (result.error || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("WhatsApp send error:", err);
+    alert("❌ Error sending WhatsApp messages.");
+  }
+}
 </script>
 </body>
 </html>
