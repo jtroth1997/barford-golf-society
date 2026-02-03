@@ -108,6 +108,8 @@
     <h2>RSVP for <span id="eventNameDisplay"></span></h2>
     <form id="rsvpForm">
       <label for="attend">Will you be attending?</label>
+      <label for="phone">Phone Number (WhatsApp)</label>
+     <input type="text" id="phone" placeholder="+447123456789" required>
       <select id="attend" required>
         <option value="">Select an option</option>
         <option value="Yes">Yes</option>
@@ -145,8 +147,9 @@
       const teeTime = document.getElementById("teeTime").value;
       const buggy = document.getElementById("buggy").value;
       const partner = document.getElementById("partner").value;
+      const phone = document.getElementById("phone").value;
 
-      const newRsvp = { event: eventName, attend, teeTime, buggy, partner };
+      const newRsvp = { event: eventName, attend, teeTime, buggy, partner, phone };
       const rsvps = JSON.parse(localStorage.getItem("bgsRsvps") || "[]");
       rsvps.push(newRsvp);
       localStorage.setItem("bgsRsvps", JSON.stringify(rsvps));
