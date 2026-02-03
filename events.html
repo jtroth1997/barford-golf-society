@@ -1757,12 +1757,23 @@ async function deleteTeeTimes() {
   body: JSON.stringify({ eventId })
 });
 
-    const result = await res.json();
-    if (res.ok && result.success !== false) {
-      alert("✅ WhatsApp messages sent!");
-    } else {
-      alert("❌ Failed to send messages: " + (result.error || "Unknown error"));
-    }
+    const text = await res.text();
+console.log("📲 Quick endpoint raw response:", res.status, text);
+
+let result;
+try {
+  result = JSON.parse(text);
+} catch (e) {
+  console.error("⚠️ Failed to parse JSON:", e);
+  alert("❌ Invalid JSON from function: see console");
+  return;
+}
+
+if (res.ok && result.success) {
+  alert("✅ WhatsApp trigger succeeded:\n" + (result.message || ""));
+} else {
+  alert("❌ Failed to send messages:\n" + (result.error || text || "Unknown"));
+}
   } catch (err) {
     console.error("WhatsApp send error:", err);
     alert("❌ Error sending WhatsApp messages.");
