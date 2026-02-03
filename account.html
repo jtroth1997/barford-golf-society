@@ -3,121 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Barford Golf Society</title>
+  <title>RSVP | Barford Golf Society</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 2rem;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    h1 {
-      color: #005a2b;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.6rem;
-      font-size: 1rem;
-    }
-    button {
-      background: #d4af37;
-      color: #222;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
-    <h1>🔐 WhatsApp Login</h1>
-    <p>Create your account and get a magic login link sent to WhatsApp.</p>
+    <h1>⛳ RSVP for Upcoming Event</h1>
 
-    <label>Full Name</label>
-    <input id="nameInput" placeholder="John Smith" />
+    <div id="memberInfo"></div>
 
-    <label>Email</label>
-    <input id="emailInput" placeholder="you@example.com" />
-
-    <label>Mobile Number (WhatsApp)</label>
-    <input id="phoneInput" placeholder="+447123456789" />
-
-    <label>Need a buggy?</label>
-    <select id="buggyInput">
+    <label>Do you need a buggy?</label>
+    <select id="buggySelect">
       <option value="">Select</option>
       <option value="true">Yes</option>
       <option value="false">No</option>
     </select>
 
-    <label>Buggy Flexibility</label>
-    <select id="flexInput">
-      <option value="">Select</option>
-      <option value="need">I need a buggy</option>
-      <option value="happy">Happy to walk if odd</option>
-    </select>
+    <label>Preferred Tee Time</label>
+    <input type="time" id="teeTimeInput" />
 
-    <button onclick="sendWhatsAppMagic()">📲 Send via WhatsApp</button>
+    <button onclick="submitRSVP()">Confirm Attendance ✅</button>
   </div>
 
   <script>
     const supa = supabase.createClient(
-      "https://tzzkgfehtnuizamzlbgr.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"
+      "https://YOUR.supabase.co",
+      "public-anon-key"
     );
 
-    async function sendWhatsAppMagic() {
-      const name = document.getElementById("nameInput").value.trim();
-      const email = document.getElementById("emailInput").value.trim();
-      const phone = document.getElementById("phoneInput").value.trim();
-      const buggy = document.getElementById("buggyInput").value;
-      const flex = document.getElementById("flexInput").value;
+    let currentUser = null;
 
-      if (!name || !email || !phone || !buggy) {
-        return alert("Please complete all required fields.");
+    async function loadMember() {
+      const { data: sessionData } = await supa.auth.getSession();
+      if (!sessionData.session) {
+        window.location.href = "/account.html";
+        return;
       }
 
-      // Save or update member
-      const { error: saveError } = await supa.from("members").upsert({
-        name, email, phone,
-        buggy: buggy === "true",
-        flexibility: flex || null
-      }, { onConflict: 'email' });
+      const userEmail = sessionData.session.user.email;
+      const { data: member, error } = await supa
+        .from("members")
+        .select("*")
+        .eq("email", userEmail)
+        .single();
 
-      if (saveError) {
-        return alert("❌ Failed to save profile: " + saveError.message);
-      }
+      if (!member) return alert("Member not found");
 
-      // Generate magic login link
-      const { data, error } = await supa.auth.admin.generateLink({
-        type: "magiclink",
-        email: email,
-        options: {
-          redirectTo: location.origin + "/account.html"
-        }
+      currentUser = member;
+
+      document.getElementById("memberInfo").innerHTML = `
+        <p><strong>Name:</strong> ${member.name}</p>
+        <p><strong>Phone:</strong> ${member.phone}</p>
+        <p><strong>Buggy Flexibility:</strong> ${member.buggy_flex}</p>
+      `;
+    }
+
+    async function submitRSVP() {
+      const buggy = document.getElementById("buggySelect").value;
+      const tee = document.getElementById("teeTimeInput").value;
+
+      if (!buggy || !tee) return alert("Please complete all fields");
+
+      const { error } = await supa.from("rsvps").insert({
+        member_id: currentUser.id,
+        buggy_needed: buggy === "true",
+        tee_time_choice: tee,
+        confirmed_at: new Date().toISOString()
       });
 
       if (error) {
-        return alert("❌ Failed to create login link: " + error.message);
+        alert("RSVP failed: " + error.message);
+      } else {
+        alert("RSVP confirmed! 🎉");
       }
-
-      const loginUrl = data.properties.action_link;
-
-      const whatsappMessage = `🏌️ Barford Golf Society\nYour secure login link:\n${loginUrl}`;
-      const encoded = encodeURIComponent(whatsappMessage);
-      const whatsappURL = `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encoded}`;
-
-      window.open(whatsappURL, "_blank");
     }
+
+    loadMember();
   </script>
 </body>
 </html>
