@@ -1748,14 +1748,14 @@ async function sendTeeTimeUpdates() {
   }
 
   try {
-    const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ae921832c45a3478d5d13038711ca008c23297b8db3808eeab1530f3dbd585d1"
-      },
-      body: JSON.stringify({ eventId })
-    });
+   const res = await fetch("https://<your-project>.supabase.co/functions/v1/quick-endpoint", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer ae921832c45a3478d5d13038711ca008c23297b8db3808eeab1530f3dbd585d1"
+  },
+  body: JSON.stringify({ eventId: 20 })
+});
 
     const text = await res.text();
     console.log("📲 Quick endpoint raw response:", res.status, text);
