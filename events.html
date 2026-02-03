@@ -1748,11 +1748,11 @@ async function deleteTeeTimes() {
   }
 
   try {
-    const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
+   const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "Authorization": "Bearer 15d35ff4cf3c07ba1c6ebe8eceae86877dd48ce71d600a5786e582b9e6bd4aaf" // 👈 SERVICE_ROLE_KEY
+    "Authorization": "Bearer 15d35ff4cf3c07ba1c6ebe8eceae86877dd48ce71d600a5786e582b9e6bd4aaf"
   },
   body: JSON.stringify({ eventId })
 });
