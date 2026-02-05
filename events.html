@@ -985,27 +985,61 @@ if (teeTimes?.length > 0) {
     }
     f.classList.remove("hidden");
     b.textContent = "⬆️ Hide RSVP Form";
-    f.innerHTML = `
-      <form class="rsvp-form" onsubmit="submitRSVP(event,${eventId})">
-        <label>Name*</label><input id="name_${eventId}" required>
-        <label>Playing?*</label><select id="playing_${eventId}" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-        <label>Need a buggy?*</label><select id="buggy_${eventId}" onchange="buggyChange(${eventId})" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-      <label>Phone number*</label>
-<input id="phone_${eventId}" placeholder="07123 456789">
-<small id="phoneNote_${eventId}" class="hidden">Your number is visible to buggy partners</small>
+   f.innerHTML = `
+  <form class="rsvp-form" onsubmit="submitRSVP(event,${eventId})">
+    <label>Name*</label>
+    <input id="name_${eventId}" required>
 
-<div id="buggyOpt_${eventId}" class="hidden">
-  <label>Buggy preference</label>
-  <select id="flexibility_${eventId}">
-    <option value="need">I need a buggy</option>
-    <option value="happy">Happy to walk if odd</option>
-  </select>
-</div>
-        <label>Preferred tee time</label><select id="pref_${eventId}"><option value="">No preference</option><option>First</option><option>Middle</option><option>End</option></select>
-        <button type="submit">Submit RSVP</button>
-        <div id="msg_${eventId}" style="margin-top:8px;font-weight:600;"></div>
-      </form>`;
-  }
+    <label>Playing?*</label>
+    <select id="playing_${eventId}" required>
+      <option value="">Select</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label>Need a buggy?*</label>
+    <select id="buggy_${eventId}" onchange="buggyChange(${eventId})" required>
+      <option value="">Select</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label>Phone number*</label>
+    <input id="phone_${eventId}" placeholder="07123 456789" required>
+    <small id="phoneNote_${eventId}" class="hidden">
+      Your number is visible to buggy partners
+    </small>
+
+    <div id="buggyOpt_${eventId}" class="hidden">
+      <label>Buggy preference</label>
+      <select id="flexibility_${eventId}">
+        <option value="need">I need a buggy</option>
+        <option value="happy">Happy to walk if odd</option>
+      </select>
+    </div>
+
+    <label>Preferred tee time</label>
+    <select id="pref_${eventId}">
+      <option value="">No preference</option>
+      <option>First</option>
+      <option>Middle</option>
+      <option>End</option>
+    </select>
+
+    <!-- ✅ WHATSAPP OPT-IN (REQUIRED) -->
+    <label style="margin-top:12px; display:flex; gap:8px; align-items:flex-start;">
+      <input type="checkbox" id="whatsapp_${eventId}" required>
+      <span>
+        I agree to receive tee time notifications and event updates via WhatsApp
+        from Barford Golf Society.
+      </span>
+    </label>
+
+    <button type="submit">Submit RSVP</button>
+    <div id="msg_${eventId}" style="margin-top:8px;font-weight:600;"></div>
+  </form>
+`;
+
 
   function buggyChange(id){
     const v = document.getElementById(`buggy_${id}`).value;
@@ -1022,6 +1056,8 @@ document.getElementById(`phoneNote_${id}`).classList.toggle("hidden", !isBuggy);
     const flex = buggy ? document.getElementById(`flexibility_${eventId}`).value : null;
     const phone = document.getElementById(`phone_${eventId}`).value.trim();
     const pref = document.getElementById(`pref_${eventId}`).value;
+    const whatsappOptIn =
+  document.getElementById(`whatsapp_${eventId}`)?.checked === true;
     const msg = document.getElementById(`msg_${eventId}`);
     if(!name || !playing) return msg.textContent = "⚠️ Fill all required fields.";
     if (!phone) return msg.textContent = "⚠️ Please enter your phone number.";
@@ -1043,7 +1079,19 @@ if (currentEvent?.max_players && rsvps.length >= currentEvent.max_players) {
   msg.textContent = "❌ Sorry, this event is full.";
   return;
 }
-    await supa.from("rsvps").insert([{event_id:eventId,name,attending,buggy,flexibility:flex,phone,preferred_time:pref}]);
+    await supa.from("rsvps").insert([
+  {
+    event_id: eventId,
+    name,
+    attending,
+    buggy,
+    flexibility: flex,
+    phone,
+    preferred_time: pref,
+    whatsapp_opt_in: whatsappOptIn // ✅ SAVED
+  }
+]);
+
     msg.textContent = "✅ RSVP saved!";
     loadRSVPList(eventId);
   }
