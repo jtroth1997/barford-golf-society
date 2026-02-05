@@ -1748,14 +1748,14 @@ async function sendTeeTimeUpdates() {
   }
 
   try {
-   const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer ae921832c45a3478d5d13038711ca008c23297b8db3808eeab1530f3dbd585d1"
-  },
- body: JSON.stringify({ eventId })
-});
+    const res = await fetch("https://tzzkgfehtnuizamzlbgr.supabase.co/functions/v1/quick-endpoint", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ae921832c45a3478d5d13038711ca008c23297b8db3808eeab1530f3dbd585d1"
+      },
+      body: JSON.stringify({ eventId })
+    });
 
     const text = await res.text();
     console.log("📲 Quick endpoint raw response:", res.status, text);
@@ -1769,12 +1769,18 @@ async function sendTeeTimeUpdates() {
       return;
     }
 
-    // Optional: handle result.success or result.error
+    if (result.success) {
+      alert("✅ WhatsApp messages sent successfully!");
+    } else {
+      alert(`❌ Failed to send WhatsApp messages: ${result.error || "Unknown error"}`);
+    }
+
   } catch (error) {
     console.error("❌ Error sending message:", error);
     alert("Something went wrong: check console.");
   }
 }
+
 </script>
 </body>
 </html>
