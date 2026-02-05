@@ -1026,14 +1026,19 @@ if (teeTimes?.length > 0) {
       <option>End</option>
     </select>
 
-    <!-- ✅ WHATSAPP OPT-IN (REQUIRED) -->
-    <label style="margin-top:12px; display:flex; gap:8px; align-items:flex-start;">
-      <input type="checkbox" id="whatsapp_${eventId}" required>
-      <span>
-        I agree to receive tee time notifications and event updates via WhatsApp
-        from Barford Golf Society.
-      </span>
-    </label>
+   <!-- ✅ WHATSAPP OPT-IN (REQUIRED) -->
+<label style="margin-top:12px; display:flex; gap:8px; align-items:flex-start;">
+  <input type="checkbox" id="whatsapp_${eventId}" required>
+  <span>
+    I agree to receive tee time notifications and event updates via WhatsApp
+    from Barford Golf Society.
+  </span>
+</label>
+
+<small style="display:block;color:#666;margin-top:4px;">
+  You must have WhatsApp installed to receive messages.
+</small>
+
 
     <button type="submit">Submit RSVP</button>
     <div id="msg_${eventId}" style="margin-top:8px;font-weight:600;"></div>
