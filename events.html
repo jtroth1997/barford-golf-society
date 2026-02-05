@@ -1754,7 +1754,7 @@ async function sendTeeTimeUpdates() {
     "Content-Type": "application/json",
     "Authorization": "Bearer ae921832c45a3478d5d13038711ca008c23297b8db3808eeab1530f3dbd585d1"
   },
-  body: JSON.stringify({ eventId: 20 })
+ body: JSON.stringify({ eventId })
 });
 
     const text = await res.text();
