@@ -598,6 +598,67 @@
   color: var(--green);
   font-size: 1rem;
 }
+    /* RSVP FORM ENHANCEMENTS */
+.rsvp-form {
+  background: #fffdf6;
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 3px 8px var(--shadow);
+}
+
+.rsvp-form label {
+  font-weight: 700;
+  margin-top: 1rem;
+  color: var(--green);
+}
+
+.rsvp-form input,
+.rsvp-form select {
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  padding: 0.65rem;
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.rsvp-form input:focus,
+.rsvp-form select:focus {
+  border-color: var(--green);
+  outline: none;
+  background: #fdfdfd;
+}
+
+.rsvp-form small {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.rsvp-form button[type="submit"] {
+  background: var(--green);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  margin-top: 1.2rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.rsvp-form button[type="submit"]:hover {
+  background: #00753f;
+}
+
+.rsvp-form label::after {
+  content: attr(data-required);
+  color: red;
+  margin-left: 4px;
+  font-weight: bold;
+}
   </style>
 </head>
 
@@ -985,63 +1046,81 @@ if (teeTimes?.length > 0) {
     }
     f.classList.remove("hidden");
     b.textContent = "⬆️ Hide RSVP Form";
-   f.innerHTML = `
+f.innerHTML = `
   <form class="rsvp-form" onsubmit="submitRSVP(event,${eventId})">
-    <label>Name*</label>
-    <input id="name_${eventId}" required>
 
-    <label>Playing?*</label>
+    <label data-required="*">Name</label>
+    <input
+      id="name_${eventId}"
+      required
+      placeholder="Your full name"
+      aria-label="Your full name"
+    >
+
+    <label data-required="*">Playing?</label>
     <select id="playing_${eventId}" required>
-      <option value="">Select</option>
+      <option value="">-- Select if you're playing --</option>
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
 
-    <label>Need a buggy?*</label>
-    <select id="buggy_${eventId}" onchange="buggyChange(${eventId})" required>
-      <option value="">Select</option>
+    <label data-required="*">Need a buggy?</label>
+    <select
+      id="buggy_${eventId}"
+      onchange="buggyChange(${eventId})"
+      required
+    >
+      <option value="">-- Do you need a buggy? --</option>
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
 
-    <label>Phone number*</label>
-    <input id="phone_${eventId}" placeholder="07123 456789" required>
+    <label data-required="*">Phone number</label>
+    <input
+      id="phone_${eventId}"
+      placeholder="07123 456789"
+      required
+      aria-label="Phone number"
+    >
     <small id="phoneNote_${eventId}" class="hidden">
-      Your number is visible to buggy partners
+      Used to match buggy partners (only visible if you need a buggy)
     </small>
 
     <div id="buggyOpt_${eventId}" class="hidden">
       <label>Buggy preference</label>
       <select id="flexibility_${eventId}">
-        <option value="need">I need a buggy</option>
-        <option value="happy">Happy to walk if odd</option>
+        <option value="need">I must have a buggy</option>
+        <option value="happy">Happy to walk if odd number</option>
       </select>
     </div>
 
     <label>Preferred tee time</label>
     <select id="pref_${eventId}">
-      <option value="">No preference</option>
+      <option value="">-- No preference --</option>
       <option>First</option>
       <option>Middle</option>
       <option>End</option>
     </select>
 
-   <!-- ✅ WHATSAPP OPT-IN (REQUIRED) -->
-<label style="margin-top:12px; display:flex; gap:8px; align-items:flex-start;">
-  <input type="checkbox" id="whatsapp_${eventId}" required>
-  <span>
-    I agree to receive tee time notifications and event updates via WhatsApp
-    from Barford Golf Society.
-  </span>
-</label>
+    <!-- WHATSAPP OPT-IN -->
+    <label
+      data-required="*"
+      style="margin-top:12px; display:flex; gap:8px; align-items:flex-start;"
+    >
+      <input type="checkbox" id="whatsapp_${eventId}" required>
+      <span>
+        I agree to receive tee time notifications and event updates via WhatsApp
+        from Barford Golf Society.
+      </span>
+    </label>
 
-<small style="display:block;color:#666;margin-top:4px;">
-  You must have WhatsApp installed to receive messages.
-</small>
-
+    <small style="display:block;color:#666;margin-top:4px;">
+      WhatsApp is required so we can send tee times.
+    </small>
 
     <button type="submit">Submit RSVP</button>
     <div id="msg_${eventId}" style="margin-top:8px;font-weight:600;"></div>
+
   </form>
 `;
     } // ✅ CLOSE toggleRSVP
