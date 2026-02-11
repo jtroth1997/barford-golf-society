@@ -778,19 +778,52 @@
   <select id="editSelect" onchange="loadEditForm()"></select>
 
   <div id="editFormContainer" class="hidden">
-    <label>Name</label><input id="editName" type="text">
-    <label>Date</label><input id="editDate" type="date">
-    <label>Location</label><input id="editLocation" type="text">
-    <label>Price (£)</label><input id="editPriceFull" type="number">
-    <label>Description</label><textarea id="editDescription" rows="3"></textarea>
-    <label>Course Link</label><input id="editCourseLink" type="text">
-    <label>Weather Link</label><input id="editWeatherLink" type="text">
+    <label>Name</label>
+    <input id="editName" type="text">
+
+    <label>Date</label>
+    <input id="editDate" type="date">
+
+    <label>Location</label>
+    <input id="editLocation" type="text">
+
+    <label>Price (£)</label>
+    <input id="editPriceFull" type="number">
+
+    <label>Description</label>
+    <textarea id="editDescription" rows="3"></textarea>
+
+    <label>Course Link</label>
+    <input id="editCourseLink" type="text">
+
+    <label>Weather Link</label>
+    <input id="editWeatherLink" type="text">
+
     <label>Video Type</label>
     <select id="editVideoType" onchange="toggleVideoFields()">
       <option value="">None</option>
       <option value="whole">Whole Course Video</option>
       <option value="per-hole">Per-Hole Videos</option>
     </select>
+
+    <div id="wholeCourseVideo" class="hidden">
+      <label>Whole Course Video Link</label>
+      <input id="editVideoLink" type="text" placeholder="https://www.youtube.com/embed/xyz123">
+    </div>
+
+    <div id="perHoleVideos" class="hidden">
+      <h4>Per-Hole Videos</h4>
+      <div id="holeVideosContainer"></div>
+    </div>
+
+    <label>Max Players</label>
+    <input id="editMaxPlayers" type="number" placeholder="e.g. 24">
+
+    <label>First Tee Time</label>
+    <input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
+
+    <button onclick="saveEventEdits()">💾 Save Changes</button>
+    <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
   </div>
 </div>
 </div> <!-- ✅ now properly closes #tab-edit -->
