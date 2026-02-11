@@ -2071,10 +2071,38 @@ async function processDropout() {
     groups.push(gPlayers);
   }
 
-  while (walkers.length) {
-    const gPlayers = walkers.splice(0, groupSize);
-    groups.push(gPlayers);
+  // Step 1: Form 3-balls first
+while (walkers.length >= 3) {
+  const group = walkers.splice(0, 3);
+  groups.push(group);
+}
+
+// Step 2: Then form 4-balls
+while (walkers.length >= 4) {
+  const group = walkers.splice(0, 4);
+  groups.push(group);
+}
+
+// Step 3: Handle remaining 1–2 players
+if (walkers.length === 2 && groups.length > 0) {
+  // Try to make two 4s if last group is a 3-ball
+  const last = groups[groups.length - 1];
+  if (last.length === 3) {
+    last.push(walkers.shift());
+    groups.push([walkers.shift()]);
+  } else {
+    groups.push(walkers.splice(0));
   }
+} else if (walkers.length === 1 && groups.length > 0) {
+  const last = groups[groups.length - 1];
+  if (last.length < 4) {
+    last.push(walkers.pop());
+  } else {
+    groups.push(walkers.splice(0));
+  }
+} else if (walkers.length) {
+  groups.push(walkers.splice(0));
+}
 
   groups.forEach((players, idx) => {
     const time = addTime(teeTime, gap * idx);
