@@ -809,12 +809,18 @@
    <div id="tab-tee" class="tab-content">
   <h3>⏱️ Tee Time Generator</h3>
 
-  <label>Select event</label>
-  <select id="teeEventSelect" onchange="loadTeePlayers()"></select>
+ <label>Select event</label>
+<select id="teeEventSelect" onchange="loadTeePlayers()"></select>
 
-  <p style="margin-top:0.5rem; font-style:italic; color:#555;">
-    Select an event to load RSVPs...
-  </p>
+<p style="margin-top:0.5rem; font-style:italic; color:#555;">
+  Select an event to load RSVPs...
+</p>
+
+<div style="margin-top:1rem;">
+  <button onclick="generateTeeGroups(document.getElementById('teeEventSelect').value)" class="admin-btn">
+    ⚙️ Generate Tee Times
+  </button>
+</div>
 
   <label style="margin-top:1.2rem;">Start Time</label>
   <input id="startTime" type="text" placeholder="e.g. 9:00am">
