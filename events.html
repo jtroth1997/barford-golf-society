@@ -758,20 +758,21 @@
   </div>
 </div>
 
-    <div id="tab-delete" class="tab-content">
-      <h3>Delete Event</h3>
-      <select id="deleteSelect"></select>
-      <button onclick="deleteEvent()">Delete Selected Event</button>
-      <div id="deleteMsg" style="margin-top:10px;font-weight:600;"></div>
-    </div>
+   <div id="tab-delete" class="tab-content">
+  <h3>Delete Event</h3>
+  <select id="deleteSelect"></select>
+  <button onclick="deleteEvent()">Delete Selected Event</button>
+  <div id="deleteMsg" style="margin-top:10px;font-weight:600;"></div>
+</div>
 
-    <div id="tab-cancel" class="tab-content">
-      <h3>Edit / Cancel Event</h3>
-      <select id="cancelSelect"></select>
-<button onclick="cancelEvent()">Cancel Event</button>
-<button onclick="uncancelEvent()">Uncancel Event</button>
-      <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
-    </div>
+<div id="tab-cancel" class="tab-content">
+  <h3>Edit / Cancel Event</h3>
+  <select id="cancelSelect"></select>
+  <button onclick="cancelEvent()">Cancel Event</button>
+  <button onclick="uncancelEvent()">Uncancel Event</button>
+  <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
+</div>
+
 <div id="tab-edit" class="tab-content">
   <h3>Edit Event Details</h3>
   <select id="editSelect" onchange="loadEditForm()"></select>
@@ -785,11 +786,13 @@
     <label>Course Link</label><input id="editCourseLink" type="text">
     <label>Weather Link</label><input id="editWeatherLink" type="text">
     <label>Video Type</label>
-<select id="editVideoType" onchange="toggleVideoFields()">
-  <option value="">None</option>
-  <option value="whole">Whole Course Video</option>
-  <option value="per-hole">Per-Hole Videos</option>
-</select>
+    <select id="editVideoType" onchange="toggleVideoFields()">
+      <option value="">None</option>
+      <option value="whole">Whole Course Video</option>
+      <option value="per-hole">Per-Hole Videos</option>
+    </select>
+  </div>
+</div>
 
 <div id="wholeCourseVideo" class="hidden">
   <label>Whole Course Video Link</label>
