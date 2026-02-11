@@ -1296,8 +1296,12 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
     }
 
     if (walkers.length) {
-      html += `<div style="margin-top:6px;">🚶 <strong>Walkers:</strong> ${walkers.map(w => w.name).join(", ")}</div>`;
-    }
+  const walkersList = walkers.map(w => {
+    const pref = w.preferred_time ? ` <em>(${w.preferred_time} pref)</em>` : "";
+    return `${w.name}${pref}`;
+  });
+  html += `<div style="margin-top:6px;">🚶 <strong>Walkers:</strong> ${walkersList.join(", ")}</div>`;
+}
 
     html += `</div>`;
   });
