@@ -803,8 +803,14 @@
   <h4>Per-Hole Videos</h4>
   <div id="holeVideosContainer"></div>
 </div>
-    <label>Max Players</label><input id="editMaxPlayers" type="number" placeholder="e.g. 24">
+  <label>Max Players</label><input id="editMaxPlayers" type="number" placeholder="e.g. 24">
 <label>First Tee Time</label><input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
+
+<!-- Save button and message -->
+<button onclick="saveEventEdits()">💾 Save Changes</button>
+<div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
+</div> <!-- ✅ now properly closes #tab-edit -->
+
 
   <!-- Delete Tee Times button -->
 <div class="form-group">
