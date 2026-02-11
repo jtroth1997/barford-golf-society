@@ -719,152 +719,107 @@
 <div class="container">
   <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
 
-<div id="adminPanel" class="admin-panel hidden">
-  <div class="admin-tabs">
-    <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
-    <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
-    <div class="admin-tab" onclick="showTab('edit')">Edit Event</div>
-    <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
-    <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
-    <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
-    <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
-  </div>
-
-  <div id="tab-create" class="tab-content active">
-    <h3>Create New Event</h3>
-    <label>Name</label><input id="newName" type="text">
-    <label>Date</label><input id="newDate" type="date">
-    <label>Location</label><input id="newLocation" type="text">
-    <label>Price (£)</label><input id="newPrice" type="number">
-    <label>Description</label><textarea id="newDescription" rows="3"></textarea>
-    <label>Course Link</label><input id="newCourseLink" type="text">
-    <label>Weather Link</label><input id="newWeatherLink" type="text">
-    <button onclick="createGolfEvent()">Create Event</button>
-    <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
-  </div>
-
-  <div id="tab-dropout" class="tab-content">
-    <h3>Handle Dropouts</h3>
-
-    <label>Select Event</label>
-    <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
-
-    <label style="margin-top: 1rem;">Select Player to Remove</label>
-    <select id="dropoutPlayerSelect"></select>
-
-    <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
-
-    <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
-  </div>
-</div>
-
-   <div id="tab-delete" class="tab-content">
-  <h3>Delete Event</h3>
-  <select id="deleteSelect"></select>
-  <button onclick="deleteEvent()">Delete Selected Event</button>
-  <div id="deleteMsg" style="margin-top:10px;font-weight:600;"></div>
-</div>
-
-<div id="tab-cancel" class="tab-content">
-  <h3>Edit / Cancel Event</h3>
-  <select id="cancelSelect"></select>
-  <button onclick="cancelEvent()">Cancel Event</button>
-  <button onclick="uncancelEvent()">Uncancel Event</button>
-  <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
-</div>
-
-<div id="tab-edit" class="tab-content">
-  <h3>Edit Event Details</h3>
-  <select id="editSelect" onchange="loadEditForm()"></select>
-
-  <div id="editFormContainer" class="hidden">
-    <label>Name</label>
-    <input id="editName" type="text">
-
-    <label>Date</label>
-    <input id="editDate" type="date">
-
-    <label>Location</label>
-    <input id="editLocation" type="text">
-
-    <label>Price (£)</label>
-    <input id="editPriceFull" type="number">
-
-    <label>Description</label>
-    <textarea id="editDescription" rows="3"></textarea>
-
-    <label>Course Link</label>
-    <input id="editCourseLink" type="text">
-
-    <label>Weather Link</label>
-    <input id="editWeatherLink" type="text">
-
-    <label>Video Type</label>
-    <select id="editVideoType" onchange="toggleVideoFields()">
-      <option value="">None</option>
-      <option value="whole">Whole Course Video</option>
-      <option value="per-hole">Per-Hole Videos</option>
-    </select>
-
-    <div id="wholeCourseVideo" class="hidden">
-      <label>Whole Course Video Link</label>
-      <input id="editVideoLink" type="text" placeholder="https://www.youtube.com/embed/xyz123">
+  <div id="adminPanel" class="admin-panel hidden">
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
+      <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
+      <div class="admin-tab" onclick="showTab('edit')">Edit Event</div>
+      <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
+      <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
+      <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
+      <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
     </div>
 
-    <div id="perHoleVideos" class="hidden">
-      <h4>Per-Hole Videos</h4>
-      <div id="holeVideosContainer"></div>
+    <div id="tab-create" class="tab-content active">
+      <h3>Create New Event</h3>
+      <label>Name</label><input id="newName" type="text">
+      <label>Date</label><input id="newDate" type="date">
+      <label>Location</label><input id="newLocation" type="text">
+      <label>Price (£)</label><input id="newPrice" type="number">
+      <label>Description</label><textarea id="newDescription" rows="3"></textarea>
+      <label>Course Link</label><input id="newCourseLink" type="text">
+      <label>Weather Link</label><input id="newWeatherLink" type="text">
+      <button onclick="createGolfEvent()">Create Event</button>
+      <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
 
-    <label>Max Players</label>
-    <input id="editMaxPlayers" type="number" placeholder="e.g. 24">
+    <div id="tab-delete" class="tab-content">
+      <h3>Delete Event</h3>
+      <select id="deleteSelect"></select>
+      <button onclick="deleteEvent()">Delete Selected Event</button>
+      <div id="deleteMsg" style="margin-top:10px;font-weight:600;"></div>
+    </div>
 
-    <label>First Tee Time</label>
-    <input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
+    <div id="tab-edit" class="tab-content">
+      <h3>Edit Event Details</h3>
+      <select id="editSelect" onchange="loadEditForm()"></select>
 
-    <button onclick="saveEventEdits()">💾 Save Changes</button>
-    <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
+      <div id="editFormContainer" class="hidden">
+        <label>Name</label><input id="editName" type="text">
+        <label>Date</label><input id="editDate" type="date">
+        <label>Location</label><input id="editLocation" type="text">
+        <label>Price (£)</label><input id="editPriceFull" type="number">
+        <label>Description</label><textarea id="editDescription" rows="3"></textarea>
+        <label>Course Link</label><input id="editCourseLink" type="text">
+        <label>Weather Link</label><input id="editWeatherLink" type="text">
+        <label>Video Type</label>
+        <select id="editVideoType" onchange="toggleVideoFields()">
+          <option value="">None</option>
+          <option value="whole">Whole Course Video</option>
+          <option value="per-hole">Per-Hole Videos</option>
+        </select>
+
+        <div id="wholeCourseVideo" class="hidden">
+          <label>Whole Course Video Link</label>
+          <input id="editVideoLink" type="text" placeholder="https://www.youtube.com/embed/xyz123">
+        </div>
+
+        <div id="perHoleVideos" class="hidden">
+          <h4>Per-Hole Videos</h4>
+          <div id="holeVideosContainer"></div>
+        </div>
+
+        <label>Max Players</label>
+        <input id="editMaxPlayers" type="number" placeholder="e.g. 24">
+
+        <label>First Tee Time</label>
+        <input id="editFirstTime" type="text" placeholder="e.g. 9:00am">
+
+        <button onclick="saveEventEdits()">💾 Save Changes</button>
+        <div id="editMsg" style="margin-top:10px;font-weight:600;"></div>
+      </div>
+    </div>
+
+    <div id="tab-cancel" class="tab-content">
+      <h3>Edit / Cancel Event</h3>
+      <select id="cancelSelect"></select>
+      <button onclick="cancelEvent()">Cancel Event</button>
+      <button onclick="uncancelEvent()">Uncancel Event</button>
+      <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
+    </div>
+
+    <div id="tab-tee" class="tab-content">
+      <h3>Generate Tee Times</h3>
+      <label>Select Event</label>
+      <select id="teeEventSelect" onchange="loadTeePlayers()"></select>
+      <button style="margin-top: 1rem;" onclick="generateTeeTimes()">🎯 Generate Tee Times</button>
+      <div id="teeMsg" style="margin-top:1rem;font-weight:600;"></div>
+      <div class="form-group">
+        <button id="deleteTeeTimesBtn" onclick="deleteTeeTimes()" style="display:none;">🗑️ Delete Tee Times</button>
+      </div>
+    </div>
+
+      <h3>Handle Dropouts</h3>
+      <label>Select Event</label>
+      <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
+      <label style="margin-top: 1rem;">Select Player to Remove</label>
+      <select id="dropoutPlayerSelect"></select>
+      <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
+      <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
+    </div>
   </div>
 </div>
-</div> <!-- ✅ now properly closes #tab-edit -->
 
-
-  <!-- Delete Tee Times button -->
-<div class="form-group">
-  <button id="deleteTeeTimesBtn" onclick="deleteTeeTimes()" style="display:none;">🗑️ Delete Tee Times</button>
-</div>
-
-<div id="tab-tee" class="tab-content">
-  <h3>🕓 Tee Time Generator</h3>
-
-  <!-- Event selector -->
-  <select id="teeEventSelect"></select>
-
-  <!-- ✅ Add delete tee times button (initially hidden) -->
-  <div style="margin-top: 0.8rem;">
-    <button id="deleteTeeTimesBtn" onclick="deleteTeeTimes()" style="display:none;">🗑️ Delete Tee Times</button>
-  </div>
-
-  <!-- Player pool shows RSVPs -->
-  <div id="playerPool" style="margin-top:1rem;"><em>Select an event to load RSVPs...</em></div>
-
-  <!-- Generator controls -->
-  <label>Start Time</label>
-  <input id="startTime" value="9:00am" style="width:120px;">
-  <label>Gap (mins)</label>
-  <input id="gapMins" value="7" style="width:60px;">
-
-  <!-- Output groups -->
-  <div id="teeGroups" style="margin-top:20px;"></div>
-
-  <!-- Save button -->
-  <button onclick="saveTeeTimes()">💾 Save Tee Times</button>
-
-  <button onclick="sendTeeTimeUpdates()" style="margin-left: 8px;">📲 Send WhatsApp Tee Times</button>
-</div>
-
-<!-- ⚠️ NEW Manage RSVPs tab — NOT inside Tee Times -->
-<div id="tab-rsvps" class="tab-content">
   <h3>Manage RSVPs</h3>
 
   <label>Select Event</label>
