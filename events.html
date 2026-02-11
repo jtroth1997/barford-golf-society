@@ -719,41 +719,44 @@
 <div class="container">
   <button id="adminToggle" class="admin-btn" onclick="toggleAdminAccess()">🔐 Admin Access</button>
 
-  <div id="adminPanel" class="admin-panel hidden">
-   <div class="admin-tabs">
-  <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
-  <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
-  <div class="admin-tab" onclick="showTab('edit')">Edit Event</div>
-  <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
-  <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
-  <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
-  <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
-     <div id="tab-dropout" class="tab-content">
-  <h3>Handle Dropouts</h3>
+<div id="adminPanel" class="admin-panel hidden">
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="showTab('create')">Create Event</div>
+    <div class="admin-tab" onclick="showTab('delete')">Delete Event</div>
+    <div class="admin-tab" onclick="showTab('edit')">Edit Event</div>
+    <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
+    <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
+    <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
+    <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
+  </div>
 
-  <label>Select Event</label>
-  <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
+  <div id="tab-create" class="tab-content active">
+    <h3>Create New Event</h3>
+    <label>Name</label><input id="newName" type="text">
+    <label>Date</label><input id="newDate" type="date">
+    <label>Location</label><input id="newLocation" type="text">
+    <label>Price (£)</label><input id="newPrice" type="number">
+    <label>Description</label><textarea id="newDescription" rows="3"></textarea>
+    <label>Course Link</label><input id="newCourseLink" type="text">
+    <label>Weather Link</label><input id="newWeatherLink" type="text">
+    <button onclick="createGolfEvent()">Create Event</button>
+    <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
+  </div>
 
-  <label style="margin-top: 1rem;">Select Player to Remove</label>
-  <select id="dropoutPlayerSelect"></select>
+  <div id="tab-dropout" class="tab-content">
+    <h3>Handle Dropouts</h3>
 
-  <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
+    <label>Select Event</label>
+    <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
 
-  <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
+    <label style="margin-top: 1rem;">Select Player to Remove</label>
+    <select id="dropoutPlayerSelect"></select>
+
+    <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
+
+    <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
+  </div>
 </div>
-
-    <div id="tab-create" class="tab-content active">
-      <h3>Create New Event</h3>
-      <label>Name</label><input id="newName" type="text">
-      <label>Date</label><input id="newDate" type="date">
-      <label>Location</label><input id="newLocation" type="text">
-      <label>Price (£)</label><input id="newPrice" type="number">
-      <label>Description</label><textarea id="newDescription" rows="3"></textarea>
-      <label>Course Link</label><input id="newCourseLink" type="text">
-      <label>Weather Link</label><input id="newWeatherLink" type="text">
-      <button onclick="createGolfEvent()">Create Event</button>
-      <div id="createMsg" style="margin-top:10px;font-weight:600;"></div>
-    </div>
 
     <div id="tab-delete" class="tab-content">
       <h3>Delete Event</h3>
