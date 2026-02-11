@@ -728,6 +728,14 @@
       <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
       <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
       <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
+      <div id="tab-rsvps" class="tab-content">
+  <h3>Manage RSVPs</h3>
+
+  <label>Select Event</label>
+  <select id="manageRsvpEventSelect" onchange="loadAdminRsvps()"></select>
+
+  <div id="manageRsvpList" style="margin-top:1rem;"></div>
+</div>
     </div>
 
     <div id="tab-create" class="tab-content active">
@@ -808,24 +816,7 @@
         <button id="deleteTeeTimesBtn" onclick="deleteTeeTimes()" style="display:none;">🗑️ Delete Tee Times</button>
       </div>
     </div>
-
-      <h3>Handle Dropouts</h3>
-      <label>Select Event</label>
-      <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
-      <label style="margin-top: 1rem;">Select Player to Remove</label>
-      <select id="dropoutPlayerSelect"></select>
-      <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
-      <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
-    </div>
   </div>
-</div>
-
-  <h3>Manage RSVPs</h3>
-
-  <label>Select Event</label>
-  <select id="manageRsvpEventSelect" onchange="loadAdminRsvps()"></select>
-
-  <div id="manageRsvpList" style="margin-top:1rem;"></div>
 </div>
   </div>
 
