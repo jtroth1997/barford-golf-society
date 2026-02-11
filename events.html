@@ -805,7 +805,19 @@
       <button onclick="uncancelEvent()">Uncancel Event</button>
       <div id="cancelMsg" style="margin-top:10px;font-weight:600;"></div>
     </div>
+<div id="tab-dropout" class="tab-content">
+  <h3>Manage Dropouts</h3>
 
+  <label>Select Event</label>
+  <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
+
+  <label style="margin-top: 1rem;">Select Player to Remove</label>
+  <select id="dropoutPlayerSelect"></select>
+
+  <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
+
+  <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
+</div>
    <div id="tab-tee" class="tab-content">
   <h3>⏱️ Tee Time Generator</h3>
 
