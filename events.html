@@ -1615,11 +1615,13 @@ document.getElementById("teeEventSelect").onchange = () => {
         li.dataset.phone = p.phone || "";
         li.dataset.type = p.buggy ? "buggy" : "walker";
         li.dataset.group = i+1;
-        li.innerHTML = `${p.buggy ? "🛺" : "🚶"} ${p.name} ${p.phone ? `(${p.phone})` : ""}
-          <div style="float:right;">
-            <button onclick='toggleType(this)' style='font-size:11px;padding:2px 6px;'>🔄</button>
-            <button onclick='selectForPair(this)' style='font-size:11px;padding:2px 6px;'>➕</button>
-          </div>`;
+       const pref = p.preferred_time ? ` <em>(${p.preferred_time} pref)</em>` : "";
+
+li.innerHTML = `${p.buggy ? "🛺" : "🚶"} ${p.name}${pref} ${p.phone ? `(${p.phone})` : ""}
+  <div style="float:right;">
+    <button onclick='toggleType(this)' style='font-size:11px;padding:2px 6px;'>🔄</button>
+    <button onclick='selectForPair(this)' style='font-size:11px;padding:2px 6px;'>➕</button>
+  </div>`;
         ul.appendChild(li);
       });
 
