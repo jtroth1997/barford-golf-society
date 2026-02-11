@@ -727,6 +727,19 @@
   <div class="admin-tab" onclick="showTab('cancel')">Cancel Event</div>
   <div class="admin-tab" onclick="showTab('tee')">Tee Times</div>
   <div class="admin-tab" onclick="showTab('rsvps')">Manage RSVPs</div>
+  <div class="admin-tab" onclick="showTab('dropout')">Manage Dropouts</div>
+     <div id="tab-dropout" class="tab-content">
+  <h3>Handle Dropouts</h3>
+
+  <label>Select Event</label>
+  <select id="dropoutEventSelect" onchange="loadDropoutPlayers()"></select>
+
+  <label style="margin-top: 1rem;">Select Player to Remove</label>
+  <select id="dropoutPlayerSelect"></select>
+
+  <button style="margin-top: 1rem;" onclick="processDropout()">♻️ Reorganize Tee Times</button>
+
+  <div id="dropoutMsg" style="margin-top:1rem;font-weight:600;"></div>
 </div>
 
     <div id="tab-create" class="tab-content active">
@@ -1316,11 +1329,13 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
     .order("date", { ascending: true });
 
   // Get all the event selects
+  const dropout = document.getElementById("dropoutEventSelect");
   const del = document.getElementById("deleteSelect");
   const can = document.getElementById("cancelSelect");
   const tee = document.getElementById("teeEventSelect");
   const edit = document.getElementById("editSelect");
   const rsvp = document.getElementById("manageRsvpEventSelect");
+
 
   // Reset each dropdown
   [del, can, tee, edit, rsvp].forEach(s => {
@@ -1328,14 +1343,15 @@ if (rsvpDiv) rsvpDiv.innerHTML = "";
   });
 
   // Populate
-  data.forEach(e => {
-    const label = `${e.name} (${formatDatePretty(e.date)})`;
-    if (del) del.innerHTML += `<option value="${e.id}">${label}</option>`;
-    if (can) can.innerHTML += `<option value="${e.id}">${label}</option>`;
-    if (tee) tee.innerHTML += `<option value="${e.id}">${label}</option>`;
-    if (edit) edit.innerHTML += `<option value="${e.id}">${label}</option>`;
-    if (rsvp) rsvp.innerHTML += `<option value="${e.id}">${label}</option>`;
-  });
+ data.forEach(e => {
+  const label = `${e.name} (${formatDatePretty(e.date)})`;
+  if (dropout) dropout.innerHTML += `<option value="${e.id}">${label}</option>`;
+  if (del) del.innerHTML += `<option value="${e.id}">${label}</option>`;
+  if (can) can.innerHTML += `<option value="${e.id}">${label}</option>`;
+  if (tee) tee.innerHTML += `<option value="${e.id}">${label}</option>`;
+  if (edit) edit.innerHTML += `<option value="${e.id}">${label}</option>`;
+  if (rsvp) rsvp.innerHTML += `<option value="${e.id}">${label}</option>`;
+});
 }
 function toggleVideoFields() {
   const type = document.getElementById("editVideoType").value;
@@ -1954,7 +1970,125 @@ async function sendTeeTimeUpdates() {
     alert("Something went wrong: check console.");
   }
 }
+async function loadDropoutPlayers() {
+  const eventId = document.getElementById("dropoutEventSelect").value;
+  const sel = document.getElementById("dropoutPlayerSelect");
+  sel.innerHTML = "<option value=''>Loading players...</option>";
 
+  const { data, error } = await supa
+    .from("tee_times")
+    .select("players, group_number")
+    .eq("event_id", eventId);
+
+  if (error) {
+    sel.innerHTML = "<option value=''>❌ Error loading players</option>";
+    return;
+  }
+
+  const allPlayers = data.flatMap(group =>
+    group.players.map(p => ({
+      ...p,
+      group_number: group.group_number
+    }))
+  );
+
+  if (!allPlayers.length) {
+    sel.innerHTML = "<option value=''>No tee times for this event</option>";
+    return;
+  }
+
+  sel.innerHTML = "<option value=''>Select player</option>";
+  allPlayers.forEach(p => {
+    sel.innerHTML += `<option value="${p.name}">${p.name} (Group ${p.group_number})</option>`;
+  });
+}
+
+async function processDropout() {
+  const eventId = document.getElementById("dropoutEventSelect").value;
+  const nameToRemove = document.getElementById("dropoutPlayerSelect").value;
+  const msg = document.getElementById("dropoutMsg");
+
+  if (!eventId || !nameToRemove) {
+    msg.textContent = "⚠️ Please select both event and player.";
+    return;
+  }
+
+  msg.textContent = "⏳ Reorganizing tee times...";
+
+  const { data, error } = await supa
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId);
+
+  if (error || !data?.length) {
+    msg.textContent = "❌ Error fetching tee times.";
+    return;
+  }
+
+  let allPlayers = [];
+  data.forEach(group => {
+    group.players.forEach(p => {
+      if (p.name !== nameToRemove) {
+        allPlayers.push(p);
+      }
+    });
+  });
+
+  const buggy = allPlayers.filter(p => p.type === "buggy");
+  const walkers = allPlayers.filter(p => p.type !== "buggy");
+
+  const groups = [];
+  const groupSize = 4;
+  const teeTimes = [];
+
+  let i = 0;
+  let teeTime = document.getElementById("startTime").value || "9:00am";
+  const gap = parseInt(document.getElementById("gapMins").value) || 7;
+
+  const addTime = (s, m) => {
+    let [t, a] = s.toLowerCase().split(/(am|pm)/).filter(Boolean);
+    let [h, mm] = t.split(":").map(Number);
+    if (a === "pm" && h < 12) h += 12;
+    if (a === "am" && h === 12) h = 0;
+    const d = new Date();
+    d.setHours(h);
+    d.setMinutes(mm + m);
+    const hr = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const sfx = hr >= 12 ? "pm" : "am";
+    const disp = ((hr + 11) % 12) + 1;
+    return `${disp}:${mi}${sfx}`;
+  };
+
+  while (buggy.length >= 2) {
+    const gPlayers = [buggy.pop(), buggy.pop()];
+    while (gPlayers.length < groupSize && walkers.length) {
+      gPlayers.push(walkers.pop());
+    }
+    groups.push(gPlayers);
+  }
+
+  while (walkers.length) {
+    const gPlayers = walkers.splice(0, groupSize);
+    groups.push(gPlayers);
+  }
+
+  groups.forEach((players, idx) => {
+    const time = addTime(teeTime, gap * idx);
+    teeTimes.push({
+      event_id: eventId,
+      group_number: idx + 1,
+      tee_time: time,
+      players
+    });
+  });
+
+  await supa.from("tee_times").delete().eq("event_id", eventId);
+  await supa.from("tee_times").insert(teeTimes);
+
+  msg.textContent = "✅ Tee times reorganized after dropout.";
+  loadEvents();
+}
 </script>
 </body>
 </html>
