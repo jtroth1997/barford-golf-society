@@ -1039,10 +1039,19 @@ ${ev.video_type === "per-hole" && ev.per_hole_videos
   : ""}
 </div>
          ${slotsLeft === 0
-  ? `<div class="event-badge" style="background:#fce4e4;color:#900;">❌ All slots full</div>`
-  : `<button class="admin-btn" onclick="toggleRSVP(${ev.id})" id="rsvpBtn_${ev.id}">
-       📝 RSVP to this event
-     </button>`
+  ? `
+    <div class="event-badge" style="background:#fce4e4;color:#900;">
+      ❌ All slots full
+    </div>
+    <button class="admin-btn" onclick="toggleRSVP(${ev.id}, true)" id="rsvpBtn_${ev.id}">
+      🕒 Join Reserve List
+    </button>
+  `
+  : `
+    <button class="admin-btn" onclick="toggleRSVP(${ev.id}, false)" id="rsvpBtn_${ev.id}">
+      📝 RSVP to this event
+    </button>
+  `
 }
 
           <div class="add-to-calendar" id="addCal_${ev.id}"></div>
@@ -1089,7 +1098,7 @@ if (teeTimes?.length > 0) {
   btn.textContent = expanded ? "Show less ⬆️" : "Show more ⬇️";
 }
   
-  function toggleRSVP(eventId){
+ function toggleRSVP(eventId, isReserveMode = false){
     const f = document.getElementById(`rsvpForm_${eventId}`);
     const b = document.getElementById(`rsvpBtn_${eventId}`);
     if(!f.classList.contains("hidden")){
@@ -1110,12 +1119,16 @@ f.innerHTML = `
       aria-label="Your full name"
     >
 
-    <label data-required="*">Playing?</label>
-    <select id="playing_${eventId}" required>
-      <option value="">-- Select if you're playing --</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
+   ${!isReserveMode ? `
+  <label data-required="*">Playing?</label>
+  <select id="playing_${eventId}" required>
+    <option value="">-- Select if you're playing --</option>
+    <option value="yes">Yes</option>
+    <option value="no">No</option>
+  </select>
+` : `
+  <input type="hidden" id="playing_${eventId}" value="yes">
+`}
 
     <label data-required="*">Need a buggy?</label>
     <select
@@ -1171,7 +1184,9 @@ f.innerHTML = `
       WhatsApp is required so we can send tee times.
     </small>
 
-    <button type="submit">Submit RSVP</button>
+    <button type="submit">
+  ${isReserveMode ? "Join Reserve List" : "Submit RSVP"}
+</button>
     <div id="msg_${eventId}" style="margin-top:8px;font-weight:600;"></div>
 
   </form>
@@ -1214,24 +1229,28 @@ const { data: rsvps } = await supa
   .eq("event_id", eventId)
   .eq("attending", true);
 
+let isReserve = false;
+
 if (currentEvent?.max_players && rsvps.length >= currentEvent.max_players) {
-  msg.textContent = "❌ Sorry, this event is full.";
-  return;
+  isReserve = true;
 }
     await supa.from("rsvps").insert([
   {
     event_id: eventId,
     name,
-    attending,
+    attending: isReserve ? false : attending,
     buggy,
     flexibility: flex,
     phone,
     preferred_time: pref,
-    whatsapp_opt_in: whatsappOptIn // ✅ SAVED
+    whatsapp_opt_in: whatsappOptIn,
+    reserve: isReserve
   }
 ]);
 
-    msg.textContent = "✅ RSVP saved!";
+   msg.textContent = isReserve
+  ? "✅ Added to reserve list."
+  : "✅ RSVP confirmed!";
     loadRSVPList(eventId);
   }
 
@@ -1239,33 +1258,45 @@ async function loadRSVPList(eventId) {
   const div = document.getElementById(`rsvpList_${eventId}`);
   if (!div) return;
 
-  // Clear before repopulating
   div.innerHTML = "";
 
-  const { data } = await supa
+  const { data, error } = await supa
     .from("rsvps")
     .select("*")
-    .eq("event_id", eventId)
-    .eq("attending", true);
+    .eq("event_id", eventId);
+
+  if (error) {
+    div.innerHTML = "<em>Error loading RSVPs.</em>";
+    return;
+  }
 
   if (!data?.length) {
     div.innerHTML = "<em>No RSVPs yet.</em>";
     return;
   }
 
- let html = "<strong>👥 Who's Playing:</strong><br>";
-  data.forEach(p => {
-    const phone = p.buggy && p.phone ? ` (${p.phone})` : "";
-    const icon = p.buggy ? "🛺" : "🚶";
-    const note = p.buggy
-      ? p.flexibility === "happy"
-        ? " (Happy to walk if no pair)"
-        : " (Needs buggy)"
-      : "";
+  const confirmed = data.filter(p => p.attending && !p.reserve);
+  const reserves = data.filter(p => p.reserve);
 
+  let html = "";
 
-    html += `<div class="rsvp-entry">${icon} ${p.name}${phone}${note}</div>`;
-  });
+  // Confirmed players
+  if (confirmed.length) {
+    html += "<strong>👥 Who's Playing:</strong><br>";
+    confirmed.forEach(p => {
+      const phone = p.buggy && p.phone ? ` (${p.phone})` : "";
+      const icon = p.buggy ? "🛺" : "🚶";
+      html += `<div class="rsvp-entry">${icon} ${p.name}${phone}</div>`;
+    });
+  }
+
+  // Reserve list
+  if (reserves.length) {
+    html += "<br><strong>🕒 Reserve List:</strong><br>";
+    reserves.forEach((p, i) => {
+      html += `<div class="rsvp-entry">${i + 1}. ${p.name}</div>`;
+    });
+  }
 
   div.innerHTML = html;
 }
