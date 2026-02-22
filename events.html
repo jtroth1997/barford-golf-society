@@ -1896,27 +1896,51 @@ if (currentRsvpView === "playing") {
       </tr>
   `;
 
-  filtered.forEach(r => {
-    html += `
-      <tr style="border-bottom:1px solid #ddd;">
-        <td>${r.name}</td>
-        <td>${r.phone || ""}</td>
-        <td>${r.buggy ? "Yes" : "No"}</td>
-        <td>${r.preferred_time || ""}</td>
-        <td>
-          <button onclick="toggleReserveStatus(${r.id}, ${eventId})">
-            ${currentRsvpView === "playing"
-              ? "➜ Move to Reserve"
-              : "➜ Move to Playing"}
-          </button>
+ filtered.forEach(r => {
+  html += `
+    <tr style="border-bottom:1px solid #ddd;">
+      <td>
+        <input id="rsvp_name_${r.id}" value="${r.name}" style="width:100%;">
+      </td>
 
-          <button onclick="deleteRsvpAdmin(${r.id}, ${eventId})">
-            ❌
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+      <td>
+        <input id="rsvp_phone_${r.id}" value="${r.phone || ""}" style="width:100%;">
+      </td>
+
+      <td>
+        <select id="rsvp_buggy_${r.id}">
+          <option value="false" ${!r.buggy ? "selected" : ""}>No</option>
+          <option value="true" ${r.buggy ? "selected" : ""}>Yes</option>
+        </select>
+      </td>
+
+      <td>
+        <select id="rsvp_pref_${r.id}">
+          <option value="">None</option>
+          <option ${r.preferred_time === "First" ? "selected" : ""}>First</option>
+          <option ${r.preferred_time === "Middle" ? "selected" : ""}>Middle</option>
+          <option ${r.preferred_time === "End" ? "selected" : ""}>End</option>
+        </select>
+      </td>
+
+      <td>
+        <button onclick="saveRsvpEdit(${r.id}, ${eventId})">
+          💾 Save
+        </button>
+
+        <button onclick="toggleReserveStatus(${r.id}, ${eventId})">
+          ${currentRsvpView === "playing"
+            ? "➜ Reserve"
+            : "➜ Playing"}
+        </button>
+
+        <button onclick="deleteRsvpAdmin(${r.id}, ${eventId})">
+          ❌
+        </button>
+      </td>
+    </tr>
+  `;
+});
 
   html += "</table>";
 
@@ -1924,17 +1948,13 @@ if (currentRsvpView === "playing") {
 }
 
 async function saveRsvpEdit(rsvpId, eventId) {
-  const attendingValue =
-    document.getElementById(`rsvp_playing_${rsvpId}`).value === "true";
 
   const updates = {
     name: document.getElementById(`rsvp_name_${rsvpId}`).value.trim(),
     phone: document.getElementById(`rsvp_phone_${rsvpId}`).value.trim(),
-    attending: attendingValue,
-    reserve: attendingValue ? false : true,   // 🔥 CRITICAL FIX
     buggy: document.getElementById(`rsvp_buggy_${rsvpId}`).value === "true",
     preferred_time:
-      document.getElementById(`rsvp_pref_${rsvpId}`).value.trim() || null
+      document.getElementById(`rsvp_pref_${rsvpId}`).value || null
   };
 
   const { error } = await supa
@@ -1947,6 +1967,7 @@ async function saveRsvpEdit(rsvpId, eventId) {
     console.error(error);
   } else {
     alert("✅ RSVP updated");
+
     await loadAdminRsvps();
     await loadRSVPList(eventId);
     await loadEvents();
