@@ -1873,11 +1873,11 @@ async function loadAdminRsvps() {
 
   let filtered;
 
-  if (currentRsvpView === "playing") {
-    filtered = data.filter(r => r.attending && !r.reserve);
-  } else {
-    filtered = data.filter(r => r.reserve);
-  }
+if (currentRsvpView === "playing") {
+  filtered = data.filter(r => r.attending === true && r.reserve === false);
+} else {
+  filtered = data.filter(r => r.reserve === true && r.attending === false);
+}
 
   if (!filtered.length) {
     document.getElementById("manageRsvpList").innerHTML =
@@ -1967,14 +1967,12 @@ async function toggleReserveStatus(rsvpId, eventId) {
 
   const movingToReserve = !data.reserve;
 
-  const updates = {
-    reserve: movingToReserve,
-    attending: movingToReserve ? false : true
-  };
-
   const { error: updateError } = await supa
     .from("rsvps")
-    .update(updates)
+    .update({
+      reserve: movingToReserve,
+      attending: movingToReserve ? false : true
+    })
     .eq("id", rsvpId);
 
   if (updateError) {
@@ -1982,11 +1980,7 @@ async function toggleReserveStatus(rsvpId, eventId) {
     return;
   }
 
-  alert(
-    movingToReserve
-      ? "Moved to reserve list."
-      : "Moved to playing list."
-  );
+  currentRsvpView = movingToReserve ? "reserve" : "playing";
 
   await loadAdminRsvps();
   await loadRSVPList(eventId);
