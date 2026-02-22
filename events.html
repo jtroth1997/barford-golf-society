@@ -967,11 +967,12 @@ async function loadEvents() {
     const weekday = d.toLocaleString("en-GB", { weekday: "short" });
 
     // Fetch RSVP count for this event
-const { data: rsvpsData, error: rsvpError } = await supa
+const { data: rsvpsData } = await supa
   .from("rsvps")
   .select("*")
   .eq("event_id", ev.id)
-  .eq("attending", true);
+  .eq("attending", true)
+  .eq("reserve", false);
 
 const attendingCount = rsvpsData?.length || 0;
 const slotsLeft = ev.max_players !== null ? ev.max_players - attendingCount : null;
@@ -1227,7 +1228,8 @@ const { data: rsvps } = await supa
   .from("rsvps")
   .select("*")
   .eq("event_id", eventId)
-  .eq("attending", true);
+  .eq("attending", true)
+  .eq("reserve", false);
 
 let isReserve = false;
 
@@ -1275,8 +1277,13 @@ async function loadRSVPList(eventId) {
     return;
   }
 
-  const confirmed = data.filter(p => p.attending && !p.reserve);
-  const reserves = data.filter(p => p.reserve);
+ const confirmed = data
+  .filter(p => p.attending && !p.reserve)
+  .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+const reserves = data
+  .filter(p => p.reserve && !p.attending)
+  .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
   let html = "";
 
@@ -1873,12 +1880,17 @@ async function loadAdminRsvps() {
 }
 
 async function saveRsvpEdit(rsvpId, eventId) {
+  const attendingValue =
+    document.getElementById(`rsvp_playing_${rsvpId}`).value === "true";
+
   const updates = {
     name: document.getElementById(`rsvp_name_${rsvpId}`).value.trim(),
     phone: document.getElementById(`rsvp_phone_${rsvpId}`).value.trim(),
-    attending: document.getElementById(`rsvp_playing_${rsvpId}`).value === "true",
+    attending: attendingValue,
+    reserve: attendingValue ? false : true,   // 🔥 CRITICAL FIX
     buggy: document.getElementById(`rsvp_buggy_${rsvpId}`).value === "true",
-    preferred_time: document.getElementById(`rsvp_pref_${rsvpId}`).value.trim() || null
+    preferred_time:
+      document.getElementById(`rsvp_pref_${rsvpId}`).value.trim() || null
   };
 
   const { error } = await supa
@@ -1888,42 +1900,85 @@ async function saveRsvpEdit(rsvpId, eventId) {
 
   if (error) {
     alert("❌ Error saving RSVP");
+    console.error(error);
   } else {
     alert("✅ RSVP updated");
-    loadAdminRsvps();
-loadEvents();      // reloads the overview and slot counts
-// if an event card is currently visible and matches the selected event,
-// also rerender it:
-const selEventId = document.getElementById("manageRsvpEventSelect").value;
-if (selEventId) loadRSVPList(selEventId); 
-    loadRSVPList(eventId); // Refresh RSVP list on event card
+    await loadAdminRsvps();
+    await loadRSVPList(eventId);
+    await loadEvents();
   }
 }
 
 async function deleteRsvpAdmin(rsvpId, eventId) {
   if (!confirm("Are you sure you want to delete this RSVP?")) return;
 
-  console.log("Attempting to delete RSVP:", rsvpId, "for event:", eventId);
+  // 1️⃣ Fetch RSVP being deleted
+  const { data: rsvpToDelete, error: fetchError } = await supa
+    .from("rsvps")
+    .select("*")
+    .eq("id", rsvpId)
+    .single();
 
-  const { data, error } = await supa
+  if (fetchError || !rsvpToDelete) {
+    alert("❌ Error fetching RSVP");
+    console.error(fetchError);
+    return;
+  }
+
+ const wasConfirmedPlayer =
+  Boolean(rsvpToDelete.attending) &&
+  !Boolean(rsvpToDelete.reserve);
+
+  // 2️⃣ Delete RSVP
+  const { error: deleteError } = await supa
     .from("rsvps")
     .delete()
     .eq("id", rsvpId);
 
-  if (error) {
-    alert("❌ Error deleting RSVP: " + error.message);
-    console.error("supa delete error:", error);
+  if (deleteError) {
+    alert("❌ Error deleting RSVP: " + deleteError.message);
+    console.error(deleteError);
     return;
   }
 
-  console.log("Delete result:", data);
+  // 3️⃣ Promote first reserve (if needed)
+  if (wasConfirmedPlayer) {
 
-  alert("✅ RSVP deleted from database");
+    const { data: reserves, error: reserveError } = await supa
+      .from("rsvps")
+      .select("*")
+      .eq("event_id", eventId)
+      .eq("reserve", true)
+      .eq("attending", false)
+      .order("created_at", { ascending: true })
+      .limit(1);
 
-  // Force the selected event back into the dropdown
-  document.getElementById("manageRsvpEventSelect").value = eventId;
+    if (reserveError) {
+      console.error(reserveError);
+    }
 
-  // Refresh UI
+    if (reserves && reserves.length > 0) {
+      const nextPlayer = reserves[0];
+
+      const { error: promoteError } = await supa
+        .from("rsvps")
+        .update({
+          attending: true,
+          reserve: false
+        })
+        .eq("id", nextPlayer.id);
+
+      if (!promoteError) {
+        alert(`🎉 ${nextPlayer.name} has been moved from reserve to playing!`);
+      } else {
+        console.error(promoteError);
+      }
+    }
+  }
+
+  alert("✅ RSVP deleted");
+
+  // 4️⃣ Refresh UI
   await loadAdminRsvps();
   await loadRSVPList(eventId);
   await loadEvents();
