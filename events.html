@@ -1954,6 +1954,9 @@ async function saveRsvpEdit(rsvpId, eventId) {
 }
 
 async function toggleReserveStatus(rsvpId, eventId) {
+  console.log("🔁 Attempting to toggle RSVP:", rsvpId);
+
+  // 1️⃣ Fetch current row
   const { data, error } = await supa
     .from("rsvps")
     .select("*")
@@ -1961,27 +1964,34 @@ async function toggleReserveStatus(rsvpId, eventId) {
     .single();
 
   if (error || !data) {
-    alert("❌ Error fetching RSVP");
+    console.error("❌ Fetch error:", error);
+    alert("Error fetching RSVP");
     return;
   }
 
+  console.log("Current row:", data);
+
   const movingToReserve = !data.reserve;
 
-  const { error: updateError } = await supa
+  // 2️⃣ Update row
+  const { data: updatedRow, error: updateError } = await supa
     .from("rsvps")
     .update({
       reserve: movingToReserve,
       attending: movingToReserve ? false : true
     })
-    .eq("id", rsvpId);
+    .eq("id", rsvpId)
+    .select();
 
   if (updateError) {
-    alert("❌ Error updating player");
+    console.error("❌ Update error:", updateError);
+    alert("Update failed");
     return;
   }
 
-  currentRsvpView = movingToReserve ? "reserve" : "playing";
+  console.log("✅ Updated row:", updatedRow);
 
+  // 3️⃣ Reload UI
   await loadAdminRsvps();
   await loadRSVPList(eventId);
   await loadEvents();
