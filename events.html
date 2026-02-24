@@ -753,7 +753,7 @@
       <label>Name</label><input id="newName" type="text">
       <label>Date</label><input id="newDate" type="date">
       <label>Location</label><input id="newLocation" type="text">
-      <label>Price (£)</label><input id="newPrice" type="number">
+      <label>Price (£)</label><input id="newPrice" type="text" placeholder="e.g. £45 (+£5 guest)">
       <input id="newGuestPrice" type="number" step="0.01">
       <label>Description</label><textarea id="newDescription" rows="3"></textarea>
       <label>Course Link</label><input id="newCourseLink" type="text">
@@ -777,7 +777,7 @@
         <label>Name</label><input id="editName" type="text">
         <label>Date</label><input id="editDate" type="date">
         <label>Location</label><input id="editLocation" type="text">
-        <label>Price (£)</label><input id="editPriceFull" type="number">
+        <label>Price (£)</label><input id="editPriceFull" type="text" placeholder="e.g. £45 (+£5 guest)">
         <input id="editGuestPrice" type="number" step="0.01">
         <label>Description</label><textarea id="editDescription" rows="3"></textarea>
         <label>Course Link</label><input id="editCourseLink" type="text">
@@ -1496,9 +1496,7 @@ async function saveEventEdits() {
     name: document.getElementById("editName").value.trim(),
     date: document.getElementById("editDate").value,
     location: document.getElementById("editLocation").value.trim(),
-    price: document.getElementById("editPriceFull").value
-      ? parseFloat(document.getElementById("editPriceFull").value)
-      : null,
+   price: document.getElementById("editPriceFull").value || null,
     description: document.getElementById("editDescription").value.trim(),
     course_link: document.getElementById("editCourseLink").value.trim(),
     weather_link: document.getElementById("editWeatherLink").value.trim(),
@@ -1555,7 +1553,7 @@ async function createGolfEvent() {
       name,
       date,
       location,
-      price: price ? parseFloat(price) : null,
+      price: price || null,
       description: desc,
       course_link: course,
       weather_link: weather,
