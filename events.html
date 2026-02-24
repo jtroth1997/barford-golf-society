@@ -1020,10 +1020,10 @@ const slotsLeft = ev.max_players !== null ? ev.max_players - attendingCount : nu
           <div class="event-time">${weekday} • ${ev.first_time || "TBC"}</div>
           <div class="event-title">${ev.name}</div>
           <div class="event-subtitle">${ev.location}</div>
-          ${ev.price !== null && ev.price !== undefined ? `
+        ${ev.price ? `
   <div class="event-section">
     <h4>Price</h4>
-    <p>£${ev.price.toFixed(2)}</p>
+    <p>${ev.price}</p>
   </div>
 ` : ""}
 
