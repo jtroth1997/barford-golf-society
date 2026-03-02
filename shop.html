@@ -12,8 +12,7 @@
 :root{
   --green:#005a2b;
   --gold:#d4af37;
-  --light:#f7f7f5;
-  --shadow:rgba(0,0,0,0.08);
+  --light:#f4f4f4;
 }
 
 body{
@@ -22,45 +21,41 @@ body{
   background:var(--light);
 }
 
-/* HEADER (Matches Events Page) */
+/* HEADER */
 
 .site-header{
   background:#fff;
-  padding:12px 16px;
-  position:sticky;
-  top:0;
-  z-index:1000;
-  border-bottom:2px solid #c9aa4d;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  border-bottom:3px solid var(--gold);
+  padding:12px 0;
 }
 
 .header-container{
   max-width:1200px;
-  margin:0 auto;
+  margin:auto;
   display:flex;
-  flex-direction:column;
+  justify-content:space-between;
   align-items:center;
-  gap:8px;
+  padding:0 20px;
 }
 
 .site-title{
   font-weight:700;
-  font-size:2rem;
+  font-size:1.8rem;
   color:var(--green);
 }
 
 .site-nav ul{
   list-style:none;
   display:flex;
-  gap:14px;
-  padding:0;
+  gap:18px;
   margin:0;
+  padding:0;
 }
 
 .site-nav a{
   text-decoration:none;
   font-weight:600;
-  color:#222;
+  color:#333;
 }
 
 .site-nav a.active{
@@ -68,177 +63,108 @@ body{
   border-bottom:2px solid var(--gold);
 }
 
-/* LAYOUT */
+/* MAIN */
 
 .container{
-  max-width:1100px;
-  margin:2.5rem auto;
-  padding:0 1rem;
+  max-width:1200px;
+  margin:40px auto;
+  padding:0 20px;
 }
 
-h2{
-  color:var(--green);
-}
-
-/* SHOP CONTROLS */
-
-.shop-header{
+.shop-top{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  flex-wrap:wrap;
-  gap:1rem;
-  margin-bottom:2rem;
+  margin-bottom:30px;
 }
 
-.shop-select{
-  padding:.7rem 1rem;
-  border-radius:8px;
-  border:2px solid var(--gold);
+h1{
+  margin:0;
+  font-size:2rem;
+  color:#222;
+}
+
+.admin-btn{
+  background:var(--gold);
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
   font-weight:600;
-  background:#fff;
+  cursor:pointer;
 }
-
-/* PRODUCT GRID */
 
 .product-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:1.5rem;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:25px;
 }
 
 .product-card{
   background:#fff;
-  border-radius:12px;
-  box-shadow:0 4px 12px var(--shadow);
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  transition:0.2s;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  text-align:center;
 }
 
-.product-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 8px 20px rgba(0,0,0,0.12);
-}
-
-.product-img{
+.product-card img{
+  width:100%;
   height:180px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#f3f3f3;
+  object-fit:contain;
 }
 
-.product-img img{
-  max-height:160px;
-  max-width:100%;
-}
-
-.product-body{
-  padding:1.2rem;
-  display:flex;
-  flex-direction:column;
-  flex:1;
-}
-
-.product-title{
-  font-weight:700;
-  margin-bottom:.5rem;
-}
-
-.product-meta{
-  font-size:.9rem;
-  color:#555;
-  margin-bottom:.5rem;
+.product-name{
+  font-weight:600;
+  margin:10px 0 4px;
 }
 
 .product-price{
   font-weight:700;
   color:var(--green);
-  margin-top:auto;
-  margin-bottom:.8rem;
+  margin-bottom:10px;
 }
 
-.product-actions{
-  display:flex;
-  gap:.5rem;
-}
-
-.product-actions input{
-  width:60px;
-  padding:.4rem;
-}
-
-button{
+.product-card button{
   background:var(--green);
   color:#fff;
   border:none;
-  padding:.5rem .8rem;
-  border-radius:6px;
+  padding:6px 10px;
+  border-radius:5px;
   cursor:pointer;
 }
 
-button:hover{
-  opacity:.9;
-}
-
-.admin-btn{
-  background:var(--gold);
-  color:#000;
-  font-weight:600;
-}
-
-.hidden{
-  display:none;
-}
-
-/* BASKET */
-
-#basketPanel{
-  background:#fffdf6;
-  border:2px solid var(--gold);
-  border-radius:12px;
-  padding:1.5rem;
-  box-shadow:0 4px 12px var(--shadow);
-  margin-top:2rem;
-}
-
-/* ADMIN */
+/* ADMIN PANEL */
 
 .admin-panel{
   background:#fff;
   border:2px solid var(--gold);
-  border-radius:12px;
-  padding:2rem;
-  margin-top:3rem;
-  box-shadow:0 4px 12px var(--shadow);
+  padding:20px;
+  border-radius:10px;
+  margin-top:40px;
+  display:none;
 }
 
-textarea{
+.admin-panel input{
   width:100%;
-  padding:.7rem;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:1rem;
-}
-
-th,td{
   padding:8px;
-  border-bottom:1px solid #ddd;
+  margin-bottom:10px;
+}
+
+.admin-panel button{
+  background:var(--green);
+  color:#fff;
+  border:none;
+  padding:8px 12px;
+  border-radius:5px;
+  cursor:pointer;
 }
 
 footer{
   text-align:center;
-  padding:2rem;
-  margin-top:3rem;
-  border-top:4px solid var(--gold);
-  color:var(--green);
+  padding:30px;
+  margin-top:60px;
+  border-top:3px solid var(--gold);
+  color:#555;
 }
 </style>
 </head>
@@ -247,16 +173,13 @@ footer{
 
 <header class="site-header">
   <div class="header-container">
-    <div class="site-title">Barford GOLF SOCIETY</div>
+    <div class="site-title">Barford Golf Society</div>
     <nav class="site-nav">
       <ul>
         <li><a href="index.html">Home</a></li>
         <li><a href="events.html">Events</a></li>
         <li><a href="scores.html">Scores</a></li>
         <li><a href="shop.html" class="active">Shop</a></li>
-        <li><a href="gallery.html">Gallery</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="signup.html">Sign Up</a></li>
       </ul>
     </nav>
   </div>
@@ -264,50 +187,25 @@ footer{
 
 <div class="container">
 
-<div class="shop-header">
-  <button class="admin-btn" onclick="toggleAdmin()">🔐 Admin</button>
-
-  <select class="shop-select" onchange="loadCategory(this.value)">
-    <option value="">Select Category</option>
-    <option value="balls">Balls</option>
-  </select>
-
-  <button onclick="toggleBasket()">🛒 Basket (<span id="basketCount">0</span>)</button>
+<div class="shop-top">
+  <h1>Golf Balls</h1>
+  <button class="admin-btn" onclick="toggleAdmin()">Admin</button>
 </div>
 
-<div id="productArea"></div>
+<div id="productGrid" class="product-grid"></div>
 
-<div id="basketPanel" class="hidden">
-  <h3>Your Basket</h3>
-  <div id="basketItems"></div>
-  <h4>Total: £<span id="basketTotal">0.00</span></h4>
-  <input id="customerName" placeholder="Your Name">
-  <button onclick="checkout()">Reserve Items</button>
+<div id="adminPanel" class="admin-panel">
+  <h3>Add Product</h3>
+
+  <input id="name" placeholder="Product Name">
+  <input id="description" placeholder="Description">
+  <input id="price" type="number" step="0.01" placeholder="Price">
+  <input id="stock" type="number" placeholder="Stock">
+  <input id="image" placeholder="Image URL">
+
+  <button onclick="addProduct()">Add Product</button>
 </div>
 
-<div id="adminPanel" class="admin-panel hidden">
-
-<h3>Bulk Product Entry</h3>
-<p>Format: Category | Name | Description | Grade | Pack | Stock | Price | Image URL</p>
-
-<textarea id="bulkProducts" rows="6"
-placeholder="balls|Titleist Pro V1|Premium Lake Balls|A|12|5|25|https://image.jpg"></textarea>
-
-<button onclick="addBulkProducts()">Add Products</button>
-
-<hr>
-
-<h3>Manage Products</h3>
-<button onclick="loadAdminProducts()">Refresh</button>
-<div id="adminProductList"></div>
-
-<hr>
-
-<h3>Orders</h3>
-<button onclick="loadOrders()">Load Orders</button>
-<div id="ordersArea"></div>
-
-</div>
 </div>
 
 <footer>
@@ -316,203 +214,78 @@ placeholder="balls|Titleist Pro V1|Premium Lake Balls|A|12|5|25|https://image.jp
 
 <script>
 const ADMIN_PASSWORD="westbrom1997";
-const SUPA_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+
+const SUPA_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 
 const { createClient } = window.supabase;
 const supa = createClient(SUPA_URL,SUPA_KEY);
 
-let basket = JSON.parse(localStorage.getItem("basket")||"[]");
+window.onload=loadProducts;
 
 function toggleAdmin(){
-  const isAdmin=localStorage.getItem("shopAdmin")==="true";
-  if(!isAdmin){
-    const pass=prompt("Enter admin password:");
-    if(pass===ADMIN_PASSWORD){
-      localStorage.setItem("shopAdmin","true");
-      adminPanel.classList.remove("hidden");
-    }
-  } else {
-    localStorage.removeItem("shopAdmin");
-    adminPanel.classList.add("hidden");
-  }
+  const pass=prompt("Enter admin password:");
+  if(pass===ADMIN_PASSWORD){
+    document.getElementById("adminPanel").style.display="block";
+  } else alert("Wrong password");
 }
 
-function toggleBasket(){
-  basketPanel.classList.toggle("hidden");
-  updateBasketUI();
-}
-
-function updateBasketUI(){
-  basketCount.innerText=basket.length;
-  if(!basket.length){
-    basketItems.innerHTML="<p>No items.</p>";
-    basketTotal.innerText="0.00";
-    return;
-  }
-  let total=0;
-  let html="<table><tr><th>Item</th><th>Qty</th><th>Total</th></tr>";
-  basket.forEach(item=>{
-    total+=item.price*item.quantity;
-    html+=`<tr>
-      <td>${item.name}</td>
-      <td>${item.quantity}</td>
-      <td>£${(item.price*item.quantity).toFixed(2)}</td>
-    </tr>`;
-  });
-  html+="</table>";
-  basketItems.innerHTML=html;
-  basketTotal.innerText=total.toFixed(2);
-}
-
-async function loadCategory(cat){
-  if(!cat) return;
-
-  const {data}=await supa.from("products")
+async function loadProducts(){
+  const {data,error}=await supa
+    .from("products")
     .select("*")
-    .eq("category",cat)
     .eq("active",true)
     .order("created_at",{ascending:false});
 
-  let html='<div class="product-grid">';
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  const grid=document.getElementById("productGrid");
+  grid.innerHTML="";
+
   data.forEach(p=>{
-    html+=`
+    grid.innerHTML+=`
       <div class="product-card">
-        <div class="product-img">
-          <img src="${p.image||'https://via.placeholder.com/200'}">
-        </div>
-        <div class="product-body">
-          <div class="product-title">${p.name}</div>
-          <div class="product-meta">
-            Grade: ${p.grade||"-"}<br>
-            Pack: ${p.pack_size||"-"}<br>
-            Stock: ${p.packs_left}
-          </div>
-          <div class="product-price">£${p.price}</div>
-          <div class="product-actions">
-            <input type="number" min="1" max="${p.packs_left}" value="1" id="qty_${p.id}">
-            <button onclick="addToBasket(${p.id},'${p.name}',${p.price})">Add</button>
-          </div>
-        </div>
+        <img src="${p.image || 'https://via.placeholder.com/200'}">
+        <div class="product-name">${p.name}</div>
+        <div>${p.description || ''}</div>
+        <div class="product-price">£${p.price}</div>
+        <div>Stock: ${p.packs_left}</div>
       </div>
     `;
   });
-  html+='</div>';
-  productArea.innerHTML=html;
 }
 
-function addToBasket(id,name,price){
-  const qty=parseInt(document.getElementById(`qty_${id}`).value);
-  basket.push({product_id:id,name,price,quantity:qty});
-  localStorage.setItem("basket",JSON.stringify(basket));
-  updateBasketUI();
-}
+async function addProduct(){
 
-async function checkout(){
-  const customer=customerName.value.trim();
-  if(!customer) return alert("Enter your name");
+  const product={
+    category:"balls",
+    name:name.value,
+    description:description.value,
+    price:parseFloat(price.value),
+    packs_left:parseInt(stock.value),
+    image:image.value,
+    active:true
+  };
 
-  for(const item of basket){
-    await supa.from("shop_orders").insert([{
-      product_id:item.product_id,
-      product_name:item.name,
-      quantity:item.quantity,
-      price:item.price,
-      customer_name:customer,
-      delivered:false
-    }]);
+  const {error}=await supa.from("products").insert([product]);
 
-    const {data:product}=await supa.from("products").select("*").eq("id",item.product_id).single();
-    await supa.from("products")
-      .update({packs_left:product.packs_left-item.quantity})
-      .eq("id",item.product_id);
+  if(error){
+    console.error(error);
+    alert("Error adding product");
+    return;
   }
 
-  alert("Reserved! Pay at next event.");
-  basket=[];
-  localStorage.removeItem("basket");
-  updateBasketUI();
-  loadCategory("balls");
-}
+  alert("Product added");
+  loadProducts();
 
-async function addBulkProducts(){
-  const rows=bulkProducts.value.trim().split("\n");
-  const inserts=[];
-  rows.forEach(r=>{
-    const c=r.split("|");
-    if(c.length<8) return;
-    inserts.push({
-      category:c[0].trim(),
-      name:c[1].trim(),
-      description:c[2].trim(),
-      grade:c[3].trim(),
-      pack_size:parseInt(c[4]),
-      packs_left:parseInt(c[5]),
-      price:parseFloat(c[6]),
-      image:c[7].trim(),
-      active:true
-    });
-  });
-  await supa.from("products").insert(inserts);
-  alert("Products added");
-  bulkProducts.value="";
-  loadAdminProducts();
-}
-
-async function loadAdminProducts(){
-  const {data}=await supa.from("products").select("*").order("created_at",{ascending:false});
-  let html="<table><tr><th>Name</th><th>Stock</th><th>Price</th><th></th></tr>";
-  data.forEach(p=>{
-    html+=`
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.packs_left}</td>
-        <td>£${p.price}</td>
-        <td><button onclick="deleteProduct(${p.id})">❌</button></td>
-      </tr>
-    `;
-  });
-  html+="</table>";
-  adminProductList.innerHTML=html;
-}
-
-async function deleteProduct(id){
-  await supa.from("products").update({active:false}).eq("id",id);
-  loadAdminProducts();
-}
-
-async function loadOrders(){
-  const {data}=await supa.from("shop_orders").select("*").order("created_at",{ascending:false});
-  let html="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th><th></th></tr>";
-  data.forEach(o=>{
-    html+=`
-      <tr>
-        <td>${o.customer_name}</td>
-        <td>${o.product_name}</td>
-        <td>${o.quantity}</td>
-        <td>£${(o.price*o.quantity).toFixed(2)}</td>
-        <td>${o.delivered?"Delivered":"Pending"}</td>
-        <td>
-          <button onclick="markDelivered(${o.id})">✔</button>
-          <button onclick="cancelOrder(${o.id},${o.product_id},${o.quantity})">❌</button>
-        </td>
-      </tr>
-    `;
-  });
-  html+="</table>";
-  ordersArea.innerHTML=html;
-}
-
-async function markDelivered(id){
-  await supa.from("shop_orders").update({delivered:true}).eq("id",id);
-  loadOrders();
-}
-
-async function cancelOrder(id,productId,qty){
-  await supa.from("shop_orders").delete().eq("id",id);
-  const {data:product}=await supa.from("products").select("*").eq("id",productId).single();
-  await supa.from("products").update({packs_left:product.packs_left+qty}).eq("id",productId);
-  loadOrders();
+  name.value="";
+  description.value="";
+  price.value="";
+  stock.value="";
+  image.value="";
 }
 </script>
 
