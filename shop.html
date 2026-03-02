@@ -9,10 +9,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root {
+:root{
   --green:#005a2b;
   --gold:#d4af37;
   --light:#f7f7f5;
+  --shadow:rgba(0,0,0,0.08);
 }
 
 body{
@@ -21,7 +22,8 @@ body{
   background:var(--light);
 }
 
-/* HEADER */
+/* HEADER (Matches Events Page) */
+
 .site-header{
   background:#fff;
   padding:12px 16px;
@@ -29,6 +31,7 @@ body{
   top:0;
   z-index:1000;
   border-bottom:2px solid #c9aa4d;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 
 .header-container{
@@ -66,39 +69,105 @@ body{
 }
 
 /* LAYOUT */
+
 .container{
   max-width:1100px;
-  margin:40px auto;
-  padding:0 20px;
+  margin:2.5rem auto;
+  padding:0 1rem;
 }
 
-h2{color:var(--green);}
+h2{
+  color:var(--green);
+}
 
-.admin-btn{
-  background:var(--gold);
-  padding:.6rem 1rem;
-  border:none;
+/* SHOP CONTROLS */
+
+.shop-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:1rem;
+  margin-bottom:2rem;
+}
+
+.shop-select{
+  padding:.7rem 1rem;
   border-radius:8px;
-  cursor:pointer;
+  border:2px solid var(--gold);
   font-weight:600;
-}
-
-.hidden{display:none;}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
   background:#fff;
 }
 
-th,td{
-  padding:10px;
-  border-bottom:1px solid #ddd;
+/* PRODUCT GRID */
+
+.product-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:1.5rem;
 }
 
-th{
+.product-card{
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 4px 12px var(--shadow);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  transition:0.2s;
+}
+
+.product-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+}
+
+.product-img{
+  height:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:#f3f3f3;
+}
+
+.product-img img{
+  max-height:160px;
+  max-width:100%;
+}
+
+.product-body{
+  padding:1.2rem;
+  display:flex;
+  flex-direction:column;
+  flex:1;
+}
+
+.product-title{
+  font-weight:700;
+  margin-bottom:.5rem;
+}
+
+.product-meta{
+  font-size:.9rem;
+  color:#555;
+  margin-bottom:.5rem;
+}
+
+.product-price{
+  font-weight:700;
+  color:var(--green);
+  margin-top:auto;
+  margin-bottom:.8rem;
+}
+
+.product-actions{
+  display:flex;
+  gap:.5rem;
+}
+
+.product-actions input{
+  width:60px;
+  padding:.4rem;
 }
 
 button{
@@ -110,42 +179,70 @@ button{
   cursor:pointer;
 }
 
-button:hover{opacity:.9;}
-
-input,select{
-  padding:.4rem;
-  margin-top:6px;
+button:hover{
+  opacity:.9;
 }
+
+.admin-btn{
+  background:var(--gold);
+  color:#000;
+  font-weight:600;
+}
+
+.hidden{
+  display:none;
+}
+
+/* BASKET */
 
 #basketPanel{
-  background:#fff;
-  padding:20px;
-  margin-top:20px;
+  background:#fffdf6;
   border:2px solid var(--gold);
-  border-radius:10px;
+  border-radius:12px;
+  padding:1.5rem;
+  box-shadow:0 4px 12px var(--shadow);
+  margin-top:2rem;
 }
+
+/* ADMIN */
 
 .admin-panel{
   background:#fff;
   border:2px solid var(--gold);
-  padding:20px;
-  border-radius:10px;
-  margin-top:30px;
+  border-radius:12px;
+  padding:2rem;
+  margin-top:3rem;
+  box-shadow:0 4px 12px var(--shadow);
 }
 
-.delivered{
-  background:#d4edda;
+textarea{
+  width:100%;
+  padding:.7rem;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:1rem;
+}
+
+th,td{
+  padding:8px;
+  border-bottom:1px solid #ddd;
 }
 
 footer{
   text-align:center;
-  padding:20px;
-  margin-top:40px;
+  padding:2rem;
+  margin-top:3rem;
   border-top:4px solid var(--gold);
   color:var(--green);
 }
 </style>
 </head>
+
 <body>
 
 <header class="site-header">
@@ -167,15 +264,16 @@ footer{
 
 <div class="container">
 
-<button class="admin-btn" onclick="toggleAdmin()">🔐 Admin Access</button>
-<button style="float:right;" onclick="toggleBasket()">🛒 Basket (<span id="basketCount">0</span>)</button>
+<div class="shop-header">
+  <button class="admin-btn" onclick="toggleAdmin()">🔐 Admin</button>
 
-<h2>What are you selling?</h2>
+  <select class="shop-select" onchange="loadCategory(this.value)">
+    <option value="">Select Category</option>
+    <option value="balls">Balls</option>
+  </select>
 
-<select onchange="loadCategory(this.value)">
-  <option value="">Select Category</option>
-  <option value="balls">Balls</option>
-</select>
+  <button onclick="toggleBasket()">🛒 Basket (<span id="basketCount">0</span>)</button>
+</div>
 
 <div id="productArea"></div>
 
@@ -187,29 +285,29 @@ footer{
   <button onclick="checkout()">Reserve Items</button>
 </div>
 
-<!-- ADMIN PANEL (FULLY PROTECTED) -->
 <div id="adminPanel" class="admin-panel hidden">
 
-<h3>Manage Products</h3>
+<h3>Bulk Product Entry</h3>
+<p>Format: Category | Name | Description | Grade | Pack | Stock | Price | Image URL</p>
 
-<input id="pCategory" placeholder="Category (balls)">
-<input id="pName" placeholder="Name">
-<input id="pDesc" placeholder="Description">
-<input id="pGrade" placeholder="Grade">
-<input id="pPack" type="number" placeholder="Pack Size">
-<input id="pStock" type="number" placeholder="Packs Left">
-<input id="pPrice" type="number" step="0.01" placeholder="Price">
-<input id="pImage" placeholder="Image URL">
-<button onclick="addProduct()">Add Product</button>
+<textarea id="bulkProducts" rows="6"
+placeholder="balls|Titleist Pro V1|Premium Lake Balls|A|12|5|25|https://image.jpg"></textarea>
+
+<button onclick="addBulkProducts()">Add Products</button>
 
 <hr>
 
-<h3>Orders Management</h3>
+<h3>Manage Products</h3>
+<button onclick="loadAdminProducts()">Refresh</button>
+<div id="adminProductList"></div>
+
+<hr>
+
+<h3>Orders</h3>
 <button onclick="loadOrders()">Load Orders</button>
 <div id="ordersArea"></div>
 
 </div>
-
 </div>
 
 <footer>
@@ -218,14 +316,13 @@ footer{
 
 <script>
 const ADMIN_PASSWORD="westbrom1997";
-
 const SUPA_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const SUPA_KEY="YOUR_SUPABASE_KEY_HERE";
 
 const { createClient } = window.supabase;
 const supa = createClient(SUPA_URL,SUPA_KEY);
 
-let basket = JSON.parse(localStorage.getItem("basket") || "[]");
+let basket = JSON.parse(localStorage.getItem("basket")||"[]");
 
 function toggleAdmin(){
   const isAdmin=localStorage.getItem("shopAdmin")==="true";
@@ -233,90 +330,87 @@ function toggleAdmin(){
     const pass=prompt("Enter admin password:");
     if(pass===ADMIN_PASSWORD){
       localStorage.setItem("shopAdmin","true");
-      document.getElementById("adminPanel").classList.remove("hidden");
-    } else alert("Wrong password");
+      adminPanel.classList.remove("hidden");
+    }
   } else {
     localStorage.removeItem("shopAdmin");
-    document.getElementById("adminPanel").classList.add("hidden");
+    adminPanel.classList.add("hidden");
   }
 }
 
 function toggleBasket(){
-  document.getElementById("basketPanel").classList.toggle("hidden");
+  basketPanel.classList.toggle("hidden");
   updateBasketUI();
 }
 
 function updateBasketUI(){
-  document.getElementById("basketCount").innerText=basket.length;
-  const itemsDiv=document.getElementById("basketItems");
+  basketCount.innerText=basket.length;
   if(!basket.length){
-    itemsDiv.innerHTML="<p>No items in basket.</p>";
-    document.getElementById("basketTotal").innerText="0.00";
+    basketItems.innerHTML="<p>No items.</p>";
+    basketTotal.innerText="0.00";
     return;
   }
   let total=0;
-  let html="<table><tr><th>Product</th><th>Qty</th><th>£</th><th></th></tr>";
-  basket.forEach((item,index)=>{
+  let html="<table><tr><th>Item</th><th>Qty</th><th>Total</th></tr>";
+  basket.forEach(item=>{
     total+=item.price*item.quantity;
     html+=`<tr>
       <td>${item.name}</td>
       <td>${item.quantity}</td>
       <td>£${(item.price*item.quantity).toFixed(2)}</td>
-      <td><button onclick="removeFromBasket(${index})">❌</button></td>
     </tr>`;
   });
   html+="</table>";
-  itemsDiv.innerHTML=html;
-  document.getElementById("basketTotal").innerText=total.toFixed(2);
-}
-
-function removeFromBasket(index){
-  basket.splice(index,1);
-  localStorage.setItem("basket",JSON.stringify(basket));
-  updateBasketUI();
+  basketItems.innerHTML=html;
+  basketTotal.innerText=total.toFixed(2);
 }
 
 async function loadCategory(cat){
   if(!cat) return;
-  const {data}=await supa.from("products").select("*").eq("category",cat).eq("active",true);
-  let html="<table><tr><th>Image</th><th>Name</th><th>Grade</th><th>Pack</th><th>Stock</th><th>Price</th><th></th></tr>";
+
+  const {data}=await supa.from("products")
+    .select("*")
+    .eq("category",cat)
+    .eq("active",true)
+    .order("created_at",{ascending:false});
+
+  let html='<div class="product-grid">';
   data.forEach(p=>{
-    html+=`<tr>
-      <td><img src="${p.image||'https://via.placeholder.com/60'}"></td>
-      <td>${p.name}<br><small>${p.description||''}</small></td>
-      <td>${p.grade||''}</td>
-      <td>${p.pack_size||''}</td>
-      <td>${p.packs_left}</td>
-      <td>£${p.price}</td>
-      <td>
-        <input type="number" min="1" max="${p.packs_left}" value="1" id="qty_${p.id}">
-        <button onclick="addToBasket(${p.id},'${p.name}',${p.price})">Add</button>
-      </td>
-    </tr>`;
+    html+=`
+      <div class="product-card">
+        <div class="product-img">
+          <img src="${p.image||'https://via.placeholder.com/200'}">
+        </div>
+        <div class="product-body">
+          <div class="product-title">${p.name}</div>
+          <div class="product-meta">
+            Grade: ${p.grade||"-"}<br>
+            Pack: ${p.pack_size||"-"}<br>
+            Stock: ${p.packs_left}
+          </div>
+          <div class="product-price">£${p.price}</div>
+          <div class="product-actions">
+            <input type="number" min="1" max="${p.packs_left}" value="1" id="qty_${p.id}">
+            <button onclick="addToBasket(${p.id},'${p.name}',${p.price})">Add</button>
+          </div>
+        </div>
+      </div>
+    `;
   });
-  html+="</table>";
-  document.getElementById("productArea").innerHTML=html;
+  html+='</div>';
+  productArea.innerHTML=html;
 }
 
 function addToBasket(id,name,price){
   const qty=parseInt(document.getElementById(`qty_${id}`).value);
-  if(!qty||qty<=0) return alert("Invalid quantity");
   basket.push({product_id:id,name,price,quantity:qty});
   localStorage.setItem("basket",JSON.stringify(basket));
   updateBasketUI();
 }
 
 async function checkout(){
-  if(!basket.length) return alert("Basket empty");
-  const customer=document.getElementById("customerName").value.trim();
+  const customer=customerName.value.trim();
   if(!customer) return alert("Enter your name");
-
-  for(const item of basket){
-    const {data:product}=await supa.from("products").select("*").eq("id",item.product_id).single();
-    if(product.packs_left<item.quantity){
-      return alert(`Not enough stock for ${item.name}`);
-    }
-  }
 
   for(const item of basket){
     await supa.from("shop_orders").insert([{
@@ -324,7 +418,8 @@ async function checkout(){
       product_name:item.name,
       quantity:item.quantity,
       price:item.price,
-      customer_name:customer
+      customer_name:customer,
+      delivered:false
     }]);
 
     const {data:product}=await supa.from("products").select("*").eq("id",item.product_id).single();
@@ -333,45 +428,79 @@ async function checkout(){
       .eq("id",item.product_id);
   }
 
-  alert("Reserved! Bring payment to next event.");
+  alert("Reserved! Pay at next event.");
   basket=[];
   localStorage.removeItem("basket");
   updateBasketUI();
   loadCategory("balls");
 }
 
-async function addProduct(){
-  await supa.from("products").insert([{
-    category:pCategory.value,
-    name:pName.value,
-    description:pDesc.value,
-    grade:pGrade.value,
-    pack_size:pPack.value,
-    packs_left:pStock.value,
-    price:pPrice.value,
-    image:pImage.value
-  }]);
-  alert("Product added");
+async function addBulkProducts(){
+  const rows=bulkProducts.value.trim().split("\n");
+  const inserts=[];
+  rows.forEach(r=>{
+    const c=r.split("|");
+    if(c.length<8) return;
+    inserts.push({
+      category:c[0].trim(),
+      name:c[1].trim(),
+      description:c[2].trim(),
+      grade:c[3].trim(),
+      pack_size:parseInt(c[4]),
+      packs_left:parseInt(c[5]),
+      price:parseFloat(c[6]),
+      image:c[7].trim(),
+      active:true
+    });
+  });
+  await supa.from("products").insert(inserts);
+  alert("Products added");
+  bulkProducts.value="";
+  loadAdminProducts();
+}
+
+async function loadAdminProducts(){
+  const {data}=await supa.from("products").select("*").order("created_at",{ascending:false});
+  let html="<table><tr><th>Name</th><th>Stock</th><th>Price</th><th></th></tr>";
+  data.forEach(p=>{
+    html+=`
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.packs_left}</td>
+        <td>£${p.price}</td>
+        <td><button onclick="deleteProduct(${p.id})">❌</button></td>
+      </tr>
+    `;
+  });
+  html+="</table>";
+  adminProductList.innerHTML=html;
+}
+
+async function deleteProduct(id){
+  await supa.from("products").update({active:false}).eq("id",id);
+  loadAdminProducts();
 }
 
 async function loadOrders(){
   const {data}=await supa.from("shop_orders").select("*").order("created_at",{ascending:false});
   let html="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th><th></th></tr>";
   data.forEach(o=>{
-    html+=`<tr class="${o.delivered?'delivered':''}">
-      <td>${o.customer_name}</td>
-      <td>${o.product_name}</td>
-      <td>${o.quantity}</td>
-      <td>£${(o.price*o.quantity).toFixed(2)}</td>
-      <td>${o.delivered?'Delivered':'Pending'}</td>
-      <td>
-        <button onclick="markDelivered(${o.id})">✔</button>
-        <button onclick="cancelOrder(${o.id},${o.product_id},${o.quantity})">❌</button>
-      </td>
-    </tr>`;
+    html+=`
+      <tr>
+        <td>${o.customer_name}</td>
+        <td>${o.product_name}</td>
+        <td>${o.quantity}</td>
+        <td>£${(o.price*o.quantity).toFixed(2)}</td>
+        <td>${o.delivered?"Delivered":"Pending"}</td>
+        <td>
+          <button onclick="markDelivered(${o.id})">✔</button>
+          <button onclick="cancelOrder(${o.id},${o.product_id},${o.quantity})">❌</button>
+        </td>
+      </tr>
+    `;
   });
   html+="</table>";
-  document.getElementById("ordersArea").innerHTML=html;
+  ordersArea.innerHTML=html;
 }
 
 async function markDelivered(id){
@@ -379,13 +508,10 @@ async function markDelivered(id){
   loadOrders();
 }
 
-async function cancelOrder(orderId,productId,qty){
-  if(!confirm("Cancel order?")) return;
+async function cancelOrder(id,productId,qty){
+  await supa.from("shop_orders").delete().eq("id",id);
   const {data:product}=await supa.from("products").select("*").eq("id",productId).single();
-  await supa.from("products")
-    .update({packs_left:product.packs_left+qty})
-    .eq("id",productId);
-  await supa.from("shop_orders").delete().eq("id",orderId);
+  await supa.from("products").update({packs_left:product.packs_left+qty}).eq("id",productId);
   loadOrders();
 }
 </script>
