@@ -157,6 +157,28 @@ footer{
   margin-top:60px;
   border-top:3px solid var(--gold);
 }
+  .basket-btn{
+  background: var(--green);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 14px 22px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.basket-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+}
+
+.basket-btn:active{
+  transform: translateY(0px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
 </style>
 </head>
 
@@ -181,7 +203,9 @@ footer{
 <div class="shop-top">
   <h1>Golf Balls</h1>
   <div>
-    <button onclick="toggleBasket()">🛒 Basket (<span id="basketCount">0</span>)</button>
+    <button class="basket-btn" onclick="toggleBasket()">
+  🛒 Basket (<span id="basketCount">0</span>)
+</button>
     <button class="admin-btn" onclick="toggleAdmin()">Admin</button>
   </div>
 </div>
