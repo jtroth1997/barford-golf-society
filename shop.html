@@ -231,7 +231,8 @@ function toggleAdmin(){
 }
 
 async function loadProducts(){
-  const {data,error}=await supa
+
+  const {data,error} = await supa
     .from("products")
     .select("*")
     .eq("active",true)
@@ -242,17 +243,62 @@ async function loadProducts(){
     return;
   }
 
-  const grid=document.getElementById("productGrid");
-  grid.innerHTML="";
+  let basket = [];
+
+function addToBasket(id,name,price){
+
+  const qty = parseInt(document.getElementById(`qty_${id}`).value);
+
+  if(!qty || qty <= 0){
+    alert("Invalid quantity");
+    return;
+  }
+
+  basket.push({
+    product_id:id,
+    name:name,
+    price:price,
+    quantity:qty
+  });
+
+  alert("Added to basket");
+
+  console.log("Current Basket:", basket);
+}
+
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
 
   data.forEach(p=>{
-    grid.innerHTML+=`
+
+    grid.innerHTML += `
       <div class="product-card">
-        <img src="${p.image || 'https://via.placeholder.com/200'}">
+
+        <img 
+          src="${p.image && p.image.startsWith('http') ? p.image : 'https://via.placeholder.com/200'}"
+          onerror="this.src='https://via.placeholder.com/200'"
+        >
+
         <div class="product-name">${p.name}</div>
         <div>${p.description || ''}</div>
         <div class="product-price">£${p.price}</div>
         <div>Stock: ${p.packs_left}</div>
+
+        <div style="margin-top:10px;">
+          <input 
+            type="number" 
+            min="1" 
+            max="${p.packs_left}" 
+            value="1" 
+            id="qty_${p.id}" 
+            style="width:60px;padding:5px;"
+          >
+
+          <button onclick="addToBasket(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price})">
+            Add Pack
+          </button>
+        </div>
+
       </div>
     `;
   });
