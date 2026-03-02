@@ -10,39 +10,171 @@
 
 <style>
 :root {
-  --green:#064d2b;
+  --green:#005a2b;
   --gold:#d4af37;
   --light:#f7f7f5;
 }
-body { font-family:"Inter",sans-serif; background:var(--light); margin:0; }
-.container { max-width:1200px; margin:40px auto; padding:0 20px; }
-h2 { color:var(--green); }
-.admin-btn { background:var(--gold); padding:.6rem 1rem; border:none; border-radius:8px; cursor:pointer; }
-.hidden { display:none; }
-table { width:100%; border-collapse:collapse; margin-top:20px; background:#fff; }
-th,td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
-th { background:#f3f3f3; }
-img { width:60px; border-radius:6px; }
-button { background:var(--green); color:#fff; border:none; padding:.5rem .8rem; border-radius:6px; cursor:pointer; }
-button:hover { opacity:.9; }
-input,select { padding:.4rem; margin-top:5px; }
-.delivered { background:#d4edda; }
-#basketPanel { background:#fff; padding:20px; margin-top:20px; border:1px solid #ddd; }
+
+body{
+  font-family:"Inter",sans-serif;
+  margin:0;
+  background:var(--light);
+}
+
+/* HEADER */
+.site-header{
+  background:#fff;
+  padding:12px 16px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  border-bottom:2px solid #c9aa4d;
+}
+
+.header-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.site-title{
+  font-weight:700;
+  font-size:2rem;
+  color:var(--green);
+}
+
+.site-nav ul{
+  list-style:none;
+  display:flex;
+  gap:14px;
+  padding:0;
+  margin:0;
+}
+
+.site-nav a{
+  text-decoration:none;
+  font-weight:600;
+  color:#222;
+}
+
+.site-nav a.active{
+  color:var(--green);
+  border-bottom:2px solid var(--gold);
+}
+
+/* LAYOUT */
+.container{
+  max-width:1100px;
+  margin:40px auto;
+  padding:0 20px;
+}
+
+h2{color:var(--green);}
+
+.admin-btn{
+  background:var(--gold);
+  padding:.6rem 1rem;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.hidden{display:none;}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+  background:#fff;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+
+th{
+  background:#f3f3f3;
+}
+
+button{
+  background:var(--green);
+  color:#fff;
+  border:none;
+  padding:.5rem .8rem;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+button:hover{opacity:.9;}
+
+input,select{
+  padding:.4rem;
+  margin-top:6px;
+}
+
+#basketPanel{
+  background:#fff;
+  padding:20px;
+  margin-top:20px;
+  border:2px solid var(--gold);
+  border-radius:10px;
+}
+
+.admin-panel{
+  background:#fff;
+  border:2px solid var(--gold);
+  padding:20px;
+  border-radius:10px;
+  margin-top:30px;
+}
+
+.delivered{
+  background:#d4edda;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  margin-top:40px;
+  border-top:4px solid var(--gold);
+  color:var(--green);
+}
 </style>
 </head>
 <body>
 
+<header class="site-header">
+  <div class="header-container">
+    <div class="site-title">Barford GOLF SOCIETY</div>
+    <nav class="site-nav">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="scores.html">Scores</a></li>
+        <li><a href="shop.html" class="active">Shop</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="signup.html">Sign Up</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
 <div class="container">
 
 <button class="admin-btn" onclick="toggleAdmin()">🔐 Admin Access</button>
-
-<button onclick="toggleBasket()" style="float:right;">🛒 Basket (<span id="basketCount">0</span>)</button>
+<button style="float:right;" onclick="toggleBasket()">🛒 Basket (<span id="basketCount">0</span>)</button>
 
 <h2>What are you selling?</h2>
 
 <select onchange="loadCategory(this.value)">
-<option value="">Select Category</option>
-<option value="balls">Balls</option>
+  <option value="">Select Category</option>
+  <option value="balls">Balls</option>
 </select>
 
 <div id="productArea"></div>
@@ -55,10 +187,11 @@ input,select { padding:.4rem; margin-top:5px; }
   <button onclick="checkout()">Reserve Items</button>
 </div>
 
-<div id="adminPanel" class="hidden">
+<!-- ADMIN PANEL (FULLY PROTECTED) -->
+<div id="adminPanel" class="admin-panel hidden">
 
-<hr>
-<h3>Add Product</h3>
+<h3>Manage Products</h3>
+
 <input id="pCategory" placeholder="Category (balls)">
 <input id="pName" placeholder="Name">
 <input id="pDesc" placeholder="Description">
@@ -70,12 +203,18 @@ input,select { padding:.4rem; margin-top:5px; }
 <button onclick="addProduct()">Add Product</button>
 
 <hr>
+
 <h3>Orders Management</h3>
 <button onclick="loadOrders()">Load Orders</button>
 <div id="ordersArea"></div>
 
 </div>
+
 </div>
+
+<footer>
+© 2026 Barford Golf Society
+</footer>
 
 <script>
 const ADMIN_PASSWORD="westbrom1997";
@@ -91,11 +230,11 @@ let basket = JSON.parse(localStorage.getItem("basket") || "[]");
 function toggleAdmin(){
   const isAdmin=localStorage.getItem("shopAdmin")==="true";
   if(!isAdmin){
-    const pass=prompt("Password:");
+    const pass=prompt("Enter admin password:");
     if(pass===ADMIN_PASSWORD){
       localStorage.setItem("shopAdmin","true");
       document.getElementById("adminPanel").classList.remove("hidden");
-    }
+    } else alert("Wrong password");
   } else {
     localStorage.removeItem("shopAdmin");
     document.getElementById("adminPanel").classList.add("hidden");
@@ -140,18 +279,18 @@ function removeFromBasket(index){
 async function loadCategory(cat){
   if(!cat) return;
   const {data}=await supa.from("products").select("*").eq("category",cat).eq("active",true);
-  let html="<table><tr><th>Image</th><th>Name/Description</th><th>Grade</th><th>Pack</th><th>Stock</th><th>Price</th><th></th></tr>";
+  let html="<table><tr><th>Image</th><th>Name</th><th>Grade</th><th>Pack</th><th>Stock</th><th>Price</th><th></th></tr>";
   data.forEach(p=>{
     html+=`<tr>
       <td><img src="${p.image||'https://via.placeholder.com/60'}"></td>
-      <td><strong>${p.name}</strong><br>${p.description||''}</td>
+      <td>${p.name}<br><small>${p.description||''}</small></td>
       <td>${p.grade||''}</td>
       <td>${p.pack_size||''}</td>
       <td>${p.packs_left}</td>
       <td>£${p.price}</td>
       <td>
         <input type="number" min="1" max="${p.packs_left}" value="1" id="qty_${p.id}">
-        <button onclick="addToBasket(${p.id},'${p.name}',${p.price},'${p.category}')">Add</button>
+        <button onclick="addToBasket(${p.id},'${p.name}',${p.price})">Add</button>
       </td>
     </tr>`;
   });
@@ -159,13 +298,12 @@ async function loadCategory(cat){
   document.getElementById("productArea").innerHTML=html;
 }
 
-function addToBasket(id,name,price,category){
+function addToBasket(id,name,price){
   const qty=parseInt(document.getElementById(`qty_${id}`).value);
   if(!qty||qty<=0) return alert("Invalid quantity");
-  basket.push({product_id:id,name,price,quantity:qty,category});
+  basket.push({product_id:id,name,price,quantity:qty});
   localStorage.setItem("basket",JSON.stringify(basket));
   updateBasketUI();
-  alert("Added to basket");
 }
 
 async function checkout(){
@@ -218,7 +356,7 @@ async function addProduct(){
 
 async function loadOrders(){
   const {data}=await supa.from("shop_orders").select("*").order("created_at",{ascending:false});
-  let html="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>£</th><th>Status</th><th>Actions</th></tr>";
+  let html="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th><th></th></tr>";
   data.forEach(o=>{
     html+=`<tr class="${o.delivered?'delivered':''}">
       <td>${o.customer_name}</td>
@@ -243,12 +381,10 @@ async function markDelivered(id){
 
 async function cancelOrder(orderId,productId,qty){
   if(!confirm("Cancel order?")) return;
-
   const {data:product}=await supa.from("products").select("*").eq("id",productId).single();
   await supa.from("products")
     .update({packs_left:product.packs_left+qty})
     .eq("id",productId);
-
   await supa.from("shop_orders").delete().eq("id",orderId);
   loadOrders();
 }
