@@ -229,12 +229,13 @@ footer{
 <script>
 const ADMIN_PASSWORD="westbrom1997";
 const SUPA_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const SUPA_KEY="YOUR_KEY_HERE";
 
 const { createClient } = window.supabase;
 const supa = createClient(SUPA_URL,SUPA_KEY);
 
 let basket=[];
+let productsCache=[];
 
 window.onload=loadProducts;
 
@@ -247,11 +248,18 @@ function toggleAdmin(){
   if(pass===ADMIN_PASSWORD){
     document.getElementById("adminPanel").style.display="block";
     loadAdminProducts();
+    loadOrders();
   }
 }
 
 async function loadProducts(){
-  const {data}=await supa.from("products").select("*").eq("active",true);
+  const {data,error}=await supa.from("products")
+    .select("*")
+    .eq("active",true);
+
+  if(error){ alert(error.message); return; }
+
+  productsCache=data;
 
   const grid=document.getElementById("productGrid");
   grid.innerHTML="";
@@ -264,24 +272,32 @@ async function loadProducts(){
         <div>${p.description||''}</div>
         <div class="product-price">£${p.price}</div>
         <div>Stock: ${p.packs_left}</div>
-        <button onclick="addToBasket(${p.id},'${p.name}',${p.price})">Add Pack</button>
+        <button ${p.packs_left<=0?'disabled':''}
+          onclick="addToBasket(${p.id},'${p.name}',${p.price})">
+          ${p.packs_left<=0?'Out of Stock':'Add Pack'}
+        </button>
       </div>
     `;
   });
 }
 
 function addToBasket(id,name,price){
-  basket.push({id,name,price,qty:1});
+  const existing=basket.find(x=>x.id===id);
+  if(existing){
+    existing.qty++;
+  }else{
+    basket.push({id,name,price,qty:1});
+  }
   updateBasket();
 }
 
 function updateBasket(){
-  document.getElementById("basketCount").innerText=basket.length;
+  document.getElementById("basketCount").innerText=basket.reduce((a,b)=>a+b.qty,0);
   let total=0;
   let html="<table>";
   basket.forEach(item=>{
     total+=item.price*item.qty;
-    html+=`<tr><td>${item.name}</td><td>£${item.price}</td></tr>`;
+    html+=`<tr><td>${item.name} x${item.qty}</td><td>£${(item.price*item.qty).toFixed(2)}</td></tr>`;
   });
   html+="</table>";
   document.getElementById("basketItems").innerHTML=html;
@@ -289,12 +305,23 @@ function updateBasket(){
 }
 
 async function checkout(){
-  const name=document.getElementById("customerName").value;
+  const name=document.getElementById("customerName").value.trim();
   const payment=document.getElementById("paymentMethod").value;
+
   if(!name||!payment) return alert("Enter details");
+  if(basket.length===0) return alert("Basket empty");
 
   for(const item of basket){
-    await supa.from("shop_orders").insert([{
+
+    const product=productsCache.find(p=>p.id===item.id);
+    if(!product || product.packs_left < item.qty){
+      alert(`Not enough stock for ${item.name}`);
+      return;
+    }
+
+    // Insert order
+    const {error:orderError}=await supa.from("shop_orders").insert([{
+      product_id:item.id,
       product_name:item.name,
       price:item.price,
       quantity:item.qty,
@@ -302,12 +329,23 @@ async function checkout(){
       payment_method:payment,
       delivered:false
     }]);
+
+    if(orderError){
+      alert(orderError.message);
+      return;
+    }
+
+    // Reduce stock
+    await supa.from("products")
+      .update({packs_left: product.packs_left - item.qty})
+      .eq("id",item.id);
   }
 
-  alert("Reservation confirmed. Your items will be brought to the next event.");
+  alert("Reservation confirmed ✔️");
   basket=[];
   updateBasket();
   toggleBasket();
+  loadProducts();
 }
 
 async function addProduct(){
@@ -320,12 +358,14 @@ async function addProduct(){
     image:image.value,
     active:true
   }]);
+
   loadProducts();
   loadAdminProducts();
 }
 
 async function loadAdminProducts(){
   const {data}=await supa.from("products").select("*");
+
   let html="<table><tr><th>Name</th><th>Stock</th><th></th></tr>";
   data.forEach(p=>{
     html+=`<tr>
@@ -335,13 +375,56 @@ async function loadAdminProducts(){
     </tr>`;
   });
   html+="</table>";
+
   document.getElementById("adminProducts").innerHTML=html;
 }
 
 async function deleteProduct(id){
-  await supa.from("products").update({active:false}).eq("id",id);
+  await supa.from("products")
+    .update({active:false})
+    .eq("id",id);
+
   loadProducts();
   loadAdminProducts();
+}
+
+/* ======================
+   NEW: ORDER MANAGEMENT
+====================== */
+
+async function loadOrders(){
+  const {data}=await supa.from("shop_orders")
+    .select("*")
+    .order("id",{ascending:false});
+
+  let html="<h3>Orders</h3>";
+  html+="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>Payment</th><th>Status</th></tr>";
+
+  data.forEach(o=>{
+    html+=`<tr>
+      <td>${o.customer_name}</td>
+      <td>${o.product_name}</td>
+      <td>${o.quantity}</td>
+      <td>${o.payment_method}</td>
+      <td>
+        ${o.delivered ? "Delivered" :
+          `<button onclick="markDelivered(${o.id})">Mark Delivered</button>`
+        }
+      </td>
+    </tr>`;
+  });
+
+  html+="</table>";
+
+  document.getElementById("adminPanel").innerHTML+=html;
+}
+
+async function markDelivered(id){
+  await supa.from("shop_orders")
+    .update({delivered:true})
+    .eq("id",id);
+
+  loadOrders();
 }
 </script>
 
