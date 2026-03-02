@@ -260,26 +260,44 @@ async function loadProducts(){
 
 async function addProduct(){
 
-  const product={
-    category:"balls",
-    name:name.value,
-    description:description.value,
-    price:parseFloat(price.value),
-    packs_left:parseInt(stock.value),
-    image:image.value,
-    active:true
-  };
+  const nameVal = document.getElementById("name").value.trim();
+  const descVal = document.getElementById("description").value.trim();
+  const priceVal = parseFloat(document.getElementById("price").value);
+  const stockVal = parseInt(document.getElementById("stock").value);
+  const imageVal = document.getElementById("image").value.trim();
 
-  const {error}=await supa.from("products").insert([product]);
+  if(!nameVal || !priceVal || !stockVal){
+    alert("Name, Price and Stock are required.");
+    return;
+  }
+
+  const { error } = await supa.from("products").insert([{
+    category:"balls",
+    name:nameVal,
+    description:descVal,
+    price:priceVal,
+    packs_left:stockVal,
+    image:imageVal,
+    active:true
+  }]);
 
   if(error){
-    console.error(error);
+    console.error("Insert error:", error);
     alert("Error adding product");
     return;
   }
 
-  alert("Product added");
+  alert("Product added successfully!");
+
+  // Clear form
+  document.getElementById("name").value="";
+  document.getElementById("description").value="";
+  document.getElementById("price").value="";
+  document.getElementById("stock").value="";
+  document.getElementById("image").value="";
+
   loadProducts();
+}
 
   name.value="";
   description.value="";
