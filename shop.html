@@ -13,338 +13,188 @@
   --green:#064d2b;
   --gold:#d4af37;
   --light:#f7f7f5;
-  --shadow:rgba(0,0,0,0.1);
 }
-body{
-  font-family:"Inter",sans-serif;
-  margin:0;
-  background:var(--light);
-}
-.container{
-  max-width:1100px;
-  margin:40px auto;
-  padding:0 20px;
-}
-h2{color:var(--green)}
-.admin-btn{
-  background:var(--gold);
-  padding:.6rem 1rem;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-  margin-bottom:15px;
-}
-.admin-panel{
-  background:#fff;
-  border:2px solid var(--gold);
-  padding:2rem;
-  border-radius:10px;
-  margin-bottom:2rem;
-}
-.hidden{display:none}
-.product-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:25px;
-}
-.product-card{
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 4px 12px var(--shadow);
-  text-align:center;
-}
-.product-card img{
-  width:100%;
-  height:200px;
-  object-fit:cover;
-  border-radius:8px;
-}
-.price{
-  font-weight:700;
-  margin:10px 0;
-}
-input,textarea,select{
-  width:100%;
-  padding:.6rem;
-  margin-top:.3rem;
-  margin-bottom:1rem;
-}
-button{
-  background:var(--green);
-  color:#fff;
-  border:none;
-  padding:.7rem 1rem;
-  border-radius:6px;
-  cursor:pointer;
-}
-button:hover{opacity:.9}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:15px;
-}
-td{
-  padding:8px;
-  border-bottom:1px solid #ddd;
-}
-th{
-  text-align:left;
-  padding:8px;
-  border-bottom:2px solid #333;
-}
+body { font-family:"Inter",sans-serif; background:var(--light); margin:0; }
+.container { max-width:1200px; margin:40px auto; padding:0 20px; }
+.admin-btn { background:var(--gold); padding:.6rem 1rem; border:none; border-radius:8px; cursor:pointer; }
+.hidden { display:none; }
+table { width:100%; border-collapse:collapse; margin-top:20px; background:#fff; }
+th,td { padding:10px; border-bottom:1px solid #ddd; text-align:left; }
+th { background:#f3f3f3; }
+img { width:60px; border-radius:6px; }
+button { background:var(--green); color:#fff; border:none; padding:.5rem .8rem; border-radius:6px; cursor:pointer; }
+button:hover { opacity:.9; }
+input,select { padding:.4rem; }
+.delivered { background:#d4edda; }
 </style>
 </head>
 <body>
 
 <div class="container">
 
-<button id="adminToggle" class="admin-btn" onclick="toggleAdmin()">🔐 Admin Access</button>
+<button class="admin-btn" onclick="toggleAdmin()">🔐 Admin Access</button>
 
-<div id="adminPanel" class="admin-panel hidden">
+<h2>What are you selling?</h2>
 
-<h3>Manage Products</h3>
+<select onchange="loadCategory(this.value)">
+<option value="">Select Category</option>
+<option value="balls">Balls</option>
+</select>
 
-<label>Product Name</label>
-<input id="prodName">
+<div id="productArea"></div>
 
-<label>Price (£)</label>
-<input id="prodPrice" type="number" step="0.01">
+<div id="adminPanel" class="hidden">
 
-<label>Image URL</label>
-<input id="prodImage">
-
-<label>Description</label>
-<textarea id="prodDesc"></textarea>
-
-<button onclick="addProduct()">Add Product</button>
-
-<hr>
-
-<h4>Edit / Delete Products</h4>
-<select id="productSelect" onchange="loadProductEdit()"></select>
-
-<div id="editArea" class="hidden">
-<label>Name</label>
-<input id="editName">
-<label>Price</label>
-<input id="editPrice" type="number" step="0.01">
-<label>Image</label>
-<input id="editImage">
-<label>Description</label>
-<textarea id="editDesc"></textarea>
-<button onclick="saveEdit()">💾 Save Changes</button>
-<button onclick="deleteProduct()">❌ Delete</button>
-</div>
+<h3>Add Product</h3>
+<input id="pCategory" placeholder="Category (balls)">
+<input id="pName" placeholder="Name">
+<input id="pDesc" placeholder="Description">
+<input id="pGrade" placeholder="Grade">
+<input id="pPack" type="number" placeholder="Pack Size">
+<input id="pStock" type="number" placeholder="Packs Left">
+<input id="pPrice" type="number" step="0.01" placeholder="Price">
+<input id="pImage" placeholder="Image URL">
+<button onclick="addProduct()">Add</button>
 
 <hr>
 
-<h3>Reserved Orders</h3>
+<h3>Orders Management</h3>
 <button onclick="loadOrders()">Load Orders</button>
-<div id="ordersList"></div>
+<div id="ordersArea"></div>
 
 </div>
-
-<h2>Society Shop</h2>
-<div id="productGrid" class="product-grid"></div>
 
 </div>
 
 <script>
 const ADMIN_PASSWORD="westbrom1997";
 
-const SUPA_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const SUPA_URL="https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
 
 const { createClient } = window.supabase;
-const supa = createClient(SUPA_URL, SUPA_KEY);
-
-window.onload = () => {
-  loadProducts();
-  if(localStorage.getItem("isShopAdmin")==="true"){
-    document.getElementById("adminPanel").classList.remove("hidden");
-    loadProductSelect();
-  }
-};
+const supa = createClient(SUPA_URL,SUPA_KEY);
 
 function toggleAdmin(){
-  const isAdmin = localStorage.getItem("isShopAdmin")==="true";
+  const isAdmin=localStorage.getItem("shopAdmin")==="true";
   if(!isAdmin){
-    const pass = prompt("Enter admin password:");
+    const pass=prompt("Password:");
     if(pass===ADMIN_PASSWORD){
-      localStorage.setItem("isShopAdmin","true");
-      document.getElementById("adminPanel").classList.remove("hidden");
-      loadProductSelect();
-    } else alert("❌ Wrong password");
+      localStorage.setItem("shopAdmin","true");
+      adminPanel.classList.remove("hidden");
+    }
   } else {
-    localStorage.removeItem("isShopAdmin");
-    document.getElementById("adminPanel").classList.add("hidden");
+    localStorage.removeItem("shopAdmin");
+    adminPanel.classList.add("hidden");
   }
 }
 
-async function loadProducts(){
-  const { data } = await supa.from("products")
-    .select("*")
-    .eq("active", true)
-    .order("created_at", { ascending:false });
-
-  const grid = document.getElementById("productGrid");
-  grid.innerHTML = "";
-
-  if(!data?.length){
-    grid.innerHTML = "<p>No products available yet.</p>";
+async function loadCategory(cat){
+  if(!cat) return;
+  const {data}=await supa.from("products").select("*").eq("category",cat).eq("active",true);
+  const area=document.getElementById("productArea");
+  if(!data.length){
+    area.innerHTML="<p>No products available.</p>";
     return;
   }
-
+  let html="<table><tr><th>Image</th><th>Name/Description</th><th>Grade</th><th>Pack Size</th><th>Packs Left</th><th>Price</th><th>Reserve</th></tr>";
   data.forEach(p=>{
-    grid.innerHTML += `
-      <div class="product-card">
-        <img src="${p.image || 'https://via.placeholder.com/300'}">
-        <h4>${p.name}</h4>
-        <div class="price">£${p.price}</div>
-        <p>${p.description || ''}</p>
-        <button onclick="reserveItem('${p.name}', ${p.price})">
-          Reserve for Next Event
-        </button>
-      </div>
-    `;
+    html+=`
+    <tr>
+      <td><img src="${p.image||'https://via.placeholder.com/60'}"></td>
+      <td><strong>${p.name}</strong><br>${p.description||''}</td>
+      <td>${p.grade||''}</td>
+      <td>${p.pack_size||''}</td>
+      <td>${p.packs_left}</td>
+      <td>£${p.price}</td>
+      <td>
+        <input type="number" min="1" max="${p.packs_left}" value="1" id="qty_${p.id}">
+        <button onclick="reserve(${p.id},'${p.name}',${p.price})">Reserve</button>
+      </td>
+    </tr>`;
   });
+  html+="</table>";
+  area.innerHTML=html;
 }
 
-async function reserveItem(name, price){
-  const customer = prompt("Enter your name to reserve this item:");
+async function reserve(id,name,price){
+  const qty=parseInt(document.getElementById(`qty_${id}`).value);
+  if(!qty||qty<=0) return alert("Invalid quantity");
+
+  const {data:product}=await supa.from("products").select("*").eq("id",id).single();
+  if(product.packs_left<qty) return alert("Not enough stock");
+
+  const customer=prompt("Enter your name:");
   if(!customer) return;
 
-  const { error } = await supa.from("shop_orders").insert([
-    { product_name:name, price:price, customer_name:customer }
-  ]);
+  await supa.from("shop_orders").insert([{
+    product_id:id,
+    product_name:name,
+    quantity:qty,
+    price:price,
+    customer_name:customer
+  }]);
 
-  if(error){
-    alert("❌ Something went wrong");
-    console.error(error);
-    return;
-  }
+  await supa.from("products").update({
+    packs_left:product.packs_left-qty
+  }).eq("id",id);
 
-  alert(`✅ ${name} reserved!\n\nThis will be brought to the next event.\nPayment due on the day.`);
+  alert("Reserved! Bring payment to next event.");
+  loadCategory(product.category);
 }
 
 async function addProduct(){
-  const name = prodName.value.trim();
-  const price = prodPrice.value;
-  const image = prodImage.value.trim();
-  const desc = prodDesc.value.trim();
-
-  if(!name || !price){
-    alert("Fill required fields");
-    return;
-  }
-
-  await supa.from("products").insert([
-    { name, price, image, description:desc }
-  ]);
-
-  prodName.value="";
-  prodPrice.value="";
-  prodImage.value="";
-  prodDesc.value="";
-
-  loadProducts();
-  loadProductSelect();
-}
-
-async function loadProductSelect(){
-  const { data } = await supa.from("products")
-    .select("*")
-    .order("created_at",{ascending:false});
-
-  const sel = document.getElementById("productSelect");
-  sel.innerHTML="<option value=''>Select product</option>";
-
-  data?.forEach(p=>{
-    sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
-  });
-}
-
-async function loadProductEdit(){
-  const id = productSelect.value;
-  if(!id) return;
-
-  const { data } = await supa.from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  editArea.classList.remove("hidden");
-  editName.value=data.name;
-  editPrice.value=data.price;
-  editImage.value=data.image;
-  editDesc.value=data.description;
-}
-
-async function saveEdit(){
-  const id = productSelect.value;
-
-  await supa.from("products").update({
-    name:editName.value,
-    price:editPrice.value,
-    image:editImage.value,
-    description:editDesc.value
-  }).eq("id",id);
-
-  alert("✅ Updated");
-  loadProducts();
-  loadProductSelect();
-}
-
-async function deleteProduct(){
-  const id = productSelect.value;
-  if(!confirm("Delete product?")) return;
-
-  await supa.from("products")
-    .update({active:false})
-    .eq("id",id);
-
-  alert("Deleted");
-  loadProducts();
-  loadProductSelect();
+  await supa.from("products").insert([{
+    category:pCategory.value,
+    name:pName.value,
+    description:pDesc.value,
+    grade:pGrade.value,
+    pack_size:pPack.value,
+    packs_left:pStock.value,
+    price:pPrice.value,
+    image:pImage.value
+  }]);
+  alert("Product added");
 }
 
 async function loadOrders(){
-  const { data } = await supa.from("shop_orders")
-    .select("*")
-    .order("created_at",{ascending:false});
-
-  const div = document.getElementById("ordersList");
-
-  if(!data?.length){
-    div.innerHTML="<p>No orders yet.</p>";
-    return;
-  }
-
-  let html="<table>";
-  html+=`
-    <tr>
-      <th>Name</th>
-      <th>Product</th>
-      <th>£</th>
-      <th>Date</th>
-    </tr>
-  `;
-
+  const {data}=await supa.from("shop_orders").select("*").order("created_at",{ascending:false});
+  let html="<table><tr><th>Name</th><th>Product</th><th>Qty</th><th>£</th><th>Status</th><th>Actions</th></tr>";
   data.forEach(o=>{
     html+=`
-      <tr>
-        <td>${o.customer_name}</td>
-        <td>${o.product_name}</td>
-        <td>${o.price}</td>
-        <td>${new Date(o.created_at).toLocaleDateString()}</td>
-      </tr>
-    `;
+    <tr class="${o.delivered?'delivered':''}">
+      <td>${o.customer_name}</td>
+      <td>${o.product_name}</td>
+      <td>${o.quantity}</td>
+      <td>${o.price}</td>
+      <td>${o.delivered?'Delivered':'Pending'}</td>
+      <td>
+        <button onclick="markDelivered(${o.id})">✔</button>
+        <button onclick="cancelOrder(${o.id},${o.product_id},${o.quantity})">❌</button>
+      </td>
+    </tr>`;
   });
-
   html+="</table>";
-  div.innerHTML=html;
+  ordersArea.innerHTML=html;
+}
+
+async function markDelivered(id){
+  await supa.from("shop_orders").update({delivered:true}).eq("id",id);
+  loadOrders();
+}
+
+async function cancelOrder(orderId,productId,qty){
+  if(!confirm("Cancel order?")) return;
+
+  const {data:product}=await supa.from("products").select("*").eq("id",productId).single();
+
+  await supa.from("products").update({
+    packs_left:product.packs_left+qty
+  }).eq("id",productId);
+
+  await supa.from("shop_orders").delete().eq("id",orderId);
+
+  loadOrders();
 }
 </script>
 
