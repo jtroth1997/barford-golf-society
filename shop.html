@@ -33,6 +33,7 @@ h2{color:var(--green)}
   border-radius:8px;
   cursor:pointer;
   font-weight:600;
+  margin-bottom:15px;
 }
 .admin-panel{
   background:#fff;
@@ -52,6 +53,7 @@ h2{color:var(--green)}
   padding:20px;
   border-radius:12px;
   box-shadow:0 4px 12px var(--shadow);
+  text-align:center;
 }
 .product-card img{
   width:100%;
@@ -63,7 +65,7 @@ h2{color:var(--green)}
   font-weight:700;
   margin:10px 0;
 }
-input,textarea{
+input,textarea,select{
   width:100%;
   padding:.6rem;
   margin-top:.3rem;
@@ -78,6 +80,20 @@ button{
   cursor:pointer;
 }
 button:hover{opacity:.9}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+td{
+  padding:8px;
+  border-bottom:1px solid #ddd;
+}
+th{
+  text-align:left;
+  padding:8px;
+  border-bottom:2px solid #333;
+}
 </style>
 </head>
 <body>
@@ -87,7 +103,8 @@ button:hover{opacity:.9}
 <button id="adminToggle" class="admin-btn" onclick="toggleAdmin()">🔐 Admin Access</button>
 
 <div id="adminPanel" class="admin-panel hidden">
-<h3>Manage Shop</h3>
+
+<h3>Manage Products</h3>
 
 <label>Product Name</label>
 <input id="prodName">
@@ -121,6 +138,12 @@ button:hover{opacity:.9}
 <button onclick="deleteProduct()">❌ Delete</button>
 </div>
 
+<hr>
+
+<h3>Reserved Orders</h3>
+<button onclick="loadOrders()">Load Orders</button>
+<div id="ordersList"></div>
+
 </div>
 
 <h2>Society Shop</h2>
@@ -133,101 +156,195 @@ const ADMIN_PASSWORD="westbrom1997";
 
 const SUPA_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
-const {createClient}=window.supabase;
-const supa=createClient(SUPA_URL,SUPA_KEY);
 
-window.onload=()=>{
- loadProducts();
- if(localStorage.getItem("isShopAdmin")==="true"){
-  document.getElementById("adminPanel").classList.remove("hidden");
- }
+const { createClient } = window.supabase;
+const supa = createClient(SUPA_URL, SUPA_KEY);
+
+window.onload = () => {
+  loadProducts();
+  if(localStorage.getItem("isShopAdmin")==="true"){
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadProductSelect();
+  }
 };
 
 function toggleAdmin(){
- const isAdmin=localStorage.getItem("isShopAdmin")==="true";
- if(!isAdmin){
-  const pass=prompt("Enter admin password:");
-  if(pass===ADMIN_PASSWORD){
-   localStorage.setItem("isShopAdmin","true");
-   document.getElementById("adminPanel").classList.remove("hidden");
-   loadProductSelect();
-  }else alert("Wrong password");
- }else{
-  localStorage.removeItem("isShopAdmin");
-  document.getElementById("adminPanel").classList.add("hidden");
- }
+  const isAdmin = localStorage.getItem("isShopAdmin")==="true";
+  if(!isAdmin){
+    const pass = prompt("Enter admin password:");
+    if(pass===ADMIN_PASSWORD){
+      localStorage.setItem("isShopAdmin","true");
+      document.getElementById("adminPanel").classList.remove("hidden");
+      loadProductSelect();
+    } else alert("❌ Wrong password");
+  } else {
+    localStorage.removeItem("isShopAdmin");
+    document.getElementById("adminPanel").classList.add("hidden");
+  }
 }
 
 async function loadProducts(){
- const {data}=await supa.from("products").select("*").eq("active",true).order("created_at",{ascending:false});
- const grid=document.getElementById("productGrid");
- grid.innerHTML="";
- data?.forEach(p=>{
-  grid.innerHTML+=`
-   <div class="product-card">
-    <img src="${p.image||'https://via.placeholder.com/300'}">
-    <h4>${p.name}</h4>
-    <div class="price">£${p.price}</div>
-    <p>${p.description||''}</p>
-   </div>
-  `;
- });
+  const { data } = await supa.from("products")
+    .select("*")
+    .eq("active", true)
+    .order("created_at", { ascending:false });
+
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
+
+  if(!data?.length){
+    grid.innerHTML = "<p>No products available yet.</p>";
+    return;
+  }
+
+  data.forEach(p=>{
+    grid.innerHTML += `
+      <div class="product-card">
+        <img src="${p.image || 'https://via.placeholder.com/300'}">
+        <h4>${p.name}</h4>
+        <div class="price">£${p.price}</div>
+        <p>${p.description || ''}</p>
+        <button onclick="reserveItem('${p.name}', ${p.price})">
+          Reserve for Next Event
+        </button>
+      </div>
+    `;
+  });
+}
+
+async function reserveItem(name, price){
+  const customer = prompt("Enter your name to reserve this item:");
+  if(!customer) return;
+
+  const { error } = await supa.from("shop_orders").insert([
+    { product_name:name, price:price, customer_name:customer }
+  ]);
+
+  if(error){
+    alert("❌ Something went wrong");
+    console.error(error);
+    return;
+  }
+
+  alert(`✅ ${name} reserved!\n\nThis will be brought to the next event.\nPayment due on the day.`);
 }
 
 async function addProduct(){
- const name=document.getElementById("prodName").value;
- const price=document.getElementById("prodPrice").value;
- const image=document.getElementById("prodImage").value;
- const desc=document.getElementById("prodDesc").value;
+  const name = prodName.value.trim();
+  const price = prodPrice.value;
+  const image = prodImage.value.trim();
+  const desc = prodDesc.value.trim();
 
- if(!name||!price)return alert("Fill required fields");
+  if(!name || !price){
+    alert("Fill required fields");
+    return;
+  }
 
- await supa.from("products").insert([{name,price,image,description:desc}]);
- alert("Product added");
- loadProducts();
- loadProductSelect();
+  await supa.from("products").insert([
+    { name, price, image, description:desc }
+  ]);
+
+  prodName.value="";
+  prodPrice.value="";
+  prodImage.value="";
+  prodDesc.value="";
+
+  loadProducts();
+  loadProductSelect();
 }
 
 async function loadProductSelect(){
- const {data}=await supa.from("products").select("*").order("created_at",{ascending:false});
- const sel=document.getElementById("productSelect");
- sel.innerHTML="<option value=''>Select product</option>";
- data?.forEach(p=>{
-  sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
- });
+  const { data } = await supa.from("products")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  const sel = document.getElementById("productSelect");
+  sel.innerHTML="<option value=''>Select product</option>";
+
+  data?.forEach(p=>{
+    sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
+  });
 }
 
 async function loadProductEdit(){
- const id=document.getElementById("productSelect").value;
- if(!id)return;
- const {data}=await supa.from("products").select("*").eq("id",id).single();
- document.getElementById("editArea").classList.remove("hidden");
- document.getElementById("editName").value=data.name;
- document.getElementById("editPrice").value=data.price;
- document.getElementById("editImage").value=data.image;
- document.getElementById("editDesc").value=data.description;
+  const id = productSelect.value;
+  if(!id) return;
+
+  const { data } = await supa.from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  editArea.classList.remove("hidden");
+  editName.value=data.name;
+  editPrice.value=data.price;
+  editImage.value=data.image;
+  editDesc.value=data.description;
 }
 
 async function saveEdit(){
- const id=document.getElementById("productSelect").value;
- const updates={
-  name:document.getElementById("editName").value,
-  price:document.getElementById("editPrice").value,
-  image:document.getElementById("editImage").value,
-  description:document.getElementById("editDesc").value
- };
- await supa.from("products").update(updates).eq("id",id);
- alert("Updated");
- loadProducts();
+  const id = productSelect.value;
+
+  await supa.from("products").update({
+    name:editName.value,
+    price:editPrice.value,
+    image:editImage.value,
+    description:editDesc.value
+  }).eq("id",id);
+
+  alert("✅ Updated");
+  loadProducts();
+  loadProductSelect();
 }
 
 async function deleteProduct(){
- const id=document.getElementById("productSelect").value;
- if(!confirm("Delete product?"))return;
- await supa.from("products").update({active:false}).eq("id",id);
- alert("Deleted");
- loadProducts();
- loadProductSelect();
+  const id = productSelect.value;
+  if(!confirm("Delete product?")) return;
+
+  await supa.from("products")
+    .update({active:false})
+    .eq("id",id);
+
+  alert("Deleted");
+  loadProducts();
+  loadProductSelect();
+}
+
+async function loadOrders(){
+  const { data } = await supa.from("shop_orders")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  const div = document.getElementById("ordersList");
+
+  if(!data?.length){
+    div.innerHTML="<p>No orders yet.</p>";
+    return;
+  }
+
+  let html="<table>";
+  html+=`
+    <tr>
+      <th>Name</th>
+      <th>Product</th>
+      <th>£</th>
+      <th>Date</th>
+    </tr>
+  `;
+
+  data.forEach(o=>{
+    html+=`
+      <tr>
+        <td>${o.customer_name}</td>
+        <td>${o.product_name}</td>
+        <td>${o.price}</td>
+        <td>${new Date(o.created_at).toLocaleDateString()}</td>
+      </tr>
+    `;
+  });
+
+  html+="</table>";
+  div.innerHTML=html;
 }
 </script>
 
