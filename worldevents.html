@@ -231,10 +231,20 @@ window.onload=loadEvents
 
 async function loadEvents(){
 
-const {data:events}=await supa
+const { data: events, error } = await supa
 .from("trip_events")
 .select("*")
 .order("created_at",{ascending:false})
+
+if(error){
+console.error("Supabase error:",error)
+return
+}
+
+if(!events || events.length===0){
+document.getElementById("eventList").innerHTML="<p>No events yet.</p>"
+return
+}
 
 const container=document.getElementById("eventList")
 container.innerHTML=""
@@ -287,7 +297,6 @@ ${ev.video ? `
 </form>
 
 </div>
-
 `
 
 }
