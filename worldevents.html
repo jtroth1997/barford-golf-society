@@ -482,11 +482,16 @@ async function loadAdminVotes(){
 const eventId=document.getElementById("adminVoteEventSelect").value
 if(!eventId) return
 
-const {data}=await supa
+const { data, error } = await supa
 .from("trip_votes")
 .select("*")
-.eq("event_id",eventId)
+.eq("event_id", Number(eventId))
 .order("created_at",{ascending:true})
+
+if(error){
+console.error(error)
+return
+}
 
 const container=document.getElementById("adminVotesList")
 
