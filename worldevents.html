@@ -271,10 +271,15 @@ container.innerHTML=""
 
 for(const ev of events){
 
-const {data:votes}=await supa
+const { data: votes, error } = await supa
 .from("trip_votes")
 .select("*")
-.eq("event_id",ev.id)
+.eq("event_id", ev.id)
+
+if(error){
+console.error(error)
+continue
+}
 
 let yes=0
 let no=0
@@ -336,7 +341,7 @@ name,
 vote
 }])
 
-loadEvents()
+await loadEvents()
 loadAdminVotes()
 
 }
