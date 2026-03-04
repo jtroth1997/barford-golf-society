@@ -458,19 +458,58 @@ const {data}=await supa
 .order("created_at",{ascending:false})
 
 const select=document.getElementById("deleteEventSelect")
-
 if(!select) return
 
 select.innerHTML="<option value=''>Select Event</option>"
 
 const voteSelect=document.getElementById("adminVoteEventSelect")
+if(voteSelect){
+voteSelect.innerHTML="<option value=''>Select Event</option>"
+}
 
 data?.forEach(ev=>{
 select.innerHTML+=`<option value="${ev.id}">${ev.name}</option>`
 if(voteSelect){
 voteSelect.innerHTML+=`<option value="${ev.id}">${ev.name}</option>`
 }
-  async function loadAdminVotes(){
+})
+
+}
+
+
+async function loadAdminVotes(){
+
+const eventId=document.getElementById("adminVoteEventSelect").value
+if(!eventId) return
+
+const {data}=await supa
+.from("trip_votes")
+.select("*")
+.eq("event_id",eventId)
+.order("created_at",{ascending:true})
+
+const container=document.getElementById("adminVotesList")
+
+if(!data || data.length===0){
+container.innerHTML="<p>No votes yet.</p>"
+return
+}
+
+let html="<table style='width:100%;margin-top:10px'>"
+html+="<tr><th>Name</th><th>Vote</th></tr>"
+
+data.forEach(v=>{
+html+=`<tr>
+<td>${v.name}</td>
+<td>${v.vote}</td>
+</tr>`
+})
+
+html+="</table>"
+
+container.innerHTML=html
+
+}
 
 const eventId=document.getElementById("adminVoteEventSelect").value
 if(!eventId) return
