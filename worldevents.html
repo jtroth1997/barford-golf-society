@@ -219,6 +219,14 @@ border-radius:6px;
 <button onclick="deleteTripEvent()" style="background:#b30000">
 Delete Event
 </button>
+  <hr style="margin:25px 0">
+
+<h3>View Votes</h3>
+
+<label>Select Event</label>
+<select id="adminVoteEventSelect" onchange="loadAdminVotes()"></select>
+
+<div id="adminVotesList"></div>
 
 </div>
 
@@ -329,6 +337,7 @@ vote
 }])
 
 loadEvents()
+loadAdminVotes()
 
 }
 
@@ -454,9 +463,45 @@ if(!select) return
 
 select.innerHTML="<option value=''>Select Event</option>"
 
+const voteSelect=document.getElementById("adminVoteEventSelect")
+
 data?.forEach(ev=>{
 select.innerHTML+=`<option value="${ev.id}">${ev.name}</option>`
+if(voteSelect){
+voteSelect.innerHTML+=`<option value="${ev.id}">${ev.name}</option>`
+}
+  async function loadAdminVotes(){
+
+const eventId=document.getElementById("adminVoteEventSelect").value
+if(!eventId) return
+
+const {data}=await supa
+.from("trip_votes")
+.select("*")
+.eq("event_id",eventId)
+.order("created_at",{ascending:true})
+
+const container=document.getElementById("adminVotesList")
+
+if(!data || data.length===0){
+container.innerHTML="<p>No votes yet.</p>"
+return
+}
+
+let html="<table style='width:100%;margin-top:10px'>"
+html+="<tr><th>Name</th><th>Vote</th></tr>"
+
+data.forEach(v=>{
+html+=`<tr>
+<td>${v.name}</td>
+<td>${v.vote}</td>
+</tr>`
 })
+
+html+="</table>"
+
+container.innerHTML=html
+}
 
 }
 </script>
