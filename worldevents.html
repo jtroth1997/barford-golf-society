@@ -210,6 +210,15 @@ border-radius:6px;
 <input type="file" id="videoFile" accept="video/*">
 
 <button onclick="createTripEvent()">Create Event</button>
+  <hr style="margin:25px 0">
+
+<h3>Delete Event</h3>
+
+<select id="deleteEventSelect"></select>
+
+<button onclick="deleteTripEvent()" style="background:#b30000">
+Delete Event
+</button>
 
 </div>
 
@@ -398,15 +407,6 @@ document.getElementById("videoFile").value=""
 
 alert("Event created!")
 
-loadEvents()
-
-}
-  async function createTripEvent(){
-
-const name=document.getElementById("eventName").value
-const file=document.getElementById("videoFile").files[0]
-
-...
 loadEvents()
 
 }
