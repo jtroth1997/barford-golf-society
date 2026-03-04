@@ -296,8 +296,9 @@ container.innerHTML+=`
 <h3>${ev.name}</h3>
 
 ${ev.video ? `
-<video controls>
-<source src="${ev.video}">
+<video controls playsinline preload="metadata">
+<source src="${ev.video}" type="video/mp4">
+Your browser does not support the video tag.
 </video>` : ""}
 
 <div class="vote-count">
