@@ -227,7 +227,10 @@ const supa_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const {createClient}=supabase
 const supa=createClient(supa_URL,supa_KEY)
 
-window.onload=loadEvents
+window.onload=()=>{
+loadEvents()
+loadDeleteDropdown()
+}
 
 async function loadEvents(){
 
@@ -396,6 +399,64 @@ document.getElementById("videoFile").value=""
 alert("Event created!")
 
 loadEvents()
+
+}
+  async function createTripEvent(){
+
+const name=document.getElementById("eventName").value
+const file=document.getElementById("videoFile").files[0]
+
+...
+loadEvents()
+
+}
+
+/* PASTE NEW CODE BELOW THIS LINE */
+
+async function deleteTripEvent(){
+
+const eventId=document.getElementById("deleteEventSelect").value
+
+if(!eventId){
+alert("Select an event first")
+return
+}
+
+if(!confirm("Delete this event?")) return
+
+await supa
+.from("trip_votes")
+.delete()
+.eq("event_id",eventId)
+
+await supa
+.from("trip_events")
+.delete()
+.eq("id",eventId)
+
+alert("Event deleted")
+
+loadEvents()
+loadDeleteDropdown()
+
+}
+
+async function loadDeleteDropdown(){
+
+const {data}=await supa
+.from("trip_events")
+.select("*")
+.order("created_at",{ascending:false})
+
+const select=document.getElementById("deleteEventSelect")
+
+if(!select) return
+
+select.innerHTML="<option value=''>Select Event</option>"
+
+data?.forEach(ev=>{
+select.innerHTML+=`<option value="${ev.id}">${ev.name}</option>`
+})
 
 }
 </script>
