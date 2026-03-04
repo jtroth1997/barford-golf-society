@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -15,81 +16,19 @@
 --green:#005a2b;
 --gold:#d4af37;
 --light-bg:#f7f7f5;
---card-bg:#fff;
---text-dark:#1b1b1b;
 --shadow:rgba(0,0,0,0.1);
 }
 
 body{
-font-family:"Inter",sans-serif;
+font-family:Inter;
 margin:0;
 background:var(--light-bg);
-color:var(--text-dark);
 }
-
-/* HEADER */
-
-.site-header{
-background:#ffffff;
-padding:12px 16px;
-position:sticky;
-top:0;
-z-index:1000;
-border-bottom:2px solid #c9aa4d;
-box-shadow:0 2px 8px rgba(0,0,0,0.06);
-}
-
-.header-container{
-max-width:1200px;
-margin:0 auto;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:8px;
-}
-
-.site-title{
-font-family:"Playfair Display",serif;
-font-weight:700;
-font-size:2rem;
-color:#064d2b;
-text-align:center;
-}
-
-.site-title span:last-child{
-font-family:"Inter",sans-serif;
-font-weight:600;
-font-size:1.2rem;
-}
-
-.site-nav ul{
-list-style:none;
-display:flex;
-flex-wrap:wrap;
-gap:12px;
-padding:0;
-margin:0;
-justify-content:center;
-}
-
-.site-nav a{
-color:#222;
-text-decoration:none;
-font-weight:600;
-font-size:0.95rem;
-}
-
-.site-nav a.active{
-font-weight:700;
-color:#064d2b;
-}
-
-/* PAGE */
 
 .container{
 max-width:900px;
-margin:2rem auto;
-padding:0 1rem;
+margin:auto;
+padding:30px;
 }
 
 .event-card{
@@ -128,14 +67,9 @@ cursor:pointer;
 margin-top:10px;
 }
 
-button:hover{
-background:#00753f;
-}
-
 .admin-btn{
 background:var(--gold);
 color:black;
-margin-bottom:15px;
 }
 
 .admin-panel{
@@ -147,46 +81,17 @@ display:none;
 margin-bottom:25px;
 }
 
-.vote-row{
-display:flex;
-justify-content:space-between;
-padding:6px 0;
-border-bottom:1px solid #eee;
-}
-
-iframe{
-margin-top:10px;
+video{
+width:100%;
 border-radius:6px;
+margin-top:10px;
 }
 
 </style>
+
 </head>
 
 <body>
-
-<header class="site-header">
-<div class="header-container">
-
-<h1 class="site-title">
-<span>Barford</span>
-<span>GOLF SOCIETY</span>
-</h1>
-
-<nav class="site-nav">
-<ul>
-<li><a href="index.html">Home</a></li>
-<li><a href="events.html">Events</a></li>
-<li><a href="scores.html">Scores</a></li>
-<li><a href="shop.html">Shop</a></li>
-<li><a href="gallery.html">Gallery</a></li>
-<li><a href="worldevents.html" class="active">World Events</a></li>
-<li><a href="about.html">About Us</a></li>
-<li><a href="signup.html">Sign Up</a></li>
-</ul>
-</nav>
-
-</div>
-</header>
 
 <div class="container">
 
@@ -196,19 +101,15 @@ border-radius:6px;
 
 <div id="adminPanel" class="admin-panel">
 
-<h3>Create New Trip Event</h3>
+<h3>Create Event</h3>
 
 <label>Event Name</label>
 <input id="eventName">
 
-<label>Video File Path</label>
-<input id="videoLink" placeholder="videos/trip.mp4">
+<label>Upload Video</label>
+<input type="file" id="videoFile" accept="video/*">
 
 <button onclick="createEvent()">Create Event</button>
-
-<hr>
-
-<div id="adminVotes"></div>
 
 </div>
 
@@ -218,42 +119,40 @@ border-radius:6px;
 
 <script>
 
-const ADMIN_PASSWORD = "westbrom1997";
+const ADMIN_PASSWORD="westbrom1997"
 
-const supa_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
-const supa_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ";
+const supa_URL="https://tzzkgfehtnuizamzlbgr.supabase.co"
+const supa_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6emtnZmVodG51aXphbXpsYmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzY5ODAsImV4cCI6MjA3ODAxMjk4MH0.2mf4RMbJJvPo0NApywlrDyHuqAMfMyEWxgOS2ZSP4KQ"
 
-const { createClient } = supabase;
-const supa = createClient(supa_URL, supa_KEY);
+const {createClient}=supabase
+const supa=createClient(supa_URL,supa_KEY)
 
-window.onload = () => {
-loadEvents();
-};
+window.onload=loadEvents
 
 async function loadEvents(){
 
-const { data:events } = await supa
+const {data:events}=await supa
 .from("trip_events")
 .select("*")
-.order("created_at",{ascending:false});
+.order("created_at",{ascending:false})
 
-const container=document.getElementById("eventList");
-container.innerHTML="";
+const container=document.getElementById("eventList")
+container.innerHTML=""
 
 for(const ev of events){
 
-const { data:votes } = await supa
+const {data:votes}=await supa
 .from("trip_votes")
 .select("*")
-.eq("event_id",ev.id);
+.eq("event_id",ev.id)
 
-let yes=0;
-let no=0;
+let yes=0
+let no=0
 
 votes?.forEach(v=>{
-if(v.vote==="yes") yes++;
-if(v.vote==="no") no++;
-});
+if(v.vote==="yes") yes++
+if(v.vote==="no") no++
+})
 
 container.innerHTML+=`
 
@@ -262,11 +161,9 @@ container.innerHTML+=`
 <h3>${ev.name}</h3>
 
 ${ev.video ? `
-<video width="100%" controls style="margin-top:10px;border-radius:6px;">
-<source src="${ev.video}" type="video/mp4">
-Your browser does not support the video tag.
-</video>
-` : ""}
+<video controls>
+<source src="${ev.video}">
+</video>` : ""}
 
 <div class="vote-count">
 <span class="yes">👍 Interested: ${yes}</span>
@@ -290,8 +187,7 @@ Your browser does not support the video tag.
 </form>
 
 </div>
-
-`;
+`
 
 }
 
@@ -299,43 +195,41 @@ Your browser does not support the video tag.
 
 async function submitVote(e,eventId){
 
-e.preventDefault();
+e.preventDefault()
 
-const name=document.getElementById("name_"+eventId).value.trim();
-const vote=document.getElementById("vote_"+eventId).value;
+const name=document.getElementById("name_"+eventId).value
+const vote=document.getElementById("vote_"+eventId).value
 
 await supa.from("trip_votes").insert([{
 event_id:eventId,
 name,
 vote
-}]);
+}])
 
-loadEvents();
-loadAdminVotes();
+loadEvents()
 
 }
 
 function toggleAdmin(){
 
-const isAdmin=localStorage.getItem("isAdmin");
+const isAdmin=localStorage.getItem("isAdmin")
 
 if(!isAdmin){
 
-const pass=prompt("Enter admin password");
+const pass=prompt("Enter admin password")
 
 if(pass!==ADMIN_PASSWORD){
-alert("Wrong password");
-return;
+alert("Wrong password")
+return
 }
 
-localStorage.setItem("isAdmin",true);
-document.getElementById("adminPanel").style.display="block";
-loadAdminVotes();
+localStorage.setItem("isAdmin",true)
+document.getElementById("adminPanel").style.display="block"
 
 }else{
 
-localStorage.removeItem("isAdmin");
-document.getElementById("adminPanel").style.display="none";
+localStorage.removeItem("isAdmin")
+document.getElementById("adminPanel").style.display="none"
 
 }
 
@@ -343,66 +237,33 @@ document.getElementById("adminPanel").style.display="none";
 
 async function createEvent(){
 
-const name=document.getElementById("eventName").value;
-const video=document.getElementById("videoLink").value;
+const name=document.getElementById("eventName").value
+const file=document.getElementById("videoFile").files[0]
+
+if(!name || !file){
+alert("Enter name and choose video")
+return
+}
+
+const fileName=Date.now()+"_"+file.name
+
+await supa.storage
+.from("trip-videos")
+.upload(fileName,file)
+
+const {data}=supa.storage
+.from("trip-videos")
+.getPublicUrl(fileName)
 
 await supa.from("trip_events").insert([{
-name,
-video
-}]);
+name:name,
+video:data.publicUrl
+}])
 
-document.getElementById("eventName").value="";
-document.getElementById("videoLink").value="";
+document.getElementById("eventName").value=""
+document.getElementById("videoFile").value=""
 
-loadEvents();
-loadAdminVotes();
-
-}
-
-async function loadAdminVotes(){
-
-const { data:events } = await supa.from("trip_events").select("*");
-
-const area=document.getElementById("adminVotes");
-area.innerHTML="";
-
-for(const ev of events){
-
-const { data:votes } = await supa
-.from("trip_votes")
-.select("*")
-.eq("event_id",ev.id);
-
-area.innerHTML+=`<h3>${ev.name}</h3>`;
-
-votes?.forEach(v=>{
-
-area.innerHTML+=`
-
-<div class="vote-row">
-<span>${v.name} — ${v.vote}</span>
-<button onclick="deleteVote(${v.id})">❌</button>
-</div>
-
-`;
-
-});
-
-}
-
-}
-
-async function deleteVote(id){
-
-if(!confirm("Delete vote?")) return;
-
-await supa
-.from("trip_votes")
-.delete()
-.eq("id",id);
-
-loadAdminVotes();
-loadEvents();
+loadEvents()
 
 }
 
