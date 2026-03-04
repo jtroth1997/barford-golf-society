@@ -209,7 +209,7 @@ border-radius:6px;
 <label>Upload Video</label>
 <input type="file" id="videoFile" accept="video/*">
 
-<button onclick="createEvent()">Create Event</button>
+<button onclick="createTripEvent()">Create Event</button>
 
 </div>
 
@@ -336,7 +336,7 @@ document.getElementById("adminPanel").style.display="none"
 
 }
 
-async function createEvent(){
+async function createTripEvent(){
 
 const name=document.getElementById("eventName").value
 const file=document.getElementById("videoFile").files[0]
