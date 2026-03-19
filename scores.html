@@ -456,103 +456,12 @@ if(r.adj != null){
     });
   });
 
-trophies = players.map(()=>0);
-
-// Loop each round
-for(let rn = 0; rn < maxRounds; rn++){
-
-  let topScore = -Infinity;
-  let winners = [];
-
-  // Find top scorers
-  for(let i=0; i<players.length; i++){
-    const pts = playerScores[i][rn];
-
-    if(pts != null){
-      if(pts > topScore){
-        topScore = pts;
-        winners = [i];
-      } else if(pts === topScore){
-        winners.push(i);
-      }
-    }
-  }
-
-  // ✅ NO TIE → auto winner
-  if(winners.length === 1){
-    
-  }
-
-  // 🟡 TIE → ASK USER
-  else if(winners.length > 1){
-
-    let message = `Round ${rn+1} tie!\nSelect winner:\n\n`;
-
-    winners.forEach((i, idx)=>{
-      message += `${idx+1}. ${players[i]} (${topScore} pts)\n`;
-    });
-
-    let choice = prompt(message);
-
-    let chosenIndex = winners[parseInt(choice)-1];
-
-    if(chosenIndex != null){
-    } else {
-      alert("No valid selection — no trophy awarded for this round");
-    }
-  }
-}
-
-  // 🏆 TROPHY LOGIC FOR CURRENT ROUND
-let rn = currentRound - 1;
-
-let topScore = -Infinity;
-let winners = [];
-
-// Find top score
-for(let i=0; i<players.length; i++){
-  const pts = playerScores[i][rn];
-
-  if(pts != null){
-    if(pts > topScore){
-      topScore = pts;
-      winners = [i];
-    } else if(pts === topScore){
-      winners.push(i);
-    }
-  }
-}
-
-// SINGLE WINNER
-if(winners.length === 1){
-  
-}
-
-// 🟡 TIE → FORCE POPUP
-if(winners.length > 1){
-
-  console.log("TIE DETECTED:", winners); // 👈 DEBUG LINE
-
-  let message = `Round ${currentRound} tie!\nSelect winner:\n\n`;
-
-  winners.forEach((i, idx)=>{
-    message += `${idx+1}. ${players[i]} (${topScore} pts)\n`;
-  });
-
-  let choice = prompt(message);
-
-  let chosenIndex = winners[parseInt(choice)-1];
-
-  if(chosenIndex != null){
 
 
-    // ✅ CONFIRMATION POPUP
-    alert(`🏆 ${players[chosenIndex]} wins Round ${currentRound}!`);
+// 🏆 TROPHY LOGIC (FIXED)
 
-  } else {
-    alert("No valid selection — no trophy awarded");
-  }
-}
+
+
 
 // THEN RENDER
 renderLeaderboard();
@@ -831,18 +740,62 @@ playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
       }
     }
 
+    // 🏆 DETERMINE WINNER FIRST
+
+let winnerIndex = null;
+
+let topScore = -Infinity;
+let winners = [];
+
+for(let i=0; i<players.length; i++){
+  const pts = playerScores[i][currentRound-1];
+
+  if(pts != null){
+    if(pts > topScore){
+      topScore = pts;
+      winners = [i];
+    } else if(pts === topScore){
+      winners.push(i);
+    }
+  }
+}
+
+// SINGLE WINNER
+if(winners.length === 1){
+  winnerIndex = winners[0];
+}
+
+// TIE → prompt
+else if(winners.length > 1){
+
+  let message = `Round ${currentRound} tie!\nSelect winner:\n\n`;
+
+  winners.forEach((i, idx)=>{
+    message += `${idx+1}. ${players[i]} (${topScore} pts)\n`;
+  });
+
+  let choice = prompt(message);
+  winnerIndex = winners[parseInt(choice)-1];
+}
+
+// APPLY TROPHY
+if(winnerIndex != null){
+  trophies[winnerIndex]++;
+  showToast(`🏆 ${players[winnerIndex]} wins Round ${currentRound}!`);
+}
     const updates = players.map((name,i)=>{
       const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b - a).slice(0,5);
       const total = vals.reduce((a,b)=>a+b,0);
-      return {
-        player: name,
-        round: currentRound,
-        handicap: currentHcp[i],
-        points: playerScores[i][currentRound - 1],
-        adj: lastAdj[i] === "DNP" ? null : parseInt(lastAdj[i]),
-        next_handicap: nextHcp[i],
-        total: total
-      };
+    return {
+  player: name,
+  round: currentRound,
+  handicap: currentHcp[i],
+  points: playerScores[i][currentRound - 1],
+  adj: lastAdj[i] === "DNP" ? null : parseInt(lastAdj[i]),
+  next_handicap: nextHcp[i],
+  total: total,
+  winner: (winnerIndex === i) // ✅ THIS LINE
+};
     });
 
     const { data, error } = await supabaseClient.from("scores").upsert(updates, { onConflict:["player","round"] });
@@ -854,52 +807,7 @@ playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
       showToast("✅ Scores & handicaps updated");
     }
 
-    trophies = players.map(()=>0);
-
-
-  let topScore = -Infinity;
-  let winners = [];
-
-  // Find top scorers
-  for(let i=0; i<players.length; i++){
-   const pts = playerScores[i][currentRound-1];
-
-    if(pts != null){
-      if(pts > topScore){
-        topScore = pts;
-        winners = [i];
-      } else if(pts === topScore){
-        winners.push(i);
-      }
-    }
-  }
-
-  // ✅ SINGLE WINNER
-  if(winners.length === 1){
-    
-  }
-
-  // 🟡 TIE → ONLY ASK FOR CURRENT ROUND
-  else if(winners.length > 1 && rn === currentRound){
-
-    let message = `Round ${currentRound} tie!\nSelect winner:\n\n`;
-
-    winners.forEach((i, idx)=>{
-      message += `${idx+1}. ${players[i]} (${topScore} pts)\n`;
-    });
-
-    let choice = prompt(message);
-    let chosenIndex = winners[parseInt(choice)-1];
-
-    if(chosenIndex != null){
-      alert(`🏆 ${players[chosenIndex]} wins Round ${currentRound}!`);
-    } else {
-      alert("No valid selection — no trophy awarded");
-    }
-}
-
-    renderLeaderboard();
-    renderStatsGrid();
+   await loadData();
   }
 
  async function exportAllCSV(){
