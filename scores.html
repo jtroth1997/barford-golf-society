@@ -417,7 +417,17 @@ async function loadData(){
   const { data: scores, error: sErr } = await supabaseClient
     .from("scores")
     .select("*");
+trophies = players.map(()=>0);
 
+scores.forEach(r => {
+  if(r.winner){
+    const i = players.indexOf(r.player);
+    if(i !== -1){
+      trophies[i]++;
+    }
+  }
+});
+  
   if (sErr){
     console.error("Error loading scores:", sErr);
     document.body.style.cursor="default";
@@ -462,7 +472,7 @@ for(let rn = 0; rn < maxRounds; rn++){
 
   // ✅ NO TIE → auto winner
   if(winners.length === 1){
-    trophies[winners[0]]++;
+    
   }
 
   // 🟡 TIE → ASK USER
@@ -479,7 +489,6 @@ for(let rn = 0; rn < maxRounds; rn++){
     let chosenIndex = winners[parseInt(choice)-1];
 
     if(chosenIndex != null){
-      trophies[chosenIndex]++;
     } else {
       alert("No valid selection — no trophy awarded for this round");
     }
@@ -508,7 +517,7 @@ for(let i=0; i<players.length; i++){
 
 // SINGLE WINNER
 if(winners.length === 1){
-  trophies[winners[0]]++;
+  
 }
 
 // 🟡 TIE → FORCE POPUP
@@ -528,7 +537,6 @@ if(winners.length > 1){
 
   if(chosenIndex != null){
 
-    trophies[chosenIndex]++;
 
     // ✅ CONFIRMATION POPUP
     alert(`🏆 ${players[chosenIndex]} wins Round ${currentRound}!`);
@@ -839,7 +847,6 @@ async function confirmReset(){
     trophies = players.map(()=>0);
   trophies = players.map(()=>0);
 
-for(let rn=1; rn<=currentRound; rn++){
 
   let topScore = -Infinity;
   let winners = [];
@@ -860,7 +867,7 @@ for(let rn=1; rn<=currentRound; rn++){
 
   // ✅ SINGLE WINNER
   if(winners.length === 1){
-    trophies[winners[0]]++;
+    
   }
 
   // 🟡 TIE → ONLY ASK FOR CURRENT ROUND
@@ -876,7 +883,6 @@ for(let rn=1; rn<=currentRound; rn++){
     let chosenIndex = winners[parseInt(choice)-1];
 
     if(chosenIndex != null){
-      trophies[chosenIndex]++;
       alert(`🏆 ${players[chosenIndex]} wins Round ${currentRound}!`);
     } else {
       alert("No valid selection — no trophy awarded");
