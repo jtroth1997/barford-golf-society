@@ -443,7 +443,35 @@ async function loadData(){
   document.body.style.cursor = "default";
 }
 
-  function renderLeaderboard(){ /* unchanged */ }
+  function renderLeaderboard(){
+  const tbody = document.getElementById("playersTable");
+  tbody.innerHTML = "";
+
+  const totals = players.map((name,i)=>{
+    const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
+    const sum  = vals.reduce((a,b)=>a+b,0);
+    return { idx:i, name, total: sum };
+  }).sort((a,b)=>b.total - a.total);
+
+  totals.forEach((p,rank)=>{
+    const i = p.idx;
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
+      <td>${players[i]}</td>
+      <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
+      <td>${lastAdj[i]}</td>
+      <td>${nextHcp[i] ?? ""}</td>
+      <td>${p.total}</td>
+      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1]==null?"checked":""}></td>
+      <td>🏆 ${trophies[i]}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
 
   function nextRound(){
     if(currentRound < maxRounds){
@@ -572,11 +600,68 @@ async function loadData(){
     renderStatsGrid();
   }
 
-  async function exportAllCSV(){ /* unchanged */ }
-  async function exportLeaderboardCSV(){ /* unchanged */ }
-  function exportStatsCSV(){ /* unchanged */ }
-  function downloadCSV(name,csv){ /* unchanged */ }
-  function renderStatsGrid(){ /* unchanged */ }
+ async function exportAllCSV(){
+  const { data } = await supabaseClient.from("scores").select("*");
+  downloadCSV("all_scores", toCSV(data));
+}
+
+async function exportLeaderboardCSV(){
+  const rows = players.map((name,i)=>{
+    const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
+    return {
+      Player: name,
+      Total: vals.reduce((a,b)=>a+b,0),
+      Trophies: trophies[i]
+    };
+  });
+  downloadCSV("leaderboard", toCSV(rows));
+}
+
+function exportStatsCSV(){
+  const rows = players.map((name,i)=>{
+    const vals = playerScores[i].filter(v => v!=null);
+    return {
+      Player: name,
+      Rounds: vals.length,
+      Average: vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : "",
+      Best: vals.length ? Math.max(...vals) : "",
+      Worst: vals.length ? Math.min(...vals) : "",
+      Trophies: trophies[i]
+    };
+  });
+  downloadCSV("stats", toCSV(rows));
+}
+
+function downloadCSV(name,csv){
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${name}_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+}
+
+function renderStatsGrid(){
+  const grid = document.getElementById("statsGrid");
+  grid.innerHTML = "";
+
+  players.forEach((name,i)=>{
+    const vals = playerScores[i].filter(v => v!=null);
+
+    const card = document.createElement("div");
+    card.className = "stats-card";
+
+    card.innerHTML = `
+      <h4>${name}</h4>
+      <p>Rounds: ${vals.length}</p>
+      <p>Avg: ${vals.length ? (vals.reduce((a,b)=>a+b)/vals.length).toFixed(1) : "-"}</p>
+      <p>Best: ${vals.length ? Math.max(...vals) : "-"}</p>
+      <p>Worst: ${vals.length ? Math.min(...vals) : "-"}</p>
+      <p>🏆 ${trophies[i]}</p>
+    `;
+
+    grid.appendChild(card);
+  });
+}
 
   document.getElementById("darkSwitch").addEventListener("change", function(){
     document.body.classList.toggle("dark-mode", this.checked);
