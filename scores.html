@@ -353,7 +353,7 @@
   let trophies     = [];
   let lastAdj      = [];
   let playerScores = [];
-
+  let playerHcpHistory = [];
   function showToast(msg){
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -403,6 +403,7 @@ async function loadData(){
   trophies     = players.map(()=>0);
   lastAdj      = players.map(()=> "");
   playerScores = players.map(()=> Array(maxRounds).fill(null));
+  playerHcpHistory = players.map(()=> Array(maxRounds).fill(null));
 
   const { data: scores, error: sErr } = await supabaseClient
     .from("scores")
@@ -419,7 +420,10 @@ async function loadData(){
     rows.forEach(r=>{
       const idx = r.round - 1;
       playerScores[i][idx] = r.points;
-      if(r.handicap      != null) currentHcp[i]   = r.handicap;
+      if(r.handicap != null){
+  currentHcp[i] = r.handicap;
+  playerHcpHistory[i][r.round - 1] = r.handicap;
+}
       if(r.next_handicap != null) nextHcp[i]      = r.next_handicap;
       if(r.adj           != null) lastAdj[i]      = (r.adj>0? "+" : "") + r.adj;
     });
@@ -460,7 +464,9 @@ async function loadData(){
     tr.innerHTML = `
       <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
       <td>${players[i]}</td>
-      <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="hcp_${i}" value="${
+  playerHcpHistory[i][currentRound-1] ?? currentHcp[i]
+}" ${unlocked?"":"disabled"}></td>
       <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
       <td>${lastAdj[i]}</td>
       <td>${nextHcp[i] ?? ""}</td>
@@ -683,6 +689,7 @@ async function confirmReset(){
         nextHcp[i] = Math.max(0, hcpVal + adj);
         playerScores[i][currentRound-1] = ptsVal;
         currentHcp[i] = hcpVal;
+        playerHcpHistory[i][currentRound-1] = hcpVal;
       }
     }
 
