@@ -448,6 +448,9 @@ scores.forEach(r => {
 }
   if(r.next_handicap != null){
   playerNextHcpHistory[i][r.round - 1] = r.next_handicap;
+
+  // ✅ ADD THIS LINE
+  nextHcp[i] = r.next_handicap;
 }
 
 if(r.adj != null){
@@ -535,7 +538,11 @@ function nextRound(){
     console.log("Moved to next round:", currentRound);
 
     for(let i=0; i<players.length; i++){
-      currentHcp[i] = nextHcp[i] ?? currentHcp[i];
+     const prevRound = currentRound - 1;
+
+if(playerNextHcpHistory[i][prevRound] != null){
+  currentHcp[i] = playerNextHcpHistory[i][prevRound];
+}
       lastAdj[i] = "";
     }
 
