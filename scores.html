@@ -447,7 +447,7 @@ async function loadData(){
   document.body.style.cursor = "default";
 }
 
-  function renderLeaderboard(){
+ function renderLeaderboard(){
   const tbody = document.getElementById("playersTable");
   tbody.innerHTML = "";
 
@@ -465,22 +465,42 @@ async function loadData(){
       <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
       <td>${players[i]}</td>
       <td><input type="number" id="hcp_${i}" value="${
-  playerHcpHistory[i][currentRound-1] ?? currentHcp[i]
-}" ${unlocked?"":"disabled"}></td>
+        playerHcpHistory[i][currentRound-1] ?? currentHcp[i]
+      }" ${unlocked?"":"disabled"}></td>
       <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
       <td>${lastAdj[i]}</td>
       <td>${nextHcp[i] ?? ""}</td>
       <td>${p.total}</td>
-     <td>
-  <input type="checkbox" disabled 
-    ${(playerScores[i][currentRound-1]==null || lastAdj[i]==="DNP") ? "checked" : ""}
-  >
-</td>
+      <td>
+        <input type="checkbox" disabled 
+          ${(playerScores[i][currentRound-1]==null || lastAdj[i]==="DNP") ? "checked" : ""}
+        >
+      </td>
       <td>🏆 ${trophies[i]}</td>
     `;
 
     tbody.appendChild(tr);
   });
+
+  // ✅ ✅ ✅ CORRECT PLACE (OUTSIDE LOOP)
+
+  // ROUND HEADER + PROGRESS
+  document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
+  document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
+  document.getElementById("progressFill").style.width = `${(currentRound / maxRounds) * 100}%`;
+
+  // SECRET ROUNDS (6 & 7)
+  const wrap = document.getElementById("playersTableWrap");
+  const secretNotice = document.getElementById("secretNotice");
+
+  if((currentRound === 6 || currentRound === 7) && !unlocked){
+    wrap.classList.add("table-secret");
+    secretNotice.style.display = "block";
+  } else {
+    wrap.classList.remove("table-secret");
+    secretNotice.style.display = "none";
+  }
+}
     // ✅ ADD THIS AT THE VERY END OF renderLeaderboard()
 
 document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
