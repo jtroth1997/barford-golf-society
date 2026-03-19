@@ -486,8 +486,61 @@ for(let rn = 0; rn < maxRounds; rn++){
   }
 }
 
-  renderLeaderboard();
-  renderStatsGrid();
+  // 🏆 TROPHY LOGIC FOR CURRENT ROUND
+let rn = currentRound - 1;
+
+let topScore = -Infinity;
+let winners = [];
+
+// Find top score
+for(let i=0; i<players.length; i++){
+  const pts = playerScores[i][rn];
+
+  if(pts != null){
+    if(pts > topScore){
+      topScore = pts;
+      winners = [i];
+    } else if(pts === topScore){
+      winners.push(i);
+    }
+  }
+}
+
+// SINGLE WINNER
+if(winners.length === 1){
+  trophies[winners[0]]++;
+}
+
+// 🟡 TIE → FORCE POPUP
+if(winners.length > 1){
+
+  console.log("TIE DETECTED:", winners); // 👈 DEBUG LINE
+
+  let message = `Round ${currentRound} tie!\nSelect winner:\n\n`;
+
+  winners.forEach((i, idx)=>{
+    message += `${idx+1}. ${players[i]} (${topScore} pts)\n`;
+  });
+
+  let choice = prompt(message);
+
+  let chosenIndex = winners[parseInt(choice)-1];
+
+  if(chosenIndex != null){
+
+    trophies[chosenIndex]++;
+
+    // ✅ CONFIRMATION POPUP
+    alert(`🏆 ${players[chosenIndex]} wins Round ${currentRound}!`);
+
+  } else {
+    alert("No valid selection — no trophy awarded");
+  }
+}
+
+// THEN RENDER
+renderLeaderboard();
+renderStatsGrid();
   document.body.style.cursor = "default";
 }
 
