@@ -465,7 +465,11 @@ async function loadData(){
       <td>${lastAdj[i]}</td>
       <td>${nextHcp[i] ?? ""}</td>
       <td>${p.total}</td>
-      <td><input type="checkbox" disabled ${playerScores[i][currentRound-1]==null?"checked":""}></td>
+     <td>
+  <input type="checkbox" disabled 
+    ${(playerScores[i][currentRound-1]==null || lastAdj[i]==="DNP") ? "checked" : ""}
+  >
+</td>
       <td>🏆 ${trophies[i]}</td>
     `;
 
@@ -635,7 +639,16 @@ async function confirmReset(){
       const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
       console.log("Player:", players[i], "hcp:", hcpVal, "pts:", ptsVal);
 
-      if(!isNaN(ptsVal)){
+    if(!isNaN(ptsVal)){
+
+  // 🟡 DNP RULE
+  if(ptsVal === 0){
+    lastAdj[i] = "DNP";
+    nextHcp[i] = hcpVal; // no change
+    playerScores[i][currentRound-1] = null; // no score counted
+    currentHcp[i] = hcpVal;
+    continue; // skip rest of logic
+  }
 
         const diff = ptsVal - avg;
 
