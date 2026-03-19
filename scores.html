@@ -442,8 +442,7 @@ scores.forEach(r => {
     rows.forEach(r=>{
       const idx = r.round - 1;
       playerScores[i][idx] = r.points;
-      if(r.handicap != null){
-  currentHcp[i] = r.handicap;
+   if(r.handicap != null){
   playerHcpHistory[i][r.round - 1] = r.handicap;
 }
   if(r.next_handicap != null){
@@ -458,7 +457,15 @@ if(r.adj != null){
 }
     });
   });
+players.forEach((_, i) => {
+  const prevRound = currentRound - 1;
 
+  if(prevRound > 0 && playerNextHcpHistory[i][prevRound - 1] != null){
+    currentHcp[i] = playerNextHcpHistory[i][prevRound - 1];
+  } else {
+    currentHcp[i] = playerHcpHistory[i][0] ?? 0;
+  }
+});
 
 
 // 🏆 TROPHY LOGIC (FIXED)
