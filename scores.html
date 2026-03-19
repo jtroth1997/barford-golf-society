@@ -766,13 +766,21 @@ async function confirmReset(){
 
 async function exportLeaderboardCSV(){
   const rows = players.map((name,i)=>{
-    const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
+    const vals = playerScores[i]
+      .filter(v => v!=null)
+      .sort((a,b)=>b-a)
+      .slice(0,5);
+
     return {
       Player: name,
       Total: vals.reduce((a,b)=>a+b,0),
       Trophies: trophies[i]
     };
   });
+
+  // ✅ SORT BY TOTAL (DESCENDING)
+  rows.sort((a,b)=>b.Total - a.Total);
+
   downloadCSV("leaderboard", toCSV(rows));
 }
 
