@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barford Golf Society Handicap Calculator</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  font-family: "Inter", sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+header {
+  background: #083d0b;
+  color: #d4af37;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+}
+.topbar {
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+input {
+  padding: 6px;
+}
+table {
+  width: 95%;
+  margin: auto;
+  border-collapse: collapse;
+  background: white;
+}
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+th {
+  background: #083d0b;
+  color: #d4af37;
+}
+</style>
+</head>
+
+<body>
+
+<header>⛳ Barford Golf Society</header>
+
+<div class="topbar">
+<input type="password" id="pwInput" placeholder="Password">
+<button onclick="unlockInputs()">Unlock</button>
+<button onclick="calculateHandicaps()">Calculate</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Player</th>
+<th>HCP</th>
+<th>Points</th>
+<th>Adj</th>
+<th>Next HCP</th>
+</tr>
+</thead>
+<tbody id="playersTable"></tbody>
+</table>
+
+<script>
+const SUPABASE_URL = "https://tzzkgfehtnuizamzlbgr.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_KEY";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let PASSWORD = "westbrom1997";
+let unlocked = false;
+
+let players = [];
+let currentHcp = [];
+let nextHcp = [];
+let lastAdj = [];
+let scores = [];
+
+function unlockInputs(){
+  if(document.getElementById("pwInput").value !== PASSWORD){
+    alert("Wrong password");
+    return;
+  }
+  unlocked = true;
+  render();
+}
+
+async function load(){
+  const { data } = await supabase.from("players").select("*");
+  players = data.map(p => p.name);
+
+  currentHcp = players.map(()=>10);
+  nextHcp = players.map(()=>null);
+  lastAdj = players.map(()=> "");
+  scores = players.map(()=> null);
+
+  render();
+}
+
+function render(){
+  const tbody = document.getElementById("playersTable");
+  tbody.innerHTML = "";
+
+  players.forEach((p,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p}</td>
+      <td><input type="number" id="hcp_${i}" value="${currentHcp[i]}" ${unlocked?"":"disabled"}></td>
+      <td><input type="number" id="pts_${i}" ${unlocked?"":"disabled"}></td>
+      <td>${lastAdj[i]}</td>
+      <td>${nextHcp[i] ?? ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function calculateHandicaps(){
+  if(!unlocked) return alert("Unlock first");
+
+  let roundScores = [];
+
+  // Collect scores
+  for(let i=0;i<players.length;i++){
+    const pts = parseInt(document.getElementById(`pts_${i}`).value);
+    if(!isNaN(pts)) roundScores.push(pts);
+  }
+
+  if(roundScores.length < 4){
+    return alert("Minimum 4 players required");
+  }
+
+  // Round average
+  const avg = Math.round(roundScores.reduce((a,b)=>a+b,0)/roundScores.length);
+
+  for(let i=0;i<players.length;i++){
+    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
+    const pts = parseInt(document.getElementById(`pts_${i}`).value);
+
+    if(isNaN(pts)){
+      lastAdj[i] = "";
+      nextHcp[i] = null;
+      continue;
+    }
+
+    const diff = pts - avg;
+
+    // Base adjustment
+    let base = 0;
+    if(diff >= 10) base = -4;
+    else if(diff >= 8) base = -3;
+    else if(diff >= 6) base = -2;
+    else if(diff >= 4) base = -1;
+    else if(diff >= 2) base = -0.5;
+    else if(diff >= -1) base = 0;
+    else if(diff >= -3) base = 0.5;
+    else if(diff >= -5) base = 1;
+    else if(diff >= -7) base = 2;
+    else if(diff >= -9) base = 3;
+    else base = 4;
+
+    // Multiplier
+    let mult = 1;
+    if(hcp <= 9) mult = 0.5;
+    else if(hcp <= 18) mult = 0.75;
+    else if(hcp <= 28) mult = 1;
+    else mult = 1.25;
+
+    let adj = base * mult;
+
+    // Round to nearest 0.5
+    adj = Math.round(adj * 2) / 2;
+
+    // Caps
+    if(adj < -3) adj = -3;
+    if(adj > 2) adj = 2;
+
+    lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
+    nextHcp[i] = Math.max(0, hcp + adj);
+  }
+
+  render();
+}
+
+load();
+</script>
+
+</body>
+</html>
