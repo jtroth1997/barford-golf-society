@@ -361,13 +361,22 @@
     setTimeout(()=> t.style.opacity = 0, 2500);
   }
 
-  function toCSV(arr){
-    return arr.map(obj =>
-      Object.values(obj)
-        .map(v => `"${(v ?? "").toString().replace(/"/g,'""')}"`)
-        .join(",")
-    ).join("\n");
-  }
+ function toCSV(arr){
+  if(!arr.length) return "";
+
+  // ✅ Get column headers from keys
+  const headers = Object.keys(arr[0]);
+
+  // ✅ Header row
+  const headerRow = headers.join(",");
+
+  // ✅ Data rows
+  const rows = arr.map(obj =>
+    headers.map(h => `"${(obj[h] ?? "").toString().replace(/"/g,'""')}"`).join(",")
+  );
+
+  return [headerRow, ...rows].join("\n");
+}
 
   function stablefordAdj(pts){
     if(pts >= 43) return -3;
