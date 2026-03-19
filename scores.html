@@ -674,7 +674,7 @@ async function confirmReset(){
 
         let adj = baseAdj * multiplier;
 
-        adj = Math.round(adj * 2) / 2;
+        adj = Math.round(adj);
 
         if(adj < -3) adj = -3;
         if(adj > 2) adj = 2;
@@ -704,7 +704,7 @@ async function confirmReset(){
 
     if(error){
       console.error("Upsert error:", error);
-      alert("⚠️ Error saving data: " + err.message);
+      alert("⚠️ Error saving data: " + error.message);
     } else {
       showToast("✅ Scores & handicaps updated");
     }
