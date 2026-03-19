@@ -484,7 +484,7 @@ async function loadData(){
 
   // ✅ ✅ ✅ CORRECT PLACE (OUTSIDE LOOP)
 
-  // ROUND HEADER + PROGRESS
+
   document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
   document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
   document.getElementById("progressFill").style.width = `${(currentRound / maxRounds) * 100}%`;
@@ -492,38 +492,31 @@ async function loadData(){
   // SECRET ROUNDS (6 & 7)
   const wrap = document.getElementById("playersTableWrap");
   const secretNotice = document.getElementById("secretNotice");
-
-  if((currentRound === 6 || currentRound === 7) && !unlocked){
-    wrap.classList.add("table-secret");
-    secretNotice.style.display = "block";
-  } else {
-    wrap.classList.remove("table-secret");
-    secretNotice.style.display = "none";
-  }
-}
-    // ✅ ADD THIS AT THE VERY END OF renderLeaderboard()
-
-document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
-document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
-document.getElementById("progressFill").style.width = `${(currentRound / maxRounds) * 100}%`;
+if((currentRound === 6 || currentRound === 7) && !unlocked){
+  wrap.classList.add("table-secret");
+  secretNotice.style.display = "block";
+} else {
+  wrap.classList.remove("table-secret");
+  secretNotice.style.display = "none";
 }
 
-  function nextRound(){
-    if(currentRound < maxRounds){
-      currentRound++;
-      console.log("Moved to next round:", currentRound);
+} // ✅ THIS CLOSES renderLeaderboard()
 
-      // ✅ FIX: removed incorrect scoring logic from here
+function nextRound(){
+  if(currentRound < maxRounds){
+    currentRound++;
+    console.log("Moved to next round:", currentRound);
 
-      for(let i=0; i<players.length; i++){
-        currentHcp[i] = nextHcp[i] ?? currentHcp[i];
-        lastAdj[i] = "";
-      }
-      renderLeaderboard();
-    } else {
-      showToast("⛳ Already at final round");
+    for(let i=0; i<players.length; i++){
+      currentHcp[i] = nextHcp[i] ?? currentHcp[i];
+      lastAdj[i] = "";
     }
+
+    renderLeaderboard();
+  } else {
+    showToast("⛳ Already at final round");
   }
+}
 
  function unlockInputs(){
   const pw = document.getElementById("pwInput").value.trim();
