@@ -839,7 +839,7 @@ playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
         round: currentRound,
         handicap: currentHcp[i],
         points: playerScores[i][currentRound - 1],
-        adj: parseFloat(lastAdj[i]) || 0,
+        adj: lastAdj[i] === "DNP" ? null : parseInt(lastAdj[i]),
         next_handicap: nextHcp[i],
         total: total
       };
@@ -855,7 +855,6 @@ playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
     }
 
     trophies = players.map(()=>0);
-  trophies = players.map(()=>0);
 
 
   let topScore = -Infinity;
@@ -863,7 +862,7 @@ playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
 
   // Find top scorers
   for(let i=0; i<players.length; i++){
-    const pts = playerScores[i][rn-1];
+   const pts = playerScores[i][currentRound-1];
 
     if(pts != null){
       if(pts > topScore){
