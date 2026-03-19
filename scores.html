@@ -481,6 +481,11 @@ async function loadData(){
 
     tbody.appendChild(tr);
   });
+    // ✅ ADD THIS AT THE VERY END OF renderLeaderboard()
+
+document.getElementById("roundHeader").innerText = `Round ${currentRound} of ${maxRounds}`;
+document.getElementById("hcpHeader").innerText   = `Round ${currentRound} HCP`;
+document.getElementById("progressFill").style.width = `${(currentRound / maxRounds) * 100}%`;
 }
 
   function nextRound(){
