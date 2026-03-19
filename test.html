@@ -133,73 +133,139 @@ function render(){
 }
 
 async function calculateHandicaps(){
-  if(!unlocked) return alert("Unlock first");
+  if(!unlocked) return alert("Unlock required");
+
+  console.log("=== New Handicap System Round", currentRound);
 
   let roundScores = [];
 
-  // Collect scores
-  for(let i=0;i<players.length;i++){
-    const pts = parseInt(document.getElementById(`pts_${i}`).value);
-    if(!isNaN(pts)) roundScores.push(pts);
+  // STEP 1 — Collect scores
+  for(let i=0; i<players.length; i++){
+    const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
+    if(!isNaN(ptsVal)){
+      roundScores.push(ptsVal);
+    }
   }
 
   if(roundScores.length < 4){
-    return alert("Minimum 4 players required");
+    return alert("Minimum 4 players required for handicap calculation");
   }
 
-  // Round average
-  const avg = Math.round(roundScores.reduce((a,b)=>a+b,0)/roundScores.length);
+  // STEP 2 — Calculate average
+  const avg = Math.round(roundScores.reduce((a,b)=>a+b,0) / roundScores.length);
+  console.log("Round Average:", avg);
 
-  for(let i=0;i<players.length;i++){
-    const hcp = parseFloat(document.getElementById(`hcp_${i}`).value) || 0;
-    const pts = parseInt(document.getElementById(`pts_${i}`).value);
+  // STEP 3–6 — Process each player
+  for(let i=0; i<players.length; i++){
+    const hcpVal = parseFloat(document.getElementById(`hcp_${i}`)?.value) || 0;
+    const ptsVal = parseInt(document.getElementById(`pts_${i}`)?.value);
 
-    if(isNaN(pts)){
+    if(isNaN(ptsVal)){
       lastAdj[i] = "";
       nextHcp[i] = null;
       continue;
     }
 
-    const diff = pts - avg;
+    const diff = ptsVal - avg;
 
-    // Base adjustment
-    let base = 0;
-    if(diff >= 10) base = -4;
-    else if(diff >= 8) base = -3;
-    else if(diff >= 6) base = -2;
-    else if(diff >= 4) base = -1;
-    else if(diff >= 2) base = -0.5;
-    else if(diff >= -1) base = 0;
-    else if(diff >= -3) base = 0.5;
-    else if(diff >= -5) base = 1;
-    else if(diff >= -7) base = 2;
-    else if(diff >= -9) base = 3;
-    else base = 4;
+    // STEP 3 — Base Adjustment
+    let baseAdj = 0;
 
-    // Multiplier
-    let mult = 1;
-    if(hcp <= 9) mult = 0.5;
-    else if(hcp <= 18) mult = 0.75;
-    else if(hcp <= 28) mult = 1;
-    else mult = 1.25;
+    if(diff >= 10) baseAdj = -4;
+    else if(diff >= 8) baseAdj = -3;
+    else if(diff >= 6) baseAdj = -2;
+    else if(diff >= 4) baseAdj = -1;
+    else if(diff >= 2) baseAdj = -0.5;
+    else if(diff >= -1) baseAdj = 0;
+    else if(diff >= -3) baseAdj = +0.5;
+    else if(diff >= -5) baseAdj = +1;
+    else if(diff >= -7) baseAdj = +2;
+    else if(diff >= -9) baseAdj = +3;
+    else baseAdj = +4;
 
-    let adj = base * mult;
+    // STEP 5 — Handicap scaling
+    let multiplier = 1;
+
+    if(hcpVal <= 9) multiplier = 0.5;
+    else if(hcpVal <= 18) multiplier = 0.75;
+    else if(hcpVal <= 28) multiplier = 1.0;
+    else multiplier = 1.25;
+
+    let scaledAdj = baseAdj * multiplier;
 
     // Round to nearest 0.5
-    adj = Math.round(adj * 2) / 2;
+    scaledAdj = Math.round(scaledAdj * 2) / 2;
 
-    // Caps
-    if(adj < -3) adj = -3;
-    if(adj > 2) adj = 2;
+    // STEP 6 — Caps
+    if(scaledAdj < -3) scaledAdj = -3;
+    if(scaledAdj > 2) scaledAdj = 2;
 
-    lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
-    nextHcp[i] = Math.max(0, hcp + adj);
+    // Apply results
+    lastAdj[i] = scaledAdj > 0 ? `+${scaledAdj}` : `${scaledAdj}`;
+    nextHcp[i] = Math.max(0, hcpVal + scaledAdj);
+
+    playerScores[i][currentRound-1] = ptsVal;
+    currentHcp[i] = hcpVal;
+
+    console.log(players[i], {
+      score: ptsVal,
+      diff,
+      baseAdj,
+      multiplier,
+      scaledAdj,
+      newHcp: nextHcp[i]
+    });
   }
 
-  render();
-}
+  // SAVE TO DATABASE (unchanged)
+  const updates = players.map((name,i)=>{
+    const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b - a).slice(0,5);
+    const total = vals.reduce((a,b)=>a+b,0);
 
-load();
+    return {
+      player: name,
+      round: currentRound,
+      handicap: currentHcp[i],
+      points: playerScores[i][currentRound - 1],
+      adj: parseFloat(lastAdj[i]) || 0,
+      next_handicap: nextHcp[i],
+      total: total
+    };
+  });
+
+  const { error } = await supabaseClient
+    .from("scores")
+    .upsert(updates, { onConflict:["player","round"] });
+
+  if(error){
+    console.error("Upsert error:", error);
+    alert("⚠️ Error saving data");
+  } else {
+    showToast("✅ Scores & handicaps updated");
+  }
+
+  // Trophy logic (unchanged)
+  trophies = players.map(()=>0);
+
+  for(let rn=1; rn<=currentRound; rn++){
+    let top=-Infinity, winIdx=-1;
+
+    players.forEach((_,i)=>{
+      const pts = playerScores[i][rn - 1];
+      if(pts != null && pts > top){
+        top = pts;
+        winIdx = i;
+      }
+    });
+
+    if(winIdx >= 0) trophies[winIdx]++;
+  }
+
+  renderLeaderboard();
+  renderStatsGrid();
+
+  console.log("=== Calculation Complete ===");
+}
 </script>
 
 </body>
