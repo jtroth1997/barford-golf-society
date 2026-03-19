@@ -486,10 +486,6 @@ for(let rn = 0; rn < maxRounds; rn++){
   }
 }
 
-  // ✅ Give trophy to ALL winners (handles ties)
-  winners.forEach(i => trophies[i]++);
-}
-
   renderLeaderboard();
   renderStatsGrid();
   document.body.style.cursor = "default";
