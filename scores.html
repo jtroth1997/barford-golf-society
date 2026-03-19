@@ -501,9 +501,11 @@ renderStatsGrid();
     tr.innerHTML = `
       <td>${rank<3?["🥇","🥈","🥉"][rank]:rank+1}</td>
       <td>${players[i]}</td>
-      <td><input type="number" id="hcp_${i}" value="${
-        playerHcpHistory[i][currentRound-1] ?? currentHcp[i]
-      }" ${unlocked?"":"disabled"}></td>
+     <td><input type="number" id="hcp_${i}" value="${
+  currentRound > 1
+    ? (playerNextHcpHistory[i][currentRound-2] ?? currentHcp[i])
+    : (playerHcpHistory[i][0] ?? currentHcp[i])
+}" ${unlocked?"":"disabled"}></td>
       <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
       <td>${playerAdjHistory[i][currentRound-1] ?? ""}</td>
 <td>${playerNextHcpHistory[i][currentRound-1] ?? ""}</td>
