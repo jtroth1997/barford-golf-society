@@ -354,6 +354,8 @@
   let lastAdj      = [];
   let playerScores = [];
   let playerHcpHistory = [];
+  let playerAdjHistory = [];
+  let playerNextHcpHistory = [];
   function showToast(msg){
     const t = document.getElementById("toast");
     t.textContent = msg;
@@ -413,7 +415,8 @@ async function loadData(){
   lastAdj      = players.map(()=> "");
   playerScores = players.map(()=> Array(maxRounds).fill(null));
   playerHcpHistory = players.map(()=> Array(maxRounds).fill(null));
-
+  playerAdjHistory = players.map(()=> Array(maxRounds).fill(null));
+  playerNextHcpHistory = players.map(()=> Array(maxRounds).fill(null));
   const { data: scores, error: sErr } = await supabaseClient
     .from("scores")
     .select("*");
@@ -443,8 +446,13 @@ scores.forEach(r => {
   currentHcp[i] = r.handicap;
   playerHcpHistory[i][r.round - 1] = r.handicap;
 }
-      if(r.next_handicap != null) nextHcp[i]      = r.next_handicap;
-      if(r.adj           != null) lastAdj[i]      = (r.adj>0? "+" : "") + r.adj;
+  if(r.next_handicap != null){
+  playerNextHcpHistory[i][r.round - 1] = r.next_handicap;
+}
+
+if(r.adj != null){
+  playerAdjHistory[i][r.round - 1] = (r.adj > 0 ? "+" : "") + r.adj;
+}
     });
   });
 
@@ -578,8 +586,8 @@ renderStatsGrid();
         playerHcpHistory[i][currentRound-1] ?? currentHcp[i]
       }" ${unlocked?"":"disabled"}></td>
       <td><input type="number" id="pts_${i}" value="${playerScores[i][currentRound-1] ?? ""}" ${unlocked?"":"disabled"}></td>
-      <td>${lastAdj[i]}</td>
-      <td>${nextHcp[i] ?? ""}</td>
+      <td>${playerAdjHistory[i][currentRound-1] ?? ""}</td>
+<td>${playerNextHcpHistory[i][currentRound-1] ?? ""}</td>
       <td>${p.total}</td>
       <td>
         <input type="checkbox" disabled 
@@ -815,6 +823,8 @@ async function confirmReset(){
 
         lastAdj[i] = adj > 0 ? `+${adj}` : `${adj}`;
         nextHcp[i] = Math.max(0, hcpVal + adj);
+      playerAdjHistory[i][currentRound-1] = lastAdj[i];
+playerNextHcpHistory[i][currentRound-1] = nextHcp[i];
         playerScores[i][currentRound-1] = ptsVal;
         currentHcp[i] = hcpVal;
         playerHcpHistory[i][currentRound-1] = hcpVal;
