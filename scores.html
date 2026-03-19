@@ -552,7 +552,12 @@ renderStatsGrid();
     const vals = playerScores[i].filter(v => v!=null).sort((a,b)=>b-a).slice(0,5);
     const sum  = vals.reduce((a,b)=>a+b,0);
     return { idx:i, name, total: sum };
-  }).sort((a,b)=>b.total - a.total);
+ }).sort((a,b)=>{
+  if(b.total !== a.total){
+    return b.total - a.total; // sort by score first
+  }
+  return trophies[b.idx] - trophies[a.idx]; // 🏆 tiebreaker
+});;
 
   totals.forEach((p,rank)=>{
     const i = p.idx;
