@@ -698,7 +698,19 @@ async function confirmReset(){
       return alert("Minimum 4 players required for handicap calculation");
     }
 
-    const avg = Math.round(roundScores.reduce((a,b)=>a+b,0) / roundScores.length);
+    // ✅ REMOVE OUTLIERS (highest & lowest)
+
+let trimmedScores = [...roundScores];
+
+// Only trim if enough players
+if(trimmedScores.length > 4){
+  trimmedScores.sort((a,b)=>a-b);
+  trimmedScores = trimmedScores.slice(1, -1); // remove lowest & highest
+}
+
+const avg = Math.round(
+  trimmedScores.reduce((a,b)=>a+b,0) / trimmedScores.length
+);
     console.log("Round Average:", avg);
 
     for(let i=0; i<players.length; i++){
