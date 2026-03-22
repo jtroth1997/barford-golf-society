@@ -1653,6 +1653,11 @@ document.getElementById("teeEventSelect").onchange = () => {
     const area = document.getElementById("teeGroups");
     area.innerHTML = "";
     const start = document.getElementById("startTime").value.trim();
+
+if (!start) {
+  alert("❌ Please enter a start time (e.g. 9:00am)");
+  return;
+}
     const gap = parseInt(document.getElementById("gapMins").value) || 7;
     const all = window.currentPlayers || [];
     if(!all.length) return alert("No players to generate tee times");
@@ -1672,20 +1677,30 @@ document.getElementById("teeEventSelect").onchange = () => {
     for(let i = 0; i < buggy.length; i += 4) groups.push(buggy.slice(i, i+4));
     for(let i = 0; i < walkers.length; i += 4) groups.push(walkers.slice(i, i+4));
 
-    const addTime = (s, m) => {
-      let [t, a] = s.toLowerCase().split(/(am|pm)/).filter(Boolean);
-      let [h, mm] = t.split(":").map(Number);
-      if(a === "pm" && h < 12) h += 12;
-      if(a === "am" && h === 12) h = 0;
-      const d = new Date();
-      d.setHours(h);
-      d.setMinutes(mm + m);
-      const hr = d.getHours();
-      const mi = String(d.getMinutes()).padStart(2, "0");
-      const sfx = hr >= 12 ? "pm" : "am";
-      const disp = ((hr + 11) % 12) + 1;
-      return `${disp}:${mi}${sfx}`;
-    };
+  const addTime = (s, m) => {
+  if (!s) return "TBC";
+
+  const match = s.toLowerCase().match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+  if (!match) return "TBC";
+
+  let [, h, mm, a] = match;
+  h = parseInt(h);
+  mm = parseInt(mm);
+
+  if (a === "pm" && h < 12) h += 12;
+  if (a === "am" && h === 12) h = 0;
+
+  const d = new Date();
+  d.setHours(h);
+  d.setMinutes(mm + m);
+
+  const hr = d.getHours();
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  const suffix = hr >= 12 ? "pm" : "am";
+  const displayHr = ((hr + 11) % 12) + 1;
+
+  return `${displayHr}:${mins}${suffix}`;
+};
 
     groups.forEach((group, i) => {
       const tee = addTime(start, i * gap);
@@ -1817,10 +1832,17 @@ END:VCALENDAR`;
   if(!id) return alert("Please select an event first.");
 
   const grps = document.querySelectorAll(".tee-group");
-  const data = Array.from(grps).map((g, i) => ({
+ const data = Array.from(grps).map((g, i) => {
+  const time = g.dataset.time;
+
+  if (!time || time === "TBC") {
+    throw new Error(`❌ Missing tee time for group ${i + 1}`);
+  }
+
+  return {
     event_id: id,
     group_number: i + 1,
-    tee_time: g.dataset.time,
+    tee_time: time,
     players: Array.from(g.querySelectorAll(".player-card")).map(li => ({
       name: li.dataset.name,
       phone: li.dataset.phone,
@@ -1832,7 +1854,14 @@ END:VCALENDAR`;
   await supa.from("tee_times").delete().eq("event_id", id);
 
   // 📥 Insert new ones
+  try {
+  await supa.from("tee_times").delete().eq("event_id", id);
   await supa.from("tee_times").insert(data);
+  alert("✅ Tee times saved.");
+} catch (err) {
+  alert(err.message);
+  return;
+}
 
   alert("✅ Tee times saved.");
 
@@ -2240,19 +2269,29 @@ async function processDropout() {
   const gap = parseInt(document.getElementById("gapMins").value) || 7;
 
   const addTime = (s, m) => {
-    let [t, a] = s.toLowerCase().split(/(am|pm)/).filter(Boolean);
-    let [h, mm] = t.split(":").map(Number);
-    if (a === "pm" && h < 12) h += 12;
-    if (a === "am" && h === 12) h = 0;
-    const d = new Date();
-    d.setHours(h);
-    d.setMinutes(mm + m);
-    const hr = d.getHours();
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    const sfx = hr >= 12 ? "pm" : "am";
-    const disp = ((hr + 11) % 12) + 1;
-    return `${disp}:${mi}${sfx}`;
-  };
+  if (!s) return "TBC";
+
+  const match = s.toLowerCase().match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+  if (!match) return "TBC";
+
+  let [, h, mm, a] = match;
+  h = parseInt(h);
+  mm = parseInt(mm);
+
+  if (a === "pm" && h < 12) h += 12;
+  if (a === "am" && h === 12) h = 0;
+
+  const d = new Date();
+  d.setHours(h);
+  d.setMinutes(mm + m);
+
+  const hr = d.getHours();
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  const suffix = hr >= 12 ? "pm" : "am";
+  const displayHr = ((hr + 11) % 12) + 1;
+
+  return `${displayHr}:${mins}${suffix}`;
+};
 
   while (buggy.length >= 2) {
     const gPlayers = [buggy.pop(), buggy.pop()];
