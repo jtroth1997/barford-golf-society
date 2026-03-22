@@ -1832,7 +1832,7 @@ END:VCALENDAR`;
   if(!id) return alert("Please select an event first.");
 
   const grps = document.querySelectorAll(".tee-group");
- const data = Array.from(grps).map((g, i) => {
+const data = Array.from(grps).map((g, i) => {
   const time = g.dataset.time;
 
   if (!time || time === "TBC") {
@@ -1848,7 +1848,8 @@ END:VCALENDAR`;
       phone: li.dataset.phone,
       type: li.dataset.type
     }))
-  }));
+  };
+});
 
   // 🧼 Remove existing tee times
   await supa.from("tee_times").delete().eq("event_id", id);
