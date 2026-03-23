@@ -1878,7 +1878,7 @@ const data = Array.from(grps).map((g, i) => {
   };
 });
 
- try {
+try {
   await supa.from("tee_times").delete().eq("event_id", id);
   await supa.from("tee_times").insert(data);
   alert("✅ Tee times saved.");
@@ -1886,13 +1886,6 @@ const data = Array.from(grps).map((g, i) => {
   alert(err.message);
   return;
 }
-  await supa.from("tee_times").insert(data);
-  alert("✅ Tee times saved.");
-} catch (err) {
-  alert(err.message);
-  return;
-}
-
   alert("✅ Tee times saved.");
 
   // ✅ Refresh UI
