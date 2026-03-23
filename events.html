@@ -1750,20 +1750,25 @@ li.innerHTML = `${p.buggy ? "🛺" : "🚶"} ${p.name}${pref} ${p.phone ? " (" +
     alert("✅ Tee times generated! Click '➕' on two buggy players to create a pair.");
   
 
+let currentPairSelection = [];
+
 function selectForPair(btn) {
   const li = btn.closest(".player-card");
+  if (!li) return;
+
   const groupNum = li.dataset.group;
 
-  // Only buggy players can be paired
+  // ❌ Only buggy players allowed
   if (li.dataset.type !== "buggy") {
     alert("Only buggy players can form pairs.");
     return;
   }
 
+  // ❌ Prevent selecting same player twice
+  if (currentPairSelection.some(p => p.element === li)) return;
+
   // Highlight selected player
   li.style.border = "2px solid var(--green)";
-
-  if (currentPairSelection.find(p => p.element === li)) return;
 
   currentPairSelection.push({
     name: li.dataset.name,
@@ -1772,82 +1777,41 @@ function selectForPair(btn) {
     element: li
   });
 
-  // When 2 players selected → create pair
+  // ✅ When 2 players selected → create pair
   if (currentPairSelection.length === 2) {
     const [p1, p2] = currentPairSelection;
 
-    // Must be same group
+    // ❌ Must be same group
     if (p1.group !== p2.group) {
       alert("Both players must be in the same group to pair.");
+
       currentPairSelection.forEach(p => {
         p.element.style.border = "1px solid #ddd";
       });
+
       currentPairSelection = [];
       return;
     }
 
-    // Add pairing display
     const msgElem = document.getElementById(`pairInfo_${groupNum}`);
-    msgElem.innerHTML += `🛺 Pair: ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"}) ✅<br>`;
+    if (!msgElem) return;
 
-    p1.element.style.background = "#e4ffe4";
-    p2.element.style.background = "#e4ffe4";
-    p1.element.style.border = "1px solid #ddd";
-    p2.element.style.border = "1px solid #ddd";
+    // ✅ Prevent duplicate pair display
+    const pairText = `🛺 Pair: ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"})`;
+    if (!msgElem.innerHTML.includes(pairText)) {
+      msgElem.innerHTML += `${pairText} ✅<br>`;
+    }
 
+    // ✅ Visual feedback
+    [p1, p2].forEach(p => {
+      p.element.style.background = "#e4ffe4";
+      p.element.style.border = "1px solid #ddd";
+    });
+
+    // Reset selection
     currentPairSelection = [];
   }
 }
-    
-/**********************************************
- * ADD TO CALENDAR GENERATOR
- **********************************************/
-function addCalendarLinks(id, title, startISO, endISO, location, description) {
-  // Google Calendar
-  const gcalUrl = 
-    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
-    `&text=${encodeURIComponent(title)}` +
-    `&dates=${startISO}/${endISO}` +
-    `&details=${encodeURIComponent(description)}` +
-    `&location=${encodeURIComponent(location)}`;
-
-  // Yahoo Calendar
-  const yahooUrl =
-    `https://calendar.yahoo.com/?v=60` +
-    `&title=${encodeURIComponent(title)}` +
-    `&st=${startISO}` +
-    `&et=${endISO}` +
-    `&desc=${encodeURIComponent(description)}` +
-    `&in_loc=${encodeURIComponent(location)}`;
-
-  // ICS file content (Apple, Outlook, most apps)
-  const icsContent =
-`BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-SUMMARY:${title}
-DESCRIPTION:${description}
-LOCATION:${location}
-DTSTART:${startISO}
-DTEND:${endISO}
-END:VEVENT
-END:VCALENDAR`;
-
-  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-  const icsUrl = URL.createObjectURL(blob);
-
-  // Insert formatted HTML
-  const container = document.getElementById(`addCal_${id}`);
-  container.innerHTML = `
-    <button class="admin-btn" onclick="this.nextElementSibling.style.display='block'">📅 Add to Calendar</button>
-    <div class="calendar-links" style="display:none; margin-top:8px;">
-      <a href="${gcalUrl}" target="_blank">Google Calendar</a> |
-      <a href="${yahooUrl}" target="_blank">Yahoo</a> |
-      <a href="${icsUrl}" download="${title}.ics">iCal / Outlook (.ics)</a>
-    </div>
-  `;
-}
-
   async function checkTeeTimesExist(eventId) {
   const { data } = await supa
     .from("tee_times")
