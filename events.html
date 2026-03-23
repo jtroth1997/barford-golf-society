@@ -1128,6 +1128,24 @@ if (teeTimes?.length > 0) {
 
 } // <-- **NEW**: closes the `loadEvents()` function
 
+function addCalendarLinks(id, title, start, end, location, description) {
+  const el = document.getElementById(`addCal_${id}`);
+  if (!el) return;
+
+  const url = `https://www.google.com/calendar/render?action=TEMPLATE
+&text=${encodeURIComponent(title)}
+&dates=${start}/${end}
+&details=${encodeURIComponent(description)}
+&location=${encodeURIComponent(location)}
+&sf=true&output=xml`;
+
+  el.innerHTML = `
+    <a href="${url}" target="_blank" style="color: var(--green); font-weight:600;">
+      📅 Add to Calendar
+    </a>
+  `;
+}
+  
   function toggleDescription(btn) {
   const desc = btn.previousElementSibling;
   const expanded = desc.classList.toggle("expanded");
