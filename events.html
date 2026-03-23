@@ -863,6 +863,9 @@
       📲 Send WhatsApp Tee Times
     </button>
   </div>
+     <button onclick="editExistingTeeTimes()" class="admin-btn" style="margin-top:1rem;">
+  ✏️ Edit Existing Tee Times
+</button>
 
   <div id="teeGroups" style="margin-top:1.5rem;"></div>
 </div>
@@ -1723,8 +1726,17 @@ li.innerHTML = `${p.buggy ? "🛺" : "🚶"} ${p.name}${pref} ${p.phone ? `(${p.
         ul.appendChild(li);
       });
 
-      Sortable.create(ul, { group: "players", animation: 150 });
-    });
+      Sortable.create(ul, {
+  group: "players",
+  animation: 150,
+  onAdd: function (evt) {
+    const newGroup = evt.to.closest(".tee-group")
+      .querySelector("strong").innerText.match(/\d+/)[0];
+
+    evt.item.dataset.group = newGroup;
+  }
+});
+  
 
     alert("✅ Tee times generated! Click '➕' on two buggy players to create a pair.");
   }
@@ -1867,6 +1879,78 @@ const data = Array.from(grps).map((g, i) => {
 // RSVP Management (Admin Tab)
 // ——————————————
 
+  async function editExistingTeeTimes() {
+  const eventId = document.getElementById("teeEventSelect").value;
+
+  if (!eventId) {
+    alert("⚠️ Select an event first");
+    return;
+  }
+
+  const { data, error } = await supa
+    .from("tee_times")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("group_number", { ascending: true });
+
+  if (error || !data?.length) {
+    alert("❌ No saved tee times found");
+    return;
+  }
+
+  const area = document.getElementById("teeGroups");
+  area.innerHTML = "";
+
+  data.forEach(group => {
+    const div = document.createElement("div");
+    div.className = "tee-group";
+    div.dataset.time = group.tee_time;
+
+    div.innerHTML = `
+      <strong>Group ${group.group_number}</strong> — ${group.tee_time}
+      <ul id="grp${group.group_number}" class="player-list" style="list-style:none;padding:0;margin-top:8px;"></ul>
+      <div class='pair-info' id='pairInfo_${group.group_number}' style='margin-top:8px;font-weight:600;color:var(--green);'></div>
+    `;
+
+    area.appendChild(div);
+
+    const ul = div.querySelector("ul");
+
+    group.players.forEach(p => {
+      const li = document.createElement("li");
+      li.className = "player-card";
+      li.dataset.name = p.name;
+      li.dataset.phone = p.phone || "";
+      li.dataset.type = p.type;
+      li.dataset.group = group.group_number;
+
+      li.innerHTML = `
+        ${p.type === "buggy" ? "🛺" : "🚶"} ${p.name} ${p.phone ? `(${p.phone})` : ""}
+        <div style="float:right;">
+          <button onclick='toggleType(this)' style='font-size:11px;padding:2px 6px;'>🔄</button>
+          <button onclick='selectForPair(this)' style='font-size:11px;padding:2px 6px;'>➕</button>
+        </div>
+      `;
+
+      ul.appendChild(li);
+    });
+
+    // enable drag
+    Sortable.create(ul, {
+      group: "players",
+      animation: 150,
+      onAdd: function (evt) {
+        const newGroup = evt.to.closest(".tee-group")
+          .querySelector("strong").innerText.match(/\d+/)[0];
+
+        evt.item.dataset.group = newGroup;
+      }
+    });
+  });
+
+  alert("✏️ Tee times loaded — you can now edit and re-save!");
+}
+  
 async function loadAdminRsvps() {
   const sel = document.getElementById("manageRsvpEventSelect");
   const eventId = sel ? sel.value : null;
