@@ -1658,6 +1658,7 @@ document.getElementById("teeEventSelect").onchange = () => {
     li.innerHTML = li.innerHTML.replace(isBuggy ? "🛺" : "🚶", isBuggy ? "🚶" : "🛺");
     li.appendChild(btn.parentElement);
   }
+ 
 
   function generateTeeGroups(eventId){
     const area = document.getElementById("teeGroups");
@@ -1763,6 +1764,7 @@ function selectForPair(btn) {
   li.style.border = "2px solid var(--green)";
 
   if (currentPairSelection.find(p => p.element === li)) return;
+
   currentPairSelection.push({
     name: li.dataset.name,
     phone: li.dataset.phone,
@@ -1785,14 +1787,16 @@ function selectForPair(btn) {
     }
 
     // Add pairing display
-   const msgElem = document.getElementById(`pairInfo_${groupNum}`);
-msgElem.innerHTML += `🛺 Pair: ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"}) ✅<br>`;
-p1.element.style.background = "#e4ffe4";
-p2.element.style.background = "#e4ffe4";
-p1.element.style.border = "1px solid #ddd";
-p2.element.style.border = "1px solid #ddd";
-currentPairSelection = [];
-}
+    const msgElem = document.getElementById(`pairInfo_${groupNum}`);
+    msgElem.innerHTML += `🛺 Pair: ${p1.name} (${p1.phone || "N/A"}) & ${p2.name} (${p2.phone || "N/A"}) ✅<br>`;
+
+    p1.element.style.background = "#e4ffe4";
+    p2.element.style.background = "#e4ffe4";
+    p1.element.style.border = "1px solid #ddd";
+    p2.element.style.border = "1px solid #ddd";
+
+    currentPairSelection = [];
+  }
 }
     
 /**********************************************
